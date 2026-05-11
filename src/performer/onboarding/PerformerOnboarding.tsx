@@ -14,7 +14,7 @@ import { Step8Summary } from "./steps/Step8Summary";
 
 export function PerformerOnboarding() {
   const navigate = useNavigate();
-  const { step, name, phone, email, skills, city, address, radius, complete, reset } =
+  const { step, name, phone, skills, city, address, radius, complete, reset } =
     useOnboardingStore();
   const { updateProfile } = usePerformerStore();
 
