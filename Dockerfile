@@ -9,9 +9,8 @@ RUN echo "$BUILD_DATE"
 RUN npm run build
 
 FROM node:20-alpine
-RUN npm install -g serve
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
-COPY generate-env.js ./generate-env.js
+COPY server.js ./server.js
 EXPOSE 8080
-CMD ["sh", "-c", "node generate-env.js && serve dist -l ${PORT:-8080} -s"]
+CMD ["node", "server.js"]
