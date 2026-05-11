@@ -51,7 +51,13 @@ export function PerformerSidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="px-4 py-3 border-b border-gray-50">
+      <div className="px-4 py-3 border-b border-gray-50 flex flex-col gap-2">
+        <Link
+          to="/performer/onboarding"
+          className="flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-black text-white text-xs font-semibold hover:bg-gray-800 transition-all"
+        >
+          + Новая регистрация
+        </Link>
         <Link
           to="/dashboard"
           className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all"

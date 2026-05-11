@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Clock, MapPin, Navigation, MessageSquare, Check, X } from "lucide-react";
+import { Clock, MapPin, MessageSquare, Check, X } from "lucide-react";
 import { formatPrice } from "../../../utils/priceCalculator";
+import { DistanceBadge } from "../ui/DistanceBadge";
 import type { PerformerOrder } from "../../types";
 
 interface AvailableOrderCardProps {
@@ -26,11 +27,16 @@ export function AvailableOrderCard({ order, onAccept, onReject }: AvailableOrder
       {/* Header */}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div>
-            <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-              {order.categoryName}
-            </span>
-            <p className="text-base font-semibold text-gray-900 mt-1.5">{order.serviceName}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                {order.categoryName}
+              </span>
+              {order.distance && (
+                <DistanceBadge distance={order.distance} etaMinutes={order.etaMinutes} />
+              )}
+            </div>
+            <p className="text-base font-semibold text-gray-900">{order.serviceName}</p>
           </div>
           <div className="text-right shrink-0">
             <p className="text-xl font-bold text-gray-900">{formatPrice(order.priceTotal)}</p>
@@ -48,12 +54,6 @@ export function AvailableOrderCard({ order, onAccept, onReject }: AvailableOrder
             <MapPin size={12} className="text-gray-400 shrink-0" />
             {order.address}
           </div>
-          {order.distance && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Navigation size={12} className="text-gray-400 shrink-0" />
-              {order.distance} от вас
-            </div>
-          )}
           {order.comment && (
             <div className="flex items-start gap-2 text-xs text-gray-500 mt-1">
               <MessageSquare size={12} className="text-gray-400 shrink-0 mt-0.5" />

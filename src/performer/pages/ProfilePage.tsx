@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Phone, MessageCircle, Edit3, Check } from "lucide-react";
+import { Star, Phone, MessageCircle, Edit3, Check, Plus } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { AddressSection } from "../components/ui/AddressSection";
+import { BankCardItem } from "../components/ui/BankCardItem";
 
 export function PerformerProfilePage() {
-  const { profile, updateProfile } = usePerformerStore();
+  const { profile, updateProfile, bankCards, removeBankCard, setDefaultCard } = usePerformerStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     name: profile.name,
@@ -44,7 +46,6 @@ export function PerformerProfilePage() {
           </div>
         </div>
 
-        {/* Specializations */}
         <div className="mt-5 flex flex-wrap gap-2">
           {profile.specializations.map((s) => (
             <span
@@ -61,7 +62,7 @@ export function PerformerProfilePage() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.08 }}
         className="border border-gray-100 rounded-2xl p-5 mb-4"
       >
         <div className="flex items-center justify-between mb-4">
@@ -93,11 +94,47 @@ export function PerformerProfilePage() {
         </div>
       </motion.div>
 
+      {/* Address + work radius */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.11 }}
+        className="mb-4"
+      >
+        <AddressSection />
+      </motion.div>
+
+      {/* Bank cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.14 }}
+        className="mb-4"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Карты для выплат</p>
+          <button className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors">
+            <Plus size={13} />
+            Добавить
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
+          {bankCards.map((card) => (
+            <BankCardItem
+              key={card.id}
+              card={card}
+              onSetDefault={() => setDefaultCard(card.id)}
+              onDelete={() => removeBankCard(card.id)}
+            />
+          ))}
+        </div>
+      </motion.div>
+
       {/* Stats block */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
+        transition={{ delay: 0.17 }}
         className="grid grid-cols-3 gap-3"
       >
         <StatCard label="Рейтинг" value={String(profile.rating)} />

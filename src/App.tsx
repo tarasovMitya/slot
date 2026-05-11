@@ -19,6 +19,7 @@ import { EarningsPage } from "./performer/pages/EarningsPage";
 import { SchedulePage } from "./performer/pages/SchedulePage";
 import { PerformerProfilePage } from "./performer/pages/ProfilePage";
 import { PerformerNotificationsPage } from "./performer/pages/NotificationsPage";
+import { PerformerOnboarding } from "./performer/onboarding/PerformerOnboarding";
 
 function App() {
   return (
@@ -39,6 +40,9 @@ function App() {
           <Route path="support" element={<SupportPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
+
+        {/* Performer onboarding */}
+        <Route path="/performer/onboarding" element={<PerformerOnboarding />} />
 
         {/* Performer dashboard */}
         <Route path="/performer" element={<PerformerLayout />}>
