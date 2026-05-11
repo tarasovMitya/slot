@@ -27,6 +27,16 @@ const MIME = {
 };
 
 const supabaseHost = SUPABASE_URL ? new URL(SUPABASE_URL).hostname : null;
+console.log("SUPABASE_URL =", SUPABASE_URL, "| host =", supabaseHost);
+
+// Connectivity test at startup
+if (supabaseHost) {
+  https.get(`https://${supabaseHost}/`, (r) => {
+    console.log("Supabase reachable, status:", r.statusCode);
+  }).on("error", (e) => {
+    console.error("Supabase NOT reachable:", e.code, e.message);
+  });
+}
 
 http.createServer((req, res) => {
   // Proxy Supabase requests through the server (bypasses regional DNS blocking)
