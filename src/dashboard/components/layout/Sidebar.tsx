@@ -1,4 +1,4 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -9,8 +9,10 @@ import {
   HelpCircle,
   Bell,
   Zap,
+  LogOut,
 } from "lucide-react";
 import { useDashboardStore } from "../../store/dashboardStore";
+import { useAuthStore } from "../../../store/authStore";
 
 const navItems = [
   { to: "/dashboard", label: "Главная", icon: LayoutDashboard, end: true },
@@ -26,6 +28,19 @@ const navItems = [
 export function Sidebar() {
   const notifications = useDashboardStore((s) => s.notifications);
   const unread = notifications.filter((n) => !n.read).length;
+  const { user, signOut } = useAuthStore();
+  const navigate = useNavigate();
+
+  const displayName = (user?.user_metadata?.full_name as string | undefined)
+    ?? user?.email?.split("@")[0]
+    ?? "Пользователь";
+  const email = user?.email ?? "";
+  const initials = displayName.slice(0, 2).toUpperCase();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-gray-100 min-h-screen sticky top-0 pt-8 pb-6 px-4">
@@ -71,12 +86,19 @@ export function Sidebar() {
         </Link>
         <div className="flex items-center gap-3 py-1">
           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-600">
-            МТ
+            {initials}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">Митя Тарасов</p>
-            <p className="text-xs text-gray-400 truncate">tarasovmitya@gmail.com</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+            <p className="text-xs text-gray-400 truncate">{email}</p>
           </div>
+          <button
+            onClick={handleSignOut}
+            title="Выйти"
+            className="text-gray-400 hover:text-gray-700 transition-colors shrink-0"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>

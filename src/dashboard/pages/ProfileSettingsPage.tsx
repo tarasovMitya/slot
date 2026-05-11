@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Check } from "lucide-react";
+import { Check, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
+import { useAuthStore } from "../../store/authStore";
 import type { UserProfile } from "../types";
 
 export function ProfileSettingsPage() {
   const { profile, updateProfile } = useDashboardStore();
+  const { user, signOut } = useAuthStore();
+  const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
+
+  const displayName = (user?.user_metadata?.full_name as string | undefined)
+    ?? user?.email?.split("@")[0]
+    ?? profile.name
+    ?? "Пользователь";
+  const email = user?.email ?? profile.email ?? "";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   const { register, handleSubmit } = useForm<UserProfile>({
     defaultValues: profile,
@@ -18,6 +29,11 @@ export function ProfileSettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
       <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-8">Профиль</h1>
@@ -25,12 +41,19 @@ export function ProfileSettingsPage() {
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-8">
         <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-semibold text-gray-600">
-          {profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+          {initials}
         </div>
-        <div>
-          <p className="text-base font-semibold text-gray-900">{profile.name}</p>
-          <p className="text-sm text-gray-400">{profile.email}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-semibold text-gray-900">{displayName}</p>
+          <p className="text-sm text-gray-400 truncate">{email}</p>
         </div>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all"
+        >
+          <LogOut size={15} />
+          Выйти
+        </button>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
