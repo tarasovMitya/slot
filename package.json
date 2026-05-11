@@ -1,14 +1,13 @@
 {
-  "name": "calc",
+  "name": "slot",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
-    "start": "npx serve dist -l $PORT -s"
+    "start": "node_modules/.bin/serve dist -l $PORT -s"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
