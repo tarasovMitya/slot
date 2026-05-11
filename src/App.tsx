@@ -1,5 +1,10 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Calculator } from "./components/Calculator";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthPage } from "./pages/AuthPage";
+import { AuthCallbackPage } from "./pages/AuthCallbackPage";
+import { useAuthStore } from "./store/authStore";
 import { DashboardLayout } from "./dashboard/components/layout/DashboardLayout";
 import { DashboardPage } from "./dashboard/pages/DashboardPage";
 import { ActiveOrdersPage } from "./dashboard/pages/ActiveOrdersPage";
@@ -22,14 +27,32 @@ import { PerformerNotificationsPage } from "./performer/pages/NotificationsPage"
 import { PerformerOnboarding } from "./performer/onboarding/PerformerOnboarding";
 
 function App() {
+  const { initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/calculator" element={<Calculator />} />
+        {/* Public: calculator entry point */}
+        <Route path="/" element={<Calculator />} />
+        <Route path="/calculator" element={<Navigate to="/" replace />} />
 
-        {/* Customer dashboard */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        {/* Auth */}
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+        {/* Customer dashboard — protected */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<DashboardPage />} />
           <Route path="orders" element={<ActiveOrdersPage />} />
           <Route path="orders/:id" element={<OrderDetailsPage />} />

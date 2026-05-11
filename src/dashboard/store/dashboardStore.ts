@@ -11,11 +11,9 @@ import type {
   ActivePerformer,
 } from "../types";
 import {
-  mockOrders,
   mockAddresses,
   mockPayments,
   mockNotifications,
-  mockProfile,
 } from "../data/mockData";
 
 const MOCK_PERFORMER: ActivePerformer = {
@@ -62,11 +60,11 @@ interface DashboardState {
 }
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
-  orders: mockOrders,
+  orders: [],
   addresses: mockAddresses,
   payments: mockPayments,
   notifications: mockNotifications,
-  profile: mockProfile,
+  profile: { id: "", name: "", phone: "", email: "", notifyEmail: true, notifySms: true, notifyPush: false },
   isLoading: false,
 
   // Order flow state machine

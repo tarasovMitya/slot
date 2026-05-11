@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { supabase } from "../../lib/supabase";
 import { useCalculatorStore } from "../../store/calculatorStore";
+import { useAuthStore } from "../../store/authStore";
 
 type SubStep = "email" | "otp" | "profile";
 
@@ -15,6 +16,15 @@ export function AuthStep() {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const { setContacts, goNext } = useCalculatorStore();
+  const { user, isAuthenticated } = useAuthStore();
+
+  // Already has a session — skip OTP, pre-fill email and jump to profile sub-step
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      setEmail(user.email);
+      setSubStep("profile");
+    }
+  }, [isAuthenticated, user]);
 
   const emailForm = useForm<{ email: string }>();
   const profileForm = useForm<{ name: string; address: string; comment?: string }>();
@@ -55,9 +65,9 @@ export function AuthStep() {
     setLoading(false);
   };
 
-  // Step 3 — сохранить имя и адрес
+  // Step 3 — save name and address, then proceed to checkout
   const handleProfile = profileForm.handleSubmit(async ({ name, address, comment }) => {
-    setContacts({ name, email, address, comment: comment ?? "" });
+    setContacts({ name, email: email || user?.email || "", address, comment: comment ?? "" });
     goNext();
   });
 

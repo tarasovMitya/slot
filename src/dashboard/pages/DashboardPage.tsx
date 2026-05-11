@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Plus, RotateCcw, ClipboardList } from "lucide-react";
+import { ArrowRight, Plus, RotateCcw, ClipboardList, LogOut } from "lucide-react";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useCalculatorStore } from "../../store/calculatorStore";
+import { useAuthStore } from "../../store/authStore";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
 import { SearchingOrderCard } from "../components/cards/SearchingOrderCard";
 import { OrderCard } from "../components/cards/OrderCard";
@@ -14,8 +15,13 @@ import { PaymentModal } from "../components/PaymentModal";
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { orders, profile, isLoading, simulateLoading, addresses } = useDashboardStore();
+  const { orders, isLoading, simulateLoading, addresses } = useDashboardStore();
   const { setSkipAuth, setContacts } = useCalculatorStore();
+  const { user, signOut } = useAuthStore();
+
+  const displayName = user?.user_metadata?.full_name as string | undefined
+    ?? user?.email?.split("@")[0]
+    ?? "Гость";
 
   useEffect(() => {
     simulateLoading(600);
@@ -24,13 +30,18 @@ export function DashboardPage() {
   const handleNewOrder = () => {
     const defaultAddress = addresses.find((a) => a.isDefault);
     setContacts({
-      name: profile.name,
-      email: profile.email,
+      name: displayName,
+      email: user?.email ?? "",
       address: defaultAddress ? `${defaultAddress.street}, ${defaultAddress.city}` : "",
       comment: "",
     });
     setSkipAuth(true);
-    navigate("/calculator");
+    navigate("/");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
   };
 
   const activeOrders = orders.filter(
@@ -58,10 +69,21 @@ export function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="text-sm text-gray-400 font-medium">{greeting},</p>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mt-0.5">
-          {profile.name.split(" ")[0]} 👋
-        </h1>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm text-gray-400 font-medium">{greeting},</p>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight mt-0.5">
+              {displayName} 👋
+            </h1>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mt-1"
+          >
+            <LogOut size={15} />
+            Выйти
+          </button>
+        </div>
       </motion.div>
 
       {/* Active Orders */}
