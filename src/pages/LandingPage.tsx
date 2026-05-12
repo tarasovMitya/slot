@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
   Zap, Droplet, Sparkles, Hammer, Package, Wrench,
-  CheckCircle, Clock, Star, Shield, ChevronDown,
+  CheckCircle, Clock, Star, Shield, ChevronDown, ChevronRight,
   Menu, X, ArrowRight, MapPin, UserCheck, Lock, TrendingUp,
 } from "lucide-react";
 import { Calculator } from "../components/Calculator";
@@ -73,12 +73,6 @@ const FAQ = [
   { q: "Можно ли отменить заказ?",             a: "Да, заказ можно отменить до назначения исполнителя. После назначения отмена возможна с небольшой комиссией сервиса." },
   { q: "Кто выполняет работы?",               a: "Работы выполняют верифицированные исполнители — физические лица или самозанятые, прошедшие проверку документов." },
 ];
-
-const CAT_PREVIEWS: Record<string, { services: string[]; price: string }> = {
-  "Электрика": { services: ["Установка розетки / выключателя", "Замена проводки", "Подключение люстры"], price: "от 1 500 ₽" },
-  "Сантехника": { services: ["Замена смесителя", "Устранение засора", "Установка унитаза"], price: "от 1 200 ₽" },
-  "Уборка": { services: ["Генеральная уборка", "Мытьё окон", "Уборка после ремонта"], price: "от 2 000 ₽" },
-};
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 
