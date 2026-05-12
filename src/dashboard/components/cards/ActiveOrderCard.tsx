@@ -44,10 +44,10 @@ interface ActiveOrderCardProps {
 
 export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
   const progress = statusProgress[order.status] ?? 0;
-  const date = new Date(order.scheduledDate).toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "long",
-  });
+  const dateObj = order.scheduledDate ? new Date(order.scheduledDate) : null;
+  const date = dateObj && !isNaN(dateObj.getTime())
+    ? dateObj.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })
+    : "";
 
   const remainingMs = useRemainingMs(order.assignedAt);
 
