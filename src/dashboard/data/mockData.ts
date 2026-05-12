@@ -233,6 +233,7 @@ export const mockProfile: UserProfile = {
   name: "Митя Тарасов",
   phone: "+7 (999) 123-45-67",
   email: "tarasovmitya@gmail.com",
+  address: "",
   notifyEmail: true,
   notifySms: true,
   notifyPush: false,

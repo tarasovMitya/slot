@@ -32,6 +32,7 @@ export function DashboardPage() {
     setContacts({
       name: displayName,
       email: user?.email ?? "",
+      phone: "",
       address: defaultAddress ? `${defaultAddress.street}, ${defaultAddress.city}` : "",
       comment: "",
     });
