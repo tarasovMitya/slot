@@ -3,20 +3,12 @@ import { ClipboardList, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
-import { useState } from "react";
 import { EmptyState } from "../components/ui/EmptyState";
 
 export function ActiveOrdersPage() {
   const { orders, cancelOrder } = useDashboardStore();
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const activeOrders = orders.filter((o) => !["completed", "cancelled"].includes(o.status));
   const searchingOrders = orders.filter((o) => o.status === "searching");
-
-  const handleCancel = (orderId: string) => {
-    setCancellingId(orderId);
-    cancelOrder(orderId);
-    setCancellingId(null);
-  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
@@ -56,7 +48,7 @@ export function ActiveOrdersPage() {
             <ActiveOrderCard
               key={order.id}
               order={order}
-              onCancel={() => handleCancel(order.id)}
+              onCancel={() => cancelOrder(order.id)}
             />
           ))}
         </motion.div>

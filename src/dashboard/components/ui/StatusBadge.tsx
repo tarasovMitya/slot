@@ -1,6 +1,7 @@
 import type { OrderStatus } from "../../types";
 
 const config: Record<OrderStatus, { label: string; className: string }> = {
+  pending_payment: { label: "Ожидает оплаты", className: "bg-yellow-50 text-yellow-700" },
   searching: { label: "Ищем исполнителя", className: "bg-amber-50 text-amber-700" },
   assigned: { label: "Исполнитель найден", className: "bg-blue-50 text-blue-700" },
   on_the_way: { label: "Едет к вам", className: "bg-indigo-50 text-indigo-700" },
