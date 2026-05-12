@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
-import type { UserProfile, Address, Order } from "../dashboard/types";
+import type { UserProfile, Address, Order, PriceItem } from "../dashboard/types";
 import type { PerformerProfile } from "../performer/types";
+import type { SharedOrder, SharedOrderStatus, PerformerInfo } from "../store/sharedOrdersStore";
 
 // ─── Client Profile ────────────────────────────────────────────────────────────
 
@@ -127,6 +128,10 @@ export async function dbUpdateOrder(id: string, fields: Record<string, unknown>)
     .eq("id", id);
 }
 
+export async function dbDeleteOrder(id: string): Promise<void> {
+  await supabase.from("order_history").delete().eq("id", id);
+}
+
 function rowToOrder(r: Record<string, unknown>): Order {
   const performer = r.performer_name
     ? {
@@ -157,6 +162,7 @@ function rowToOrder(r: Record<string, unknown>): Order {
     eta: (r.eta as string) ?? null,
     duration: (r.duration as string) ?? "",
     comment: (r.comment as string) ?? "",
+    assignedAt: (r.assigned_at as string) ?? undefined,
     fieldValues: (r.field_values as Order["fieldValues"]) ?? {},
     timeline: (r.timeline as Order["timeline"]) ?? [],
   };
@@ -220,4 +226,105 @@ export async function dbUpdatePerformerBalance(userId: string, balance: number, 
     .from("performer_profiles")
     .update({ balance, pending_balance: pendingBalance, updated_at: new Date().toISOString() })
     .eq("user_id", userId);
+}
+
+// ─── Shared Orders (cross-session order board) ────────────────────────────────
+
+function rowToSharedOrder(r: Record<string, unknown>): SharedOrder {
+  return {
+    id: r.id as string,
+    createdAt: r.created_at as string,
+    scheduledDate: r.scheduled_date as string,
+    scheduledTime: r.scheduled_time as string,
+    status: r.status as SharedOrderStatus,
+    categoryName: r.category_name as string,
+    serviceName: r.service_name as string,
+    address: r.address as string,
+    priceTotal: r.price_total as number,
+    priceBreakdown: (r.price_breakdown as PriceItem[]) ?? [],
+    duration: r.duration as string,
+    comment: (r.comment as string) ?? undefined,
+    clientEmail: r.client_email as string,
+    clientName: r.client_name as string,
+    clientPhone: r.client_phone as string,
+    performerId: (r.performer_id as string) ?? null,
+    performerName: (r.performer_name as string) ?? null,
+    performerPhone: (r.performer_phone as string) ?? null,
+    performerTelegram: (r.performer_telegram as string) ?? null,
+    performerRating: (r.performer_rating as number) ?? null,
+    performerAvatar: (r.performer_avatar as string) ?? null,
+    performerJobsCompleted: (r.performer_jobs_completed as number) ?? null,
+    acceptedAt: (r.accepted_at as string) ?? null,
+  };
+}
+
+export async function dbCreateSharedOrder(order: SharedOrder): Promise<void> {
+  await supabase.from("shared_orders").insert({
+    id: order.id,
+    status: order.status,
+    scheduled_date: order.scheduledDate,
+    scheduled_time: order.scheduledTime,
+    category_name: order.categoryName,
+    service_name: order.serviceName,
+    address: order.address,
+    price_total: order.priceTotal,
+    price_breakdown: order.priceBreakdown,
+    duration: order.duration,
+    comment: order.comment ?? null,
+    client_email: order.clientEmail,
+    client_name: order.clientName,
+    client_phone: order.clientPhone,
+  });
+}
+
+export async function dbLoadSearchingOrders(): Promise<SharedOrder[]> {
+  const { data } = await supabase
+    .from("shared_orders")
+    .select("*")
+    .eq("status", "searching_performer")
+    .order("created_at", { ascending: false });
+  if (!data) return [];
+  return data.map(rowToSharedOrder);
+}
+
+/** Atomically claim an order. Returns true if this performer got it, false if already taken. */
+export async function dbAcceptSharedOrder(orderId: string, performer: PerformerInfo): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("shared_orders")
+    .update({
+      status: "performer_assigned",
+      performer_id: performer.id,
+      performer_name: performer.name,
+      performer_phone: performer.phone,
+      performer_telegram: performer.telegram,
+      performer_rating: performer.rating,
+      performer_avatar: performer.avatar,
+      performer_jobs_completed: performer.jobsCompleted,
+      accepted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("status", "searching_performer")
+    .select("id");
+  return !error && Array.isArray(data) && data.length > 0;
+}
+
+/** Subscribe to new shared orders appearing in DB. Returns an unsubscribe function. */
+export function dbSubscribeSharedOrders(onNew: (order: SharedOrder) => void): () => void {
+  const channel = supabase
+    .channel("shared_orders_inserts")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "shared_orders" },
+      (payload) => onNew(rowToSharedOrder(payload.new as Record<string, unknown>))
+    )
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
+}
+
+export async function dbCancelSharedOrder(orderId: string): Promise<void> {
+  await supabase
+    .from("shared_orders")
+    .update({ status: "cancelled", updated_at: new Date().toISOString() })
+    .eq("id", orderId);
 }

@@ -17,6 +17,8 @@ import {
   dbSavePerformerProfile,
   dbLoadPerformerBalance,
   dbUpdatePerformerBalance,
+  dbUpdateOrder,
+  dbAcceptSharedOrder,
 } from "../../lib/db";
 
 interface PerformerState {
@@ -36,7 +38,7 @@ interface PerformerState {
   // Actions
   hydratePerformer: (userId: string) => Promise<void>;
   toggleOnline: () => void;
-  acceptOrder: (orderId: string) => AcceptResult;
+  acceptOrder: (orderId: string) => Promise<AcceptResult>;
   rejectOrder: (orderId: string) => void;
   updateOrderStatus: (orderId: string, status: PerformerOrderStatus) => void;
   markNotificationRead: (id: string) => void;
@@ -115,37 +117,37 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
 
   toggleOnline: () => set((s) => ({ isOnline: !s.isOnline })),
 
-  acceptOrder: (orderId) => {
+  acceptOrder: async (orderId) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    const { profile } = get();
 
-    // Try shared store first (real client orders)
+    const performerInfo = {
+      id: profile.id,
+      name: profile.name,
+      phone: profile.phone,
+      telegram: profile.telegram,
+      rating: profile.rating,
+      avatar: profile.avatar,
+      jobsCompleted: profile.completedOrders,
+    };
+
+    // DB is the authority — atomically claim the order
+    const claimed = await dbAcceptSharedOrder(orderId, performerInfo);
+    if (!claimed) return "already_taken";
+
+    // Update in-memory shared store
+    useSharedOrdersStore.getState().acceptOrder(orderId, performerInfo);
+
+    // Find the order data from shared store (already updated above)
     const sharedEntry = useSharedOrdersStore.getState().orders.find((o) => o.id === orderId);
-    if (sharedEntry) {
-      const { profile } = get();
-      const result = useSharedOrdersStore.getState().acceptOrder(orderId, {
-        id: profile.id,
-        name: profile.name,
-        phone: profile.phone,
-        telegram: profile.telegram,
-        rating: profile.rating,
-        avatar: profile.avatar,
-        jobsCompleted: profile.completedOrders,
-      });
-      if (result === "success") {
+    if (!sharedEntry) {
+      // Fallback: try local available orders
+      set((s) => {
+        const order = s.availableOrders.find((o) => o.id === orderId);
+        if (!order) return s;
         const accepted: PerformerOrder = {
-          id: sharedEntry.id,
-          createdAt: sharedEntry.createdAt,
-          scheduledDate: sharedEntry.scheduledDate,
-          scheduledTime: sharedEntry.scheduledTime,
+          ...order,
           status: "accepted",
-          categoryName: sharedEntry.categoryName,
-          serviceName: sharedEntry.serviceName,
-          address: sharedEntry.address,
-          priceTotal: sharedEntry.priceTotal,
-          priceBreakdown: sharedEntry.priceBreakdown,
-          duration: sharedEntry.duration,
-          comment: sharedEntry.comment,
-          client: { name: sharedEntry.clientName, phone: sharedEntry.clientPhone },
           timeline: [
             { id: "t1", label: "Заказ принят", time: now, completed: true },
             { id: "t2", label: "Еду к клиенту", time: "", completed: false },
@@ -153,32 +155,36 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
             { id: "t4", label: "Завершено", time: "", completed: false },
           ],
         };
-        set((s) => ({
+        return {
+          availableOrders: s.availableOrders.filter((o) => o.id !== orderId),
           activeOrders: [accepted, ...s.activeOrders],
-        }));
-      }
-      return result;
+        };
+      });
+      return "success";
     }
 
-    // Fall back to mock order behavior
-    set((s) => {
-      const order = s.availableOrders.find((o) => o.id === orderId);
-      if (!order) return s;
-      const accepted: PerformerOrder = {
-        ...order,
-        status: "accepted",
-        timeline: [
-          { id: "t1", label: "Заказ принят", time: now, completed: true },
-          { id: "t2", label: "Еду к клиенту", time: "", completed: false },
-          { id: "t3", label: "Работа выполняется", time: "", completed: false },
-          { id: "t4", label: "Завершено", time: "", completed: false },
-        ],
-      };
-      return {
-        availableOrders: s.availableOrders.filter((o) => o.id !== orderId),
-        activeOrders: [accepted, ...s.activeOrders],
-      };
-    });
+    const accepted: PerformerOrder = {
+      id: sharedEntry.id,
+      createdAt: sharedEntry.createdAt,
+      scheduledDate: sharedEntry.scheduledDate,
+      scheduledTime: sharedEntry.scheduledTime,
+      status: "accepted",
+      categoryName: sharedEntry.categoryName,
+      serviceName: sharedEntry.serviceName,
+      address: sharedEntry.address,
+      priceTotal: sharedEntry.priceTotal,
+      priceBreakdown: sharedEntry.priceBreakdown,
+      duration: sharedEntry.duration,
+      comment: sharedEntry.comment,
+      client: { name: sharedEntry.clientName, phone: sharedEntry.clientPhone },
+      timeline: [
+        { id: "t1", label: "Заказ принят", time: now, completed: true },
+        { id: "t2", label: "Еду к клиенту", time: "", completed: false },
+        { id: "t3", label: "Работа выполняется", time: "", completed: false },
+        { id: "t4", label: "Завершено", time: "", completed: false },
+      ],
+    };
+    set((s) => ({ activeOrders: [accepted, ...s.activeOrders] }));
     return "success";
   },
 
@@ -201,6 +207,9 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         t.label === timelineLabel[status] ? { ...t, time: now, completed: true } : t
       );
       const updatedOrder: PerformerOrder = { ...order, status, timeline: updatedTimeline };
+
+      // Persist status change to DB (updates client-visible order_history row)
+      dbUpdateOrder(orderId, { status });
 
       if (status === "completed") {
         const earningsRecord: EarningsRecord = {

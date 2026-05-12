@@ -1,4 +1,5 @@
 export type OrderStatus =
+  | "pending_payment"
   | "searching"
   | "assigned"
   | "on_the_way"
@@ -39,6 +40,7 @@ export interface Order {
   eta: string | null;
   duration: string;
   comment?: string;
+  assignedAt?: string;
   fieldValues: Record<string, unknown>;
   timeline: TimelineEvent[];
 }

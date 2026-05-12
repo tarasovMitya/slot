@@ -22,6 +22,9 @@ import {
   dbLoadOrders,
   dbSaveOrder,
   dbUpdateOrder,
+  dbDeleteOrder,
+  dbCreateSharedOrder,
+  dbCancelSharedOrder,
 } from "../../lib/db";
 
 interface DashboardState {
@@ -39,6 +42,7 @@ interface DashboardState {
   pendingOrder: PendingOrder | null;
   activePerformer: ActivePerformer | null;
   activeSharedOrderId: string | null;
+  draftOrderId: string | null;
 
   // Actions
   hydrateClient: (userId: string) => Promise<void>;
@@ -58,6 +62,7 @@ interface DashboardState {
   completePayment: () => void;
   setOrderFlowStatus: (status: OrderFlowStatus) => void;
   onPerformerAssigned: () => void;
+  cancelOrder: (orderId: string) => void;
   resetOrderFlow: () => void;
 }
 
@@ -86,6 +91,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   pendingOrder: null,
   activePerformer: null,
   activeSharedOrderId: null,
+  draftOrderId: null,
 
   hydrateClient: async (userId) => {
     set({ isLoading: true });
@@ -156,14 +162,46 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     setTimeout(() => set({ isLoading: false }), ms);
   },
 
-  setPendingOrder: (order) =>
-    set({ pendingOrder: order, paymentStatus: "pending", orderFlowStatus: "idle" }),
+  setPendingOrder: (order) => {
+    const draftId = `draft-${Date.now()}`;
+    const now = new Date().toISOString();
+    set({ pendingOrder: order, paymentStatus: "pending", orderFlowStatus: "idle", draftOrderId: draftId });
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      const draftOrder: Order = {
+        id: draftId,
+        createdAt: now,
+        scheduledDate: order.scheduledDate,
+        scheduledTime: order.scheduledTime,
+        status: "pending_payment",
+        categoryName: order.categoryName,
+        serviceName: order.serviceName,
+        serviceId: "draft",
+        address: order.address,
+        priceTotal: order.priceTotal,
+        priceBreakdown: order.priceBreakdown,
+        performer: null,
+        eta: null,
+        duration: order.duration,
+        fieldValues: {},
+        timeline: [],
+      };
+      dbSaveOrder(userId, draftOrder);
+      set((s) => ({ orders: [draftOrder, ...s.orders.filter((o) => o.status !== "pending_payment")] }));
+    }
+  },
 
   startPayment: () => set({ paymentStatus: "processing" }),
 
   completePayment: () => {
-    const { pendingOrder, profile } = get();
+    const { pendingOrder, profile, draftOrderId } = get();
     if (!pendingOrder) return;
+
+    // Remove the draft/pending_payment order from local state and DB
+    if (draftOrderId) {
+      set((s) => ({ orders: s.orders.filter((o) => o.id !== draftOrderId) }));
+      dbDeleteOrder(draftOrderId);
+    }
 
     const now = new Date();
     const timeStr = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -217,6 +255,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     // Persist to DB
     const userId = useAuthStore.getState().user?.id;
     if (userId) dbSaveOrder(userId, newOrder);
+
+    // Publish to shared_orders so performers in other sessions see it
+    const sharedOrder = useSharedOrdersStore.getState().orders.find((o) => o.id === sharedId);
+    if (sharedOrder) dbCreateSharedOrder(sharedOrder);
   },
 
   setOrderFlowStatus: (status) => set({ orderFlowStatus: status }),
@@ -261,10 +303,12 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     }));
 
     // Persist performer assignment to DB
+    const assignedAt = new Date().toISOString();
     const userId = useAuthStore.getState().user?.id;
     if (userId && activeSharedOrderId) {
       dbUpdateOrder(activeSharedOrderId, {
         status: "assigned",
+        assigned_at: assignedAt,
         performer_id: sharedOrder.performerId ?? null,
         performer_name: sharedOrder.performerName,
         performer_phone: sharedOrder.performerPhone ?? null,
@@ -274,6 +318,34 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
       });
     }
+
+    // Also store assignedAt in local order state for the cancel timer
+    set((s) => ({
+      orders: s.orders.map((o) =>
+        o.id === activeSharedOrderId ? { ...o, assignedAt } : o
+      ),
+    }));
+  },
+
+  cancelOrder: (orderId) => {
+    set((s) => {
+      const isActiveOrder = s.activeSharedOrderId === orderId;
+      return {
+        orders: s.orders.map((o) =>
+          o.id === orderId ? { ...o, status: "cancelled" as const } : o
+        ),
+        ...(isActiveOrder && {
+          paymentStatus: "idle" as const,
+          orderFlowStatus: "idle" as const,
+          pendingOrder: null,
+          activePerformer: null,
+          activeSharedOrderId: null,
+          draftOrderId: null,
+        }),
+      };
+    });
+    dbUpdateOrder(orderId, { status: "cancelled" });
+    dbCancelSharedOrder(orderId);
   },
 
   resetOrderFlow: () =>
@@ -283,5 +355,6 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       pendingOrder: null,
       activePerformer: null,
       activeSharedOrderId: null,
+      draftOrderId: null,
     }),
 }));

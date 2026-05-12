@@ -80,6 +80,9 @@ interface SharedOrdersState {
   /** Create a new order visible to performers. Returns the new order id. */
   createOrder: (data: CreateOrderData) => string;
 
+  /** Add a single order from DB/Realtime (no-op if already present). */
+  addOrder: (order: SharedOrder) => void;
+
   /**
    * Atomically accept an order. If the order is still in searching_performer
    * status, it is assigned to the performer and 'success' is returned.
@@ -112,6 +115,13 @@ export const useSharedOrdersStore = create<SharedOrdersState>((set, get) => ({
     set((s) => ({ orders: [order, ...s.orders] }));
     return id;
   },
+
+  addOrder: (order) =>
+    set((s) =>
+      s.orders.some((o) => o.id === order.id)
+        ? s
+        : { orders: [order, ...s.orders] }
+    ),
 
   acceptOrder: (orderId, performer) => {
     const order = get().orders.find((o) => o.id === orderId);

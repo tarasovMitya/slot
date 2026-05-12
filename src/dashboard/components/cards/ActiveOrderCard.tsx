@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Clock, MapPin, ChevronRight } from "lucide-react";
+import { Clock, MapPin, ChevronRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { StatusBadge } from "../ui/StatusBadge";
 import { PerformerCard } from "../ui/PerformerCard";
@@ -14,16 +15,46 @@ const statusProgress: Record<string, number> = {
   completed: 100,
 };
 
-interface ActiveOrderCardProps {
-  order: Order;
+const CANCEL_WINDOW_MS = 15 * 60 * 1000;
+
+function useRemainingMs(assignedAt: string | undefined): number | null {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!assignedAt) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [assignedAt]);
+
+  if (!assignedAt) return null;
+  return Math.max(0, CANCEL_WINDOW_MS - (now - new Date(assignedAt).getTime()));
 }
 
-export function ActiveOrderCard({ order }: ActiveOrderCardProps) {
+function formatTimer(ms: number): string {
+  const totalSec = Math.ceil(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+}
+
+interface ActiveOrderCardProps {
+  order: Order;
+  onCancel?: () => void;
+}
+
+export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
   const progress = statusProgress[order.status] ?? 0;
   const date = new Date(order.scheduledDate).toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
   });
+
+  const remainingMs = useRemainingMs(order.assignedAt);
+
+  // searching: always cancellable; assigned: cancellable within 15 min window
+  const canCancel =
+    order.status === "searching" ||
+    (order.status === "assigned" && remainingMs !== null && remainingMs > 0);
 
   return (
     <motion.div
@@ -79,10 +110,24 @@ export function ActiveOrderCard({ order }: ActiveOrderCardProps) {
         </div>
       )}
 
-      {/* Footer price */}
-      <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between">
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400">Стоимость</span>
-        <span className="text-sm font-semibold text-gray-900">{formatPrice(order.priceTotal)}</span>
+        <div className="flex items-center gap-3 ml-auto">
+          {canCancel && onCancel && (
+            <button
+              onClick={(e) => { e.preventDefault(); onCancel(); }}
+              className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
+            >
+              <X size={13} />
+              Отменить
+              {order.status === "assigned" && remainingMs !== null && (
+                <span className="text-red-400 font-mono">{formatTimer(remainingMs)}</span>
+              )}
+            </button>
+          )}
+          <span className="text-sm font-semibold text-gray-900">{formatPrice(order.priceTotal)}</span>
+        </div>
       </div>
     </motion.div>
   );

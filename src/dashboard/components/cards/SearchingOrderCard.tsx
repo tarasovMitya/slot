@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, Clock, MapPin } from "lucide-react";
+import { Check, Clock, MapPin, X } from "lucide-react";
 import type { Order } from "../../types";
 
 const progressSteps = [
@@ -11,9 +11,10 @@ const progressSteps = [
 
 interface SearchingOrderCardProps {
   order: Order;
+  onCancel?: () => void;
 }
 
-export function SearchingOrderCard({ order }: SearchingOrderCardProps) {
+export function SearchingOrderCard({ order, onCancel }: SearchingOrderCardProps) {
   const date = new Date(order.scheduledDate).toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
@@ -54,8 +55,21 @@ export function SearchingOrderCard({ order }: SearchingOrderCardProps) {
         </div>
       </div>
 
+      {/* Cancel button */}
+      {onCancel && (
+        <div className="px-5 pb-0">
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
+          >
+            <X size={13} />
+            Отменить заказ
+          </button>
+        </div>
+      )}
+
       {/* Progress steps */}
-      <div className="px-5 pb-5 flex flex-col gap-2.5">
+      <div className="px-5 pb-5 pt-4 flex flex-col gap-2.5">
         {progressSteps.map((step, i) => {
           const event = order.timeline.find((t) => t.id === step.id);
           const isDone = event?.completed ?? false;

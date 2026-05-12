@@ -176,7 +176,7 @@ function HeroSection() {
               Рассчитать стоимость <ArrowRight size={18} />
             </button>
             <button
-              onClick={() => navigate("/performer/auth")}
+              onClick={() => navigate("/performer/onboarding")}
               className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl hover:border-gray-400 hover:text-gray-900 transition-all text-base"
             >
               Стать исполнителем

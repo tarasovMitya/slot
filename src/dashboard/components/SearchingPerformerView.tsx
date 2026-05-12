@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useDashboardStore } from "../store/dashboardStore";
 
 const steps = [
   { label: "Заказ создан", done: true },
@@ -9,6 +10,12 @@ const steps = [
 ];
 
 export function SearchingPerformerView() {
+  const { activeSharedOrderId, cancelOrder } = useDashboardStore();
+
+  const handleCancel = () => {
+    if (activeSharedOrderId) cancelOrder(activeSharedOrderId);
+  };
+
   return (
     <div className="max-w-sm mx-auto flex flex-col items-center justify-center min-h-[60vh] px-4 text-center gap-10">
       {/* Animated spinner */}
@@ -77,7 +84,15 @@ export function SearchingPerformerView() {
         ))}
       </div>
 
-      <p className="text-xs text-gray-400">Обычно это занимает 1–5 минут</p>
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-xs text-gray-400">Обычно это занимает 1–5 минут</p>
+        <button
+          onClick={handleCancel}
+          className="text-sm text-red-500 hover:text-red-600 transition-colors font-medium"
+        >
+          Отменить заказ
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
+import { dbLoadSearchingOrders, dbSubscribeSharedOrders } from "../../lib/db";
 import { AvailableOrderCard } from "../components/cards/AvailableOrderCard";
 import type { PerformerOrder } from "../types";
 import type { SharedOrder } from "../../store/sharedOrdersStore";
@@ -50,7 +51,7 @@ function sortOrders(orders: PerformerOrder[], by: SortKey): PerformerOrder[] {
 
 export function AvailableOrdersPage() {
   const { availableOrders, acceptOrder, rejectOrder, isOnline } = usePerformerStore();
-  const sharedOrders = useSharedOrdersStore((s) => s.orders);
+  const { orders: sharedOrders, addOrder } = useSharedOrdersStore();
   const realOrders = useMemo(
     () => sharedOrders
       .filter((o) => o.status === "searching_performer")
@@ -62,12 +63,18 @@ export function AvailableOrdersPage() {
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
 
-  const allOrders = [...realOrders, ...availableOrders]; // availableOrders is [] until real backend data
+  useEffect(() => {
+    dbLoadSearchingOrders().then((orders) => orders.forEach(addOrder));
+    const unsubscribe = dbSubscribeSharedOrders(addOrder);
+    return unsubscribe;
+  }, []);
+
+  const allOrders = [...realOrders, ...availableOrders];
   const sorted = sortOrders(allOrders, sortBy);
 
-  const handleAccept = (orderId: string) => {
+  const handleAccept = async (orderId: string) => {
     setAcceptingId(orderId);
-    const result = acceptOrder(orderId);
+    const result = await acceptOrder(orderId);
     setAcceptingId(null);
     if (result === "already_taken") {
       setUnavailableIds((prev) => new Set(prev).add(orderId));

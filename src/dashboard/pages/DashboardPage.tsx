@@ -20,7 +20,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const {
     orders, isLoading, simulateLoading, addresses,
-    orderFlowStatus, onPerformerAssigned, activeSharedOrderId,
+    orderFlowStatus, onPerformerAssigned, activeSharedOrderId, cancelOrder,
   } = useDashboardStore();
   const { setSkipAuth, setContacts } = useCalculatorStore();
   const { user, signOut } = useAuthStore();
@@ -143,9 +143,9 @@ export function DashboardPage() {
           <div className="flex flex-col gap-3">
             {activeOrders.map((order) =>
               order.status === "searching" ? (
-                <SearchingOrderCard key={order.id} order={order} />
+                <SearchingOrderCard key={order.id} order={order} onCancel={() => cancelOrder(order.id)} />
               ) : (
-                <ActiveOrderCard key={order.id} order={order} />
+                <ActiveOrderCard key={order.id} order={order} onCancel={() => cancelOrder(order.id)} />
               )
             )}
           </div>
