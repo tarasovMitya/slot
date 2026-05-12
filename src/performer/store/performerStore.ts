@@ -145,10 +145,20 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
 
   acceptOrder: async (orderId) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-    const { profile } = get();
+    let { profile } = get();
+    const userId = useAuthStore.getState().user?.id ?? "";
+
+    // If profile name isn't loaded yet, fetch fresh from DB before accepting
+    if (!profile.name && userId) {
+      const fresh = await dbLoadPerformerProfile(userId);
+      if (fresh) {
+        profile = fresh;
+        set({ profile: fresh, isHydrated: true });
+      }
+    }
 
     const performerInfo = {
-      id: profile.id || useAuthStore.getState().user?.id || "",
+      id: profile.id || userId,
       name: profile.name || "Исполнитель",
       phone: profile.phone || "",
       telegram: profile.telegram || "",
