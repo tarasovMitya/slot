@@ -10,11 +10,6 @@ import type {
   OrderFlowStatus,
   ActivePerformer,
 } from "../types";
-import {
-  mockAddresses,
-  mockPayments,
-  mockNotifications,
-} from "../data/mockData";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 
 interface DashboardState {
@@ -56,9 +51,9 @@ interface DashboardState {
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   orders: [],
-  addresses: mockAddresses,
-  payments: mockPayments,
-  notifications: mockNotifications,
+  addresses: [],
+  payments: [],
+  notifications: [],
   profile: { id: "", name: "", phone: "", email: "", address: "", notifyEmail: true, notifySms: true, notifyPush: false },
   isLoading: false,
 
