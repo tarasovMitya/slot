@@ -1,32 +1,101 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Check, LogOut } from "lucide-react";
+import { Check, LogOut, Pencil, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useAuthStore } from "../../store/authStore";
+import { supabase } from "../../lib/supabase";
 import type { UserProfile } from "../types";
+
+type ProfileFormData = Pick<UserProfile, "name" | "phone" | "email" | "address">;
+
+function applyPhoneMask(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  const local =
+    digits.startsWith("7") || digits.startsWith("8")
+      ? digits.slice(1)
+      : digits;
+  const d = local.slice(0, 10);
+  if (d.length === 0) return "+7";
+  if (d.length <= 3) return `+7 (${d}`;
+  if (d.length <= 6) return `+7 (${d.slice(0, 3)}) ${d.slice(3)}`;
+  if (d.length <= 8)
+    return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8, 10)}`;
+}
 
 export function ProfileSettingsPage() {
   const { profile, updateProfile } = useDashboardStore();
   const { user, signOut } = useAuthStore();
   const navigate = useNavigate();
-  const [saved, setSaved] = useState(false);
 
-  const displayName = (user?.user_metadata?.full_name as string | undefined)
-    ?? user?.email?.split("@")[0]
-    ?? profile.name
-    ?? "Пользователь";
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [phone, setPhone] = useState("");
+
+  const meta = user?.user_metadata as Record<string, string> | undefined;
+  const displayName =
+    (meta?.full_name ?? meta?.name ?? profile.name) || "Пользователь";
   const email = user?.email ?? profile.email ?? "";
   const initials = displayName.slice(0, 2).toUpperCase();
 
-  const { register, handleSubmit } = useForm<UserProfile>({
-    defaultValues: profile,
+  const { register, handleSubmit, reset, setValue } = useForm<ProfileFormData>({
+    defaultValues: {
+      name: profile.name,
+      phone: profile.phone,
+      email: profile.email,
+      address: profile.address,
+    },
   });
 
-  const onSubmit = (data: UserProfile) => {
+  // Sync from Supabase user_metadata on mount
+  useEffect(() => {
+    if (user) {
+      const m = user.user_metadata as Record<string, string>;
+      const synced: ProfileFormData = {
+        name: m?.full_name ?? m?.name ?? profile.name ?? "",
+        phone: m?.phone ?? profile.phone ?? "",
+        email: user.email ?? profile.email ?? "",
+        address: m?.address ?? profile.address ?? "",
+      };
+      reset(synced);
+      setPhone(synced.phone);
+      updateProfile(synced);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = applyPhoneMask(e.target.value);
+    setPhone(masked);
+    setValue("phone", masked);
+  };
+
+  const onSubmit = async (data: ProfileFormData) => {
+    data.phone = phone;
+    setSaving(true);
     updateProfile(data);
+
+    await supabase.auth.updateUser({
+      data: { full_name: data.name, phone: data.phone, address: data.address },
+    });
+
+    setSaving(false);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setIsEditing(false);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleCancel = () => {
+    reset({
+      name: profile.name,
+      phone: profile.phone,
+      email: profile.email,
+      address: profile.address,
+    });
+    setPhone(profile.phone);
+    setIsEditing(false);
   };
 
   const handleSignOut = async () => {
@@ -36,7 +105,16 @@ export function ProfileSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
-      <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-8">Профиль</h1>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Профиль</h1>
+        {saved && (
+          <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+            <Check size={15} />
+            Сохранено
+          </span>
+        )}
+      </div>
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-8">
@@ -57,30 +135,81 @@ export function ProfileSettingsPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {/* Fields */}
+        {/* Personal data */}
         <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Личные данные
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Личные данные
+            </p>
+            {!isEditing ? (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition-colors"
+              >
+                <Pencil size={13} />
+                Редактировать
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                <X size={13} />
+                Отмена
+              </button>
+            )}
+          </div>
+
           <Field label="Имя">
-            <input
-              {...register("name")}
-              className="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-black transition-colors"
-            />
+            {isEditing ? (
+              <input
+                {...register("name")}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-black transition-colors"
+              />
+            ) : (
+              <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
+                {profile.name || <span className="text-gray-400">Не указано</span>}
+              </p>
+            )}
           </Field>
+
           <Field label="Телефон">
-            <input
-              {...register("phone")}
-              type="tel"
-              className="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-black transition-colors"
-            />
+            {isEditing ? (
+              <input
+                type="tel"
+                inputMode="numeric"
+                value={phone}
+                onChange={handlePhoneChange}
+                placeholder="+7 (999) 999-99-99"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-black transition-colors"
+              />
+            ) : (
+              <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
+                {profile.phone || <span className="text-gray-400">Не указано</span>}
+              </p>
+            )}
           </Field>
+
           <Field label="Email">
-            <input
-              {...register("email")}
-              type="email"
-              className="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-black transition-colors"
-            />
+            <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
+              {email || <span className="text-gray-400">Не указано</span>}
+            </p>
+          </Field>
+
+          <Field label="Адрес">
+            {isEditing ? (
+              <input
+                {...register("address")}
+                placeholder="Улица, дом, квартира"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-black transition-colors"
+              />
+            ) : (
+              <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
+                {profile.address || <span className="text-gray-400">Не указано</span>}
+              </p>
+            )}
           </Field>
         </div>
 
@@ -89,28 +218,27 @@ export function ProfileSettingsPage() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
             Уведомления
           </p>
-          <Toggle label="Email-уведомления" field="notifyEmail" register={register} />
-          <Toggle label="SMS-уведомления" field="notifySms" register={register} />
-          <Toggle label="Push-уведомления" field="notifyPush" register={register} />
+          <Toggle label="Email-уведомления" field="notifyEmail" />
+          <Toggle label="SMS-уведомления" field="notifySms" />
+          <Toggle label="Push-уведомления" field="notifyPush" />
         </div>
 
-        <button
-          type="submit"
-          className={`w-full py-4 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-            saved
-              ? "bg-green-600 text-white"
-              : "bg-black text-white hover:bg-gray-800"
-          }`}
-        >
-          {saved ? (
-            <>
-              <Check size={16} />
-              Сохранено
-            </>
-          ) : (
-            "Сохранить изменения"
-          )}
-        </button>
+        {isEditing && (
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+          >
+            {saving ? (
+              <>
+                <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                Сохраняем...
+              </>
+            ) : (
+              "Сохранить изменения"
+            )}
+          </button>
+        )}
       </form>
     </div>
   );
@@ -125,19 +253,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Toggle({
-  label,
-  field,
-  register,
-}: {
-  label: string;
-  field: "notifyEmail" | "notifySms" | "notifyPush";
-  register: ReturnType<typeof useForm<UserProfile>>["register"];
-}) {
+function Toggle({ label, field }: { label: string; field: "notifyEmail" | "notifySms" | "notifyPush" }) {
+  const { profile, updateProfile } = useDashboardStore();
   return (
     <label className="flex items-center justify-between cursor-pointer">
       <span className="text-sm text-gray-700">{label}</span>
-      <input type="checkbox" {...register(field)} className="sr-only peer" />
+      <input
+        type="checkbox"
+        checked={profile[field]}
+        onChange={(e) => updateProfile({ [field]: e.target.checked })}
+        className="sr-only peer"
+      />
       <div className="w-10 h-5 bg-gray-200 rounded-full peer-checked:bg-black transition-colors relative after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-5" />
     </label>
   );

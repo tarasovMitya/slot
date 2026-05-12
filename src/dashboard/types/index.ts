@@ -82,6 +82,7 @@ export interface UserProfile {
   name: string;
   phone: string;
   email: string;
+  address: string;
   avatar?: string;
   notifyEmail: boolean;
   notifySms: boolean;

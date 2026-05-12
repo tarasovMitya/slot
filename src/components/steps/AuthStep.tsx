@@ -1,27 +1,67 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { supabase } from "../../lib/supabase";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
+import { useDashboardStore } from "../../dashboard/store/dashboardStore";
+import { calculatePrice } from "../../utils/priceCalculator";
 
 type SubStep = "email" | "otp" | "profile";
 
+function applyPhoneMask(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  const local =
+    digits.startsWith("7") || digits.startsWith("8")
+      ? digits.slice(1)
+      : digits;
+  const d = local.slice(0, 10);
+  if (d.length === 0) return "+7";
+  if (d.length <= 3) return `+7 (${d}`;
+  if (d.length <= 6) return `+7 (${d.slice(0, 3)}) ${d.slice(3)}`;
+  if (d.length <= 8)
+    return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8, 10)}`;
+}
+
 export function AuthStep() {
+  const navigate = useNavigate();
   const [subStep, setSubStep] = useState<SubStep>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [phone, setPhone] = useState("+7");
+  const [phoneError, setPhoneError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { setContacts, goNext } = useCalculatorStore();
+  useEffect(() => {
+    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+  }, []);
+
+  const startCooldown = (seconds = 60) => {
+    setCooldown(seconds);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((s) => {
+        if (s <= 1) { clearInterval(cooldownRef.current!); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+  };
+
+  const { selectedCategory, selectedService, fieldValues, schedule, setContacts } =
+    useCalculatorStore();
   const { user, isAuthenticated } = useAuthStore();
+  const { setPendingOrder, updateProfile } = useDashboardStore();
 
-  // Already has a session — skip OTP, pre-fill email and jump to profile sub-step
   useEffect(() => {
     if (isAuthenticated && user?.email) {
       setEmail(user.email);
+      const meta = user.user_metadata as Record<string, string> | undefined;
+      if (meta?.phone) setPhone(meta.phone);
       setSubStep("profile");
     }
   }, [isAuthenticated, user]);
@@ -29,8 +69,19 @@ export function AuthStep() {
   const emailForm = useForm<{ email: string }>();
   const profileForm = useForm<{ name: string; address: string; comment?: string }>();
 
-  // Step 1 — отправить OTP на email
-  const handleSendOtp = emailForm.handleSubmit(async ({ email: e }) => {
+  useEffect(() => {
+    if (subStep === "profile" && user?.user_metadata) {
+      const meta = user.user_metadata as Record<string, string>;
+      profileForm.reset({
+        name: meta.full_name ?? meta.name ?? "",
+        address: meta.address ?? "",
+        comment: "",
+      });
+      if (meta.phone) setPhone(meta.phone);
+    }
+  }, [subStep, user, profileForm]);
+
+  const sendOtp = async (e: string) => {
     setLoading(true);
     setError("");
     const { error: err } = await supabase.auth.signInWithOtp({
@@ -38,15 +89,22 @@ export function AuthStep() {
       options: { shouldCreateUser: true },
     });
     if (err) {
-      setError(err.message);
+      const isRateLimit = err.message.toLowerCase().includes("rate limit") ||
+        err.message.toLowerCase().includes("security purposes") ||
+        err.status === 429;
+      setError(isRateLimit
+        ? "Слишком много попыток. Подождите минуту и попробуйте снова."
+        : err.message);
     } else {
       setEmail(e);
       setSubStep("otp");
+      startCooldown(60);
     }
     setLoading(false);
-  });
+  };
 
-  // Step 2 — верифицировать код
+  const handleSendOtp = emailForm.handleSubmit(({ email: e }) => sendOtp(e));
+
   const handleVerifyOtp = async () => {
     const code = otp.join("");
     if (code.length < 6) { setError("Введите 6-значный код"); return; }
@@ -65,13 +123,41 @@ export function AuthStep() {
     setLoading(false);
   };
 
-  // Step 3 — save name and address, then proceed to checkout
   const handleProfile = profileForm.handleSubmit(async ({ name, address, comment }) => {
-    setContacts({ name, email: email || user?.email || "", address, comment: comment ?? "" });
-    goNext();
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 11) {
+      setPhoneError("Введите корректный номер телефона");
+      return;
+    }
+
+    setLoading(true);
+
+    const resolvedEmail = email || user?.email || "";
+    setContacts({ name, email: resolvedEmail, phone, address, comment: comment ?? "" });
+
+    const price = calculatePrice(selectedService, fieldValues);
+    const pending = {
+      serviceName: selectedService?.name ?? "",
+      categoryName: selectedCategory?.name ?? "",
+      duration: "По согласованию",
+      scheduledDate: schedule.date,
+      scheduledTime: schedule.time,
+      priceTotal: price.total,
+      priceBreakdown: price.items,
+      address,
+    };
+    setPendingOrder(pending);
+
+    updateProfile({ name, email: resolvedEmail, phone, address });
+
+    await supabase.auth.updateUser({
+      data: { full_name: name, phone, address },
+    });
+
+    setLoading(false);
+    navigate("/dashboard", { replace: true });
   });
 
-  // OTP input helpers
   const handleOtpChange = (i: number, val: string) => {
     const digit = val.replace(/\D/, "").slice(-1);
     const next = [...otp];
@@ -92,6 +178,11 @@ export function AuthStep() {
       setOtp([...digits, ...Array(6 - digits.length).fill("")]);
       otpRefs.current[Math.min(digits.length, 5)]?.focus();
     }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(applyPhoneMask(e.target.value));
+    setPhoneError("");
   };
 
   const slideVariants = {
@@ -145,10 +236,10 @@ export function AuthStep() {
               {error && <p className="text-red-500 text-sm ml-1">{error}</p>}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || cooldown > 0}
                 className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
               >
-                {loading ? "Отправляем..." : "Получить код"}
+                {loading ? "Отправляем..." : cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"}
               </button>
             </form>
           </motion.div>
@@ -202,12 +293,23 @@ export function AuthStep() {
               {loading ? "Проверяем..." : "Подтвердить"}
             </button>
 
-            <button
-              onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); }}
-              className="text-sm text-gray-400 hover:text-gray-600 text-center transition-colors"
-            >
-              Изменить email
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); }}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Изменить email
+              </button>
+              <button
+                type="button"
+                disabled={cooldown > 0}
+                onClick={() => sendOtp(email)}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+              >
+                {cooldown > 0 ? `Отправить снова (${cooldown}с)` : "Отправить снова"}
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -234,7 +336,7 @@ export function AuthStep() {
               <p className="text-gray-500 mt-2 text-lg">Осталось заполнить контакты</p>
             </div>
 
-            <form id="profile-form" onSubmit={handleProfile} className="flex flex-col gap-4">
+            <form onSubmit={handleProfile} className="flex flex-col gap-4">
               <div>
                 <input
                   {...profileForm.register("name", { required: "Введите имя" })}
@@ -251,6 +353,23 @@ export function AuthStep() {
                   </p>
                 )}
               </div>
+
+              <div>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="+7 (999) 999-99-99"
+                  inputMode="numeric"
+                  className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
+                    phoneError ? "border-red-400" : "border-gray-100 focus:border-black"
+                  }`}
+                />
+                {phoneError && (
+                  <p className="text-red-500 text-sm mt-1 ml-1">{phoneError}</p>
+                )}
+              </div>
+
               <div>
                 <input
                   {...profileForm.register("address", { required: "Введите адрес" })}
@@ -267,17 +386,20 @@ export function AuthStep() {
                   </p>
                 )}
               </div>
+
               <textarea
                 {...profileForm.register("comment")}
                 placeholder="Комментарий (необязательно)"
                 rows={3}
                 className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-black text-lg outline-none transition-colors resize-none"
               />
+
               <button
                 type="submit"
-                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg hover:bg-gray-800 active:scale-95 transition-all"
+                disabled={loading}
+                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 hover:bg-gray-800 active:scale-95 transition-all"
               >
-                Далее
+                {loading ? "Сохраняем..." : "Далее"}
               </button>
             </form>
           </motion.div>

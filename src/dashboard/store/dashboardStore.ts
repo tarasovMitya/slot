@@ -64,7 +64,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   addresses: mockAddresses,
   payments: mockPayments,
   notifications: mockNotifications,
-  profile: { id: "", name: "", phone: "", email: "", notifyEmail: true, notifySms: true, notifyPush: false },
+  profile: { id: "", name: "", phone: "", email: "", address: "", notifyEmail: true, notifySms: true, notifyPush: false },
   isLoading: false,
 
   // Order flow state machine

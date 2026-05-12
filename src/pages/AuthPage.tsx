@@ -22,7 +22,23 @@ export function AuthPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+  }, []);
+
+  const startCooldown = (seconds = 60) => {
+    setCooldown(seconds);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((s) => {
+        if (s <= 1) { clearInterval(cooldownRef.current!); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+  };
 
   const emailForm = useForm<{ email: string }>();
 
@@ -33,7 +49,7 @@ export function AuthPage() {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  const handleSendOtp = emailForm.handleSubmit(async ({ email: e }) => {
+  const sendOtp = async (e: string) => {
     setLoading(true);
     setError("");
     const { error: err } = await supabase.auth.signInWithOtp({
@@ -44,13 +60,21 @@ export function AuthPage() {
       },
     });
     if (err) {
-      setError(err.message);
+      const isRateLimit = err.message.toLowerCase().includes("rate limit") ||
+        err.message.toLowerCase().includes("security purposes") ||
+        err.status === 429;
+      setError(isRateLimit
+        ? "Слишком много попыток. Подождите минуту и попробуйте снова."
+        : err.message);
     } else {
       setEmail(e);
       setSubStep("otp");
+      startCooldown(60);
     }
     setLoading(false);
-  });
+  };
+
+  const handleSendOtp = emailForm.handleSubmit(({ email: e }) => sendOtp(e));
 
   const handleVerifyOtp = async () => {
     const code = otp.join("");
@@ -149,10 +173,10 @@ export function AuthPage() {
                 {error && <p className="text-red-500 text-sm ml-1">{error}</p>}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || cooldown > 0}
                   className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
                 >
-                  {loading ? "Отправляем..." : "Получить код"}
+                  {loading ? "Отправляем..." : cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"}
                 </button>
               </form>
 
@@ -213,12 +237,23 @@ export function AuthPage() {
                 {loading ? "Проверяем..." : "Войти"}
               </button>
 
+              <div className="flex items-center justify-between">
               <button
+                type="button"
                 onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); }}
-                className="text-sm text-gray-400 hover:text-gray-600 text-center transition-colors"
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
               >
                 Изменить email
               </button>
+              <button
+                type="button"
+                disabled={cooldown > 0}
+                onClick={() => sendOtp(email)}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+              >
+                {cooldown > 0 ? `Отправить снова (${cooldown}с)` : "Отправить снова"}
+              </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

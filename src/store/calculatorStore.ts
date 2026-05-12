@@ -41,7 +41,7 @@ const STEPS: Step[] = [
   "success",
 ];
 
-const defaultContacts: ContactInfo = { name: "", email: "", address: "", comment: "" };
+const defaultContacts: ContactInfo = { name: "", email: "", phone: "", address: "", comment: "" };
 const defaultSchedule: ScheduleInfo = { date: "", time: "" };
 
 export const useCalculatorStore = create<CalculatorState>((set, get) => ({
