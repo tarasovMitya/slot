@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import {
   Zap, Droplet, Sparkles, Hammer, Package, Wrench,
   CheckCircle, Clock, Star, Shield, ChevronDown, ChevronRight,
   Menu, X, ArrowRight, MapPin, UserCheck, Lock, TrendingUp,
-  Users, CreditCard,
+  CreditCard,
 } from "lucide-react";
 
 // ─── Animation presets ───────────────────────────────────────────────────────
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 28 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
-const stagger = {
+const stagger: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.09 } },
 };
