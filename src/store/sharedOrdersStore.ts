@@ -92,6 +92,9 @@ interface SharedOrdersState {
 
   /** Update order status (e.g. in_progress → completed from performer side). */
   updateStatus: (orderId: string, status: SharedOrderStatus) => void;
+
+  /** Replace a full order received from Realtime (upsert). */
+  updateOrder: (order: SharedOrder) => void;
 }
 
 export const useSharedOrdersStore = create<SharedOrdersState>((set, get) => ({
@@ -154,5 +157,12 @@ export const useSharedOrdersStore = create<SharedOrdersState>((set, get) => ({
   updateStatus: (orderId, status) =>
     set((s) => ({
       orders: s.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
+    })),
+
+  updateOrder: (order) =>
+    set((s) => ({
+      orders: s.orders.some((o) => o.id === order.id)
+        ? s.orders.map((o) => (o.id === order.id ? order : o))
+        : [order, ...s.orders],
     })),
 }));

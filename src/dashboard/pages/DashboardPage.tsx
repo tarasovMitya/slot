@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Plus, RotateCcw, ClipboardList, LogOut } from "lucide-react";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
+import { dbSubscribeSharedOrderUpdates } from "../../lib/db";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
@@ -25,11 +26,16 @@ export function DashboardPage() {
   const { setSkipAuth, setContacts } = useCalculatorStore();
   const { user, signOut } = useAuthStore();
 
-  const sharedOrder = useSharedOrdersStore(
-    (s) => activeSharedOrderId
-      ? s.orders.find((o) => o.id === activeSharedOrderId) ?? null
-      : null
-  );
+  const { orders: sharedOrders, updateOrder: updateSharedOrder } = useSharedOrdersStore();
+  const sharedOrder = activeSharedOrderId
+    ? sharedOrders.find((o) => o.id === activeSharedOrderId) ?? null
+    : null;
+
+  // Subscribe to performer assignment via Supabase Realtime
+  useEffect(() => {
+    if (!activeSharedOrderId) return;
+    return dbSubscribeSharedOrderUpdates(activeSharedOrderId, updateSharedOrder);
+  }, [activeSharedOrderId]);
 
   const displayName = user?.user_metadata?.full_name as string | undefined
     ?? user?.email?.split("@")[0]

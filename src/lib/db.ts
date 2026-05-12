@@ -322,6 +322,22 @@ export function dbSubscribeSharedOrders(onNew: (order: SharedOrder) => void): ()
   return () => { supabase.removeChannel(channel); };
 }
 
+/** Subscribe to UPDATE events for a specific shared order (e.g. performer assigned). */
+export function dbSubscribeSharedOrderUpdates(
+  orderId: string,
+  onUpdate: (order: SharedOrder) => void
+): () => void {
+  const channel = supabase
+    .channel(`shared_order_update_${orderId}`)
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "shared_orders", filter: `id=eq.${orderId}` },
+      (payload) => onUpdate(rowToSharedOrder(payload.new as Record<string, unknown>))
+    )
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
+}
+
 export async function dbCancelSharedOrder(orderId: string): Promise<void> {
   await supabase
     .from("shared_orders")
