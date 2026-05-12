@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
@@ -50,8 +50,12 @@ function sortOrders(orders: PerformerOrder[], by: SortKey): PerformerOrder[] {
 
 export function AvailableOrdersPage() {
   const { availableOrders, acceptOrder, rejectOrder, isOnline } = usePerformerStore();
-  const realOrders = useSharedOrdersStore(
-    (s) => s.orders.filter((o) => o.status === "searching_performer").map(sharedToPerformerOrder)
+  const sharedOrders = useSharedOrdersStore((s) => s.orders);
+  const realOrders = useMemo(
+    () => sharedOrders
+      .filter((o) => o.status === "searching_performer")
+      .map(sharedToPerformerOrder),
+    [sharedOrders]
   );
   const [sortBy, setSortBy] = useState<SortKey>("nearest");
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
