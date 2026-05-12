@@ -10,6 +10,8 @@ export function PerformerAssignedView() {
 
   const { performer } = order;
   const eta = order.eta ?? "";
+  const displayName = performer.name || "Исполнитель";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-8 pb-10">
@@ -38,10 +40,10 @@ export function PerformerAssignedView() {
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
             className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-600 shrink-0"
           >
-            {performer.avatar ?? performer.name.slice(0, 2).toUpperCase()}
+            {performer.avatar || initials}
           </motion.div>
           <div>
-            <p className="text-lg font-bold text-gray-900">{performer.name}</p>
+            <p className="text-lg font-bold text-gray-900">{displayName}</p>
             <div className="flex items-center gap-1 mt-0.5">
               <Star size={13} className="text-amber-400 fill-amber-400" />
               <span className="text-sm font-semibold text-gray-800">{performer.rating}</span>

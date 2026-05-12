@@ -7,9 +7,8 @@ interface PerformerCardProps {
 }
 
 export function PerformerCard({ performer, showPhone = false }: PerformerCardProps) {
-  const initials = performer.name
-    ? performer.name.slice(0, 2).toUpperCase()
-    : "МС";
+  const displayName = performer.name || "Исполнитель";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="flex items-center gap-4">
@@ -17,7 +16,7 @@ export function PerformerCard({ performer, showPhone = false }: PerformerCardPro
         {initials}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900">{performer.name}</p>
+        <p className="text-sm font-semibold text-gray-900">{displayName}</p>
         <div className="flex items-center gap-1 mt-0.5">
           <Star size={12} className="text-amber-400 fill-amber-400" />
           <span className="text-xs font-medium text-gray-700">{performer.rating}</span>
