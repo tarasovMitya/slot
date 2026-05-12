@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
+import { MapPin, Plus } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
@@ -55,7 +56,16 @@ export function AuthStep() {
   const { selectedCategory, selectedService, fieldValues, schedule, setContacts } =
     useCalculatorStore();
   const { user, isAuthenticated } = useAuthStore();
-  const { setPendingOrder, updateProfile } = useDashboardStore();
+  const { setPendingOrder, updateProfile, addresses, addAddress } = useDashboardStore();
+
+  // Address selection: saved address id | "new" | null
+  const defaultAddr = addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;
+  const [selectedAddressId, setSelectedAddressId] = useState<string | "new" | null>(
+    defaultAddr ? defaultAddr.id : addresses.length === 0 ? "new" : null
+  );
+  const [newAddressValue, setNewAddressValue] = useState("");
+  const [saveNewAddress, setSaveNewAddress] = useState(false);
+  const [addressError, setAddressError] = useState("");
 
   useEffect(() => {
     if (isAuthenticated && user?.email) {
@@ -67,17 +77,17 @@ export function AuthStep() {
   }, [isAuthenticated, user]);
 
   const emailForm = useForm<{ email: string }>();
-  const profileForm = useForm<{ name: string; address: string; comment?: string }>();
+  const profileForm = useForm<{ name: string; comment?: string }>();
 
   useEffect(() => {
     if (subStep === "profile" && user?.user_metadata) {
       const meta = user.user_metadata as Record<string, string>;
       profileForm.reset({
         name: meta.full_name ?? meta.name ?? "",
-        address: meta.address ?? "",
         comment: "",
       });
       if (meta.phone) setPhone(meta.phone);
+      if (meta.address) setNewAddressValue(meta.address);
     }
   }, [subStep, user, profileForm]);
 
@@ -123,20 +133,36 @@ export function AuthStep() {
     setLoading(false);
   };
 
-  const handleProfile = profileForm.handleSubmit(async ({ name, address, comment }) => {
+  const handleProfile = profileForm.handleSubmit(async ({ name, comment }) => {
     const digits = phone.replace(/\D/g, "");
     if (digits.length < 11) {
       setPhoneError("Введите корректный номер телефона");
       return;
     }
 
+    const resolvedAddress =
+      selectedAddressId === "new"
+        ? newAddressValue.trim()
+        : addresses.find((a) => a.id === selectedAddressId)
+            ? `${addresses.find((a) => a.id === selectedAddressId)!.street}, ${addresses.find((a) => a.id === selectedAddressId)!.city}`
+            : "";
+
+    if (!resolvedAddress) {
+      setAddressError("Введите или выберите адрес");
+      return;
+    }
+
     setLoading(true);
 
+    if (selectedAddressId === "new" && saveNewAddress && newAddressValue.trim()) {
+      addAddress({ label: "Новый адрес", street: newAddressValue.trim(), city: "Москва", isDefault: addresses.length === 0 });
+    }
+
     const resolvedEmail = email || user?.email || "";
-    setContacts({ name, email: resolvedEmail, phone, address, comment: comment ?? "" });
+    setContacts({ name, email: resolvedEmail, phone, address: resolvedAddress, comment: comment ?? "" });
 
     const price = calculatePrice(selectedService, fieldValues);
-    const pending = {
+    setPendingOrder({
       serviceName: selectedService?.name ?? "",
       categoryName: selectedCategory?.name ?? "",
       duration: "По согласованию",
@@ -144,14 +170,13 @@ export function AuthStep() {
       scheduledTime: schedule.time,
       priceTotal: price.total,
       priceBreakdown: price.items,
-      address,
-    };
-    setPendingOrder(pending);
+      address: resolvedAddress,
+    });
 
-    updateProfile({ name, email: resolvedEmail, phone, address });
+    updateProfile({ name, email: resolvedEmail, phone, address: resolvedAddress });
 
     await supabase.auth.updateUser({
-      data: { full_name: name, phone, address },
+      data: { full_name: name, phone, address: resolvedAddress },
     });
 
     setLoading(false);
@@ -370,21 +395,66 @@ export function AuthStep() {
                 )}
               </div>
 
-              <div>
-                <input
-                  {...profileForm.register("address", { required: "Введите адрес" })}
-                  placeholder="Адрес (улица, дом, квартира)"
-                  className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
-                    profileForm.formState.errors.address
-                      ? "border-red-400"
-                      : "border-gray-100 focus:border-black"
+              {/* Address selector */}
+              <div className="flex flex-col gap-2">
+                {addresses.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => { setSelectedAddressId(a.id); setAddressError(""); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-colors ${
+                      selectedAddressId === a.id ? "border-black bg-gray-50" : "border-gray-100 hover:border-gray-300"
+                    }`}
+                  >
+                    <MapPin size={16} className={selectedAddressId === a.id ? "text-black" : "text-gray-400"} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{a.street}</p>
+                      <p className="text-xs text-gray-400">{a.city}</p>
+                    </div>
+                    {a.isDefault && (
+                      <span className="ml-auto text-[10px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full shrink-0">
+                        Основной
+                      </span>
+                    )}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => { setSelectedAddressId("new"); setAddressError(""); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-colors ${
+                    selectedAddressId === "new" ? "border-black bg-gray-50" : "border-gray-100 hover:border-gray-300"
                   }`}
-                />
-                {profileForm.formState.errors.address && (
-                  <p className="text-red-500 text-sm mt-1 ml-1">
-                    {profileForm.formState.errors.address.message}
-                  </p>
+                >
+                  <Plus size={16} className={selectedAddressId === "new" ? "text-black" : "text-gray-400"} />
+                  <span className={`text-sm font-medium ${selectedAddressId === "new" ? "text-gray-900" : "text-gray-500"}`}>
+                    Новый адрес
+                  </span>
+                </button>
+
+                {selectedAddressId === "new" && (
+                  <div className="flex flex-col gap-2 pl-1">
+                    <input
+                      value={newAddressValue}
+                      onChange={(e) => { setNewAddressValue(e.target.value); setAddressError(""); }}
+                      placeholder="Улица, дом, квартира"
+                      className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
+                        addressError ? "border-red-400" : "border-gray-100 focus:border-black"
+                      }`}
+                    />
+                    <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer px-1">
+                      <input
+                        type="checkbox"
+                        checked={saveNewAddress}
+                        onChange={(e) => setSaveNewAddress(e.target.checked)}
+                        className="w-4 h-4 rounded accent-black"
+                      />
+                      Сохранить в профиль
+                    </label>
+                  </div>
                 )}
+
+                {addressError && <p className="text-red-500 text-sm ml-1">{addressError}</p>}
               </div>
 
               <textarea

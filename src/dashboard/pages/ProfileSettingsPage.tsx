@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Check, LogOut, Pencil, X } from "lucide-react";
+import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useAuthStore } from "../../store/authStore";
@@ -213,6 +213,9 @@ export function ProfileSettingsPage() {
           </Field>
         </div>
 
+        {/* Addresses */}
+        <AddressesSection />
+
         {/* Notifications */}
         <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -249,6 +252,120 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium text-gray-500">{label}</label>
       {children}
+    </div>
+  );
+}
+
+function AddressesSection() {
+  const { addresses, addAddress, deleteAddress, setDefaultAddress } = useDashboardStore();
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ label: "", street: "", city: "Москва" });
+
+  const handleAdd = () => {
+    if (!form.street.trim()) return;
+    addAddress({ label: form.label || "Адрес", street: form.street.trim(), city: form.city || "Москва", isDefault: addresses.length === 0 });
+    setForm({ label: "", street: "", city: "Москва" });
+    setShowForm(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Адреса</p>
+        <button
+          type="button"
+          onClick={() => setShowForm((v) => !v)}
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition-colors"
+        >
+          <Plus size={13} />
+          Добавить
+        </button>
+      </div>
+
+      {addresses.length === 0 && !showForm && (
+        <p className="text-sm text-gray-400">Нет сохранённых адресов</p>
+      )}
+
+      <div className="flex flex-col gap-2">
+        {addresses.map((a) => (
+          <div
+            key={a.id}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+              a.isDefault ? "border-black bg-gray-50" : "border-gray-100"
+            }`}
+          >
+            <MapPin size={15} className="text-gray-400 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{a.street}</p>
+              <p className="text-xs text-gray-400">{a.city}</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {!a.isDefault && (
+                <button
+                  type="button"
+                  onClick={() => setDefaultAddress(a.id)}
+                  title="Сделать основным"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  <Star size={13} />
+                </button>
+              )}
+              {a.isDefault && (
+                <span className="text-[10px] font-semibold text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-full mr-1">
+                  Основной
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => deleteAddress(a.id)}
+                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showForm && (
+        <div className="border border-dashed border-gray-200 rounded-xl p-4 flex flex-col gap-2">
+          <input
+            placeholder='Название (например "Дом")'
+            value={form.label}
+            onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
+          />
+          <input
+            placeholder="Улица, дом, квартира"
+            value={form.street}
+            onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
+          />
+          <input
+            placeholder="Город"
+            value={form.city}
+            onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
+          />
+          <div className="flex gap-2 mt-1">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm font-medium text-gray-500 hover:border-gray-300 transition-all"
+            >
+              Отмена
+            </button>
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={!form.street.trim()}
+              className="flex-1 py-2.5 rounded-xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all"
+            >
+              Сохранить
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
