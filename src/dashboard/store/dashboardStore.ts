@@ -102,12 +102,23 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       dbLoadAddresses(userId),
       dbLoadOrders(userId),
     ]);
+
+    // Restore order flow state so views survive page refresh
+    const assignedOrder = orders.find((o) => o.status === "assigned");
+    const searchingOrder = orders.find((o) => o.status === "searching");
+    const flowRestore = assignedOrder
+      ? { orderFlowStatus: "assigned" as const, activeSharedOrderId: assignedOrder.id }
+      : searchingOrder
+      ? { orderFlowStatus: "searching" as const, activeSharedOrderId: searchingOrder.id }
+      : {};
+
     set({
       profile: profile ?? emptyProfile,
       addresses,
       orders,
       isLoading: false,
       isHydrated: true,
+      ...flowRestore,
     });
   },
 
