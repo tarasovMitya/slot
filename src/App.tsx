@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Calculator } from "./components/Calculator";
+import { LandingPage } from "./pages/LandingPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthPage } from "./pages/AuthPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
@@ -38,9 +39,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public: calculator entry point */}
-        <Route path="/" element={<Calculator />} />
-        <Route path="/calculator" element={<Navigate to="/" replace />} />
+        {/* Public */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/calculator" element={<Calculator />} />
 
         {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />

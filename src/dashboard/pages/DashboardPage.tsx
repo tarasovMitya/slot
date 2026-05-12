@@ -55,7 +55,7 @@ export function DashboardPage() {
       comment: "",
     });
     setSkipAuth(true);
-    navigate("/");
+    navigate("/calculator");
   };
 
   const handleSignOut = async () => {
