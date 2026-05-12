@@ -36,6 +36,7 @@ const STEPS: Step[] = [
   "service",
   "parameters",
   "datetime",
+  "summary",
   "auth",
   "checkout",
   "success",

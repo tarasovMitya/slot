@@ -8,6 +8,7 @@ import { CategoryStep } from "./steps/CategoryStep";
 import { ServiceStep } from "./steps/ServiceStep";
 import { ParametersStep } from "./steps/ParametersStep";
 import { DateTimeStep } from "./steps/DateTimeStep";
+import { SummaryStep } from "./steps/SummaryStep";
 import { AuthStep } from "./steps/AuthStep";
 import { CheckoutStep } from "./steps/CheckoutStep";
 import { supabase } from "../lib/supabase";
@@ -119,7 +120,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
       : "Продолжить";
 
   // Steps where we hide the nav (they have self-contained CTAs)
-  const selfContained = ["category", "service", "auth"];
+  const selfContained = ["category", "service", "summary", "auth"];
   const showNavigation = !selfContained.includes(step);
 
   if (embedded) {
@@ -150,6 +151,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                 {step === "service" && <ServiceStep />}
                 {step === "parameters" && <ParametersStep />}
                 {step === "datetime" && <DateTimeStep />}
+                {step === "summary" && <SummaryStep />}
                 {step === "auth" && <AuthStep />}
                 {step === "checkout" && <CheckoutStep />}
               </motion.div>
@@ -217,6 +219,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                 {step === "service" && <ServiceStep />}
                 {step === "parameters" && <ParametersStep />}
                 {step === "datetime" && <DateTimeStep />}
+                {step === "summary" && <SummaryStep />}
                 {step === "auth" && <AuthStep />}
                 {step === "checkout" && <CheckoutStep />}
               </motion.div>

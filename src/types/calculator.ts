@@ -55,6 +55,7 @@ export type Step =
   | "service"
   | "parameters"
   | "datetime"
+  | "summary"
   | "auth"
   | "checkout"
   | "success";
