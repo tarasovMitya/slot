@@ -101,7 +101,7 @@ function Header() {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           <button
-            onClick={() => navigate("/performer/auth")}
+            onClick={() => navigate("/performer/onboarding")}
             className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-xl border border-gray-200 hover:border-gray-400"
           >
             Стать исполнителем
@@ -134,7 +134,7 @@ function Header() {
               <a key={href} href={href} onClick={() => setOpen(false)} className="text-sm font-medium text-gray-700 py-2.5 border-b border-gray-50">{label}</a>
             ))}
             <div className="pt-3 flex flex-col gap-2">
-              <button onClick={() => { setOpen(false); navigate("/performer/auth"); }} className="w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700">Стать исполнителем</button>
+              <button onClick={() => { setOpen(false); navigate("/performer/onboarding"); }} className="w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700">Стать исполнителем</button>
               <button onClick={() => { setOpen(false); navigate("/calculator"); }} className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold">Создать заказ</button>
             </div>
           </motion.div>
@@ -480,7 +480,7 @@ function PerformerSection() {
               Свободные заказы в вашем районе. Берёте когда удобно — получаете оплату сразу после выполнения.
             </p>
             <button
-              onClick={() => navigate("/performer/auth")}
+              onClick={() => navigate("/performer/onboarding")}
               className="flex items-center gap-2 px-6 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all active:scale-95"
             >
               Стать исполнителем <ArrowRight size={18} />
@@ -610,7 +610,7 @@ function Footer() {
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Исполнителям</p>
             <div className="flex flex-col gap-2.5">
-              <button onClick={() => navigate("/performer/auth")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
+              <button onClick={() => navigate("/performer/onboarding")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
               <button onClick={() => navigate("/performer/auth")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Вход в кабинет</button>
             </div>
           </div>
@@ -641,7 +641,7 @@ function MobileBottomCTA() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3 flex gap-2">
-      <button onClick={() => navigate("/performer/auth")} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 active:scale-95 transition-all">
+      <button onClick={() => navigate("/performer/onboarding")} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 active:scale-95 transition-all">
         Исполнитель
       </button>
       <button onClick={() => navigate("/calculator")} className="flex-1 py-3 rounded-xl bg-black text-white text-sm font-semibold active:scale-95 transition-all">

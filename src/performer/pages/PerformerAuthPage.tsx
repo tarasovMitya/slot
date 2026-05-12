@@ -163,7 +163,7 @@ export function PerformerAuthPage() {
               className="flex flex-col gap-6"
             >
               <div className="text-center">
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Войти</h1>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Вход в кабинет</h1>
                 <p className="text-gray-500 mt-2">Отправим код подтверждения на email</p>
               </div>
 
@@ -195,12 +195,20 @@ export function PerformerAuthPage() {
                 </button>
               </form>
 
-              <p className="text-center text-sm text-gray-400">
-                Вы клиент?{" "}
-                <Link to="/auth" className="text-black font-medium hover:underline">
-                  Войти как клиент
-                </Link>
-              </p>
+              <div className="flex flex-col gap-2 text-center">
+                <p className="text-sm text-gray-400">
+                  Ещё не зарегистрированы?{" "}
+                  <Link to="/performer/onboarding" className="text-black font-medium hover:underline">
+                    Стать исполнителем
+                  </Link>
+                </p>
+                <p className="text-sm text-gray-400">
+                  Вы клиент?{" "}
+                  <Link to="/auth" className="text-black font-medium hover:underline">
+                    Войти как клиент
+                  </Link>
+                </p>
+              </div>
             </motion.div>
           )}
 

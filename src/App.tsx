@@ -70,10 +70,8 @@ function App() {
         {/* Performer auth */}
         <Route path="/performer/auth" element={<PerformerAuthPage />} />
 
-        {/* Performer onboarding — requires auth + performer role */}
-        <Route element={<PerformerGuard requireOnboarded={false} />}>
-          <Route path="/performer/onboarding" element={<PerformerOnboarding />} />
-        </Route>
+        {/* Performer onboarding — public, auth happens at the end */}
+        <Route path="/performer/onboarding" element={<PerformerOnboarding />} />
 
         {/* Performer dashboard — requires auth + performer role + onboarded */}
         <Route element={<PerformerGuard />}>
