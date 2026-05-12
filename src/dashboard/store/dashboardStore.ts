@@ -26,6 +26,7 @@ import {
   dbDeleteOrder,
   dbCreateSharedOrder,
   dbCancelSharedOrder,
+  dbGetSharedOrder,
 } from "../../lib/db";
 
 interface DashboardState {
@@ -97,20 +98,66 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   hydrateClient: async (userId) => {
     set({ isLoading: true });
-    const [profile, addresses, orders] = await Promise.all([
+    const [profile, addresses, rawOrders] = await Promise.all([
       dbLoadProfile(userId),
       dbLoadAddresses(userId),
       dbLoadOrders(userId),
     ]);
+    let orders = rawOrders;
 
     // Restore order flow state so views survive page refresh
     const assignedOrder = orders.find((o) => o.status === "assigned");
     const searchingOrder = orders.find((o) => o.status === "searching");
-    const flowRestore = assignedOrder
-      ? { orderFlowStatus: "assigned" as const, activeSharedOrderId: assignedOrder.id }
-      : searchingOrder
-      ? { orderFlowStatus: "searching" as const, activeSharedOrderId: searchingOrder.id }
-      : {};
+
+    let flowRestore: Partial<DashboardState> = {};
+    if (assignedOrder) {
+      flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: assignedOrder.id };
+    } else if (searchingOrder) {
+      // Check shared_orders immediately — performer may have already been assigned
+      const sharedOrder = await dbGetSharedOrder(searchingOrder.id);
+      if (sharedOrder?.status === "performer_assigned" && sharedOrder.performerName) {
+        const assignedAt = sharedOrder.acceptedAt ?? new Date().toISOString();
+        const assignedTime = new Date(assignedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+        orders = orders.map((o) =>
+          o.id === searchingOrder.id
+            ? {
+                ...o,
+                status: "assigned" as const,
+                assignedAt,
+                performer: {
+                  id: sharedOrder.performerId ?? "",
+                  name: sharedOrder.performerName || "Исполнитель",
+                  avatar: sharedOrder.performerAvatar || (sharedOrder.performerName || "И").slice(0, 2).toUpperCase(),
+                  rating: sharedOrder.performerRating ?? 0,
+                  reviewCount: sharedOrder.performerJobsCompleted ?? 0,
+                  phone: sharedOrder.performerPhone ?? "",
+                  jobsCompleted: sharedOrder.performerJobsCompleted ?? 0,
+                  telegram: sharedOrder.performerTelegram ?? undefined,
+                },
+                eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
+                timeline: o.timeline.map((t, i) =>
+                  i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+                ),
+              }
+            : o
+        );
+        flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: searchingOrder.id };
+        // Persist to order_history so next refresh doesn't need this check
+        dbUpdateOrder(searchingOrder.id, {
+          status: "assigned",
+          assigned_at: assignedAt,
+          performer_id: sharedOrder.performerId ?? null,
+          performer_name: sharedOrder.performerName,
+          performer_phone: sharedOrder.performerPhone ?? null,
+          performer_telegram: sharedOrder.performerTelegram ?? null,
+          performer_rating: sharedOrder.performerRating ?? null,
+          performer_avatar: sharedOrder.performerAvatar ?? null,
+          performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
+        });
+      } else {
+        flowRestore = { orderFlowStatus: "searching" as const, activeSharedOrderId: searchingOrder.id };
+      }
+    }
 
     set({
       profile: profile ?? emptyProfile,

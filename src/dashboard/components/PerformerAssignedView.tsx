@@ -40,7 +40,11 @@ export function PerformerAssignedView() {
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
             className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-600 shrink-0"
           >
-            {performer.avatar || initials}
+            {performer.avatar?.startsWith("http") ? (
+            <img src={performer.avatar} alt={displayName} className="w-full h-full object-cover rounded-full" />
+          ) : (
+            performer.avatar || initials
+          )}
           </motion.div>
           <div>
             <p className="text-lg font-bold text-gray-900">{displayName}</p>
