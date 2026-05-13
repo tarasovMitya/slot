@@ -322,19 +322,21 @@ export function dbSubscribeSharedOrders(onNew: (order: SharedOrder) => void): ()
   return () => { supabase.removeChannel(channel); };
 }
 
-/** Subscribe to all UPDATE events on shared_orders; filters client-side by orderId. */
+/** Subscribe to UPDATE events on shared_orders.
+ *  Pass orderId to filter to one order, or "__all__" to receive every update
+ *  (caller handles filtering). */
 export function dbSubscribeSharedOrderUpdates(
   orderId: string,
   onUpdate: (order: SharedOrder) => void
 ): () => void {
   const channel = supabase
-    .channel("shared_orders_all_updates")
+    .channel(`shared_orders_updates_${orderId}_${Date.now()}`)
     .on(
       "postgres_changes",
       { event: "UPDATE", schema: "public", table: "shared_orders" },
       (payload) => {
         const updated = rowToSharedOrder(payload.new as Record<string, unknown>);
-        if (updated.id === orderId) onUpdate(updated);
+        if (orderId === "__all__" || updated.id === orderId) onUpdate(updated);
       }
     )
     .subscribe();

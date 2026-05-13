@@ -107,7 +107,6 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
     // Restore order flow state so views survive page refresh
     const assignedOrder = orders.find((o) => o.status === "assigned");
-    const searchingOrder = orders.find((o) => o.status === "searching");
 
     let flowRestore: Partial<DashboardState> = {};
     if (assignedOrder) {
@@ -153,12 +152,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         });
       }
       flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: assignedOrder.id };
-    } else if (searchingOrder) {
-      // Check shared_orders immediately — performer may have already been assigned
+    }
+
+    // Handle ALL searching orders independently — performer may have accepted any of them.
+    // This runs even when there is also an assigned order (multiple concurrent orders).
+    const searchingOrders = orders.filter((o) => o.status === "searching");
+    for (const searchingOrder of searchingOrders) {
       const sharedOrder = await dbGetSharedOrder(searchingOrder.id);
       if (sharedOrder?.performerName && sharedOrder.status !== "searching_performer" && sharedOrder.status !== "cancelled") {
         const assignedAt = sharedOrder.acceptedAt ?? new Date().toISOString();
         const assignedTime = new Date(assignedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+        const perfName = (sharedOrder.performerName || "").trim() || "Исполнитель";
+        const perfAvatar = (sharedOrder.performerAvatar || "").trim() || perfName.slice(0, 2).toUpperCase();
         orders = orders.map((o) =>
           o.id === searchingOrder.id
             ? {
@@ -167,8 +172,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
                 assignedAt,
                 performer: {
                   id: sharedOrder.performerId ?? "",
-                  name: (sharedOrder.performerName || "").trim() || "Исполнитель",
-                  avatar: (sharedOrder.performerAvatar || "").trim() || ((sharedOrder.performerName || "").trim() || "И").slice(0, 2).toUpperCase(),
+                  name: perfName,
+                  avatar: perfAvatar,
                   rating: sharedOrder.performerRating ?? 0,
                   reviewCount: sharedOrder.performerJobsCompleted ?? 0,
                   phone: sharedOrder.performerPhone ?? "",
@@ -182,8 +187,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
               }
             : o
         );
-        flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: searchingOrder.id };
-        // Persist to order_history so next refresh doesn't need this check
+        // Only override flowRestore if we haven't already set it from an assignedOrder
+        if (!flowRestore.activeSharedOrderId) {
+          flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: searchingOrder.id };
+        }
         dbUpdateOrder(searchingOrder.id, {
           status: "assigned",
           assigned_at: assignedAt,
@@ -195,7 +202,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           performer_avatar: sharedOrder.performerAvatar ?? null,
           performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
         });
-      } else {
+      } else if (!flowRestore.activeSharedOrderId) {
+        // Still searching — start watching this order
         flowRestore = { orderFlowStatus: "searching" as const, activeSharedOrderId: searchingOrder.id };
       }
     }
@@ -429,19 +437,23 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
 
   applyPerformerFromSharedOrder: (sharedOrder) => {
-    const { orderFlowStatus, activeSharedOrderId } = get();
-    // Guard: only apply if still in searching state and IDs match
-    if (orderFlowStatus !== "searching" || activeSharedOrderId !== sharedOrder.id) return;
-    if (sharedOrder.status !== "performer_assigned") return;
+    const { orders } = get();
+    // Guard: only apply if this order is still in searching state in local store
+    const targetOrder = orders.find((o) => o.id === sharedOrder.id && o.status === "searching");
+    if (!targetOrder) return;
+    const perfName = (sharedOrder.performerName || "").trim() || "Исполнитель";
+    if (!perfName || sharedOrder.status === "searching_performer" || sharedOrder.status === "cancelled") return;
 
     const assignedAt = new Date().toISOString();
     const assignedTime = new Date().toLocaleTimeString("ru-RU", {
       hour: "2-digit",
       minute: "2-digit",
     });
+    const perfAvatar = (sharedOrder.performerAvatar || "").trim() || perfName.slice(0, 2).toUpperCase();
 
     set((s) => ({
-      orderFlowStatus: "assigned",
+      // Only flip the flow status if this is the currently tracked order
+      ...(s.activeSharedOrderId === sharedOrder.id && { orderFlowStatus: "assigned" as OrderFlowStatus }),
       orders: s.orders.map((o) =>
         o.id === sharedOrder.id
           ? {
@@ -450,8 +462,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
               assignedAt,
               performer: {
                 id: sharedOrder.performerId ?? "",
-                name: sharedOrder.performerName || "Исполнитель",
-                avatar: sharedOrder.performerAvatar || (sharedOrder.performerName || "И").slice(0, 2).toUpperCase(),
+                name: perfName,
+                avatar: perfAvatar,
                 rating: sharedOrder.performerRating ?? 0,
                 reviewCount: sharedOrder.performerJobsCompleted ?? 0,
                 phone: sharedOrder.performerPhone ?? "",

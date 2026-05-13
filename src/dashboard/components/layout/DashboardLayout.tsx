@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
@@ -10,7 +10,7 @@ import type { SharedOrder } from "../../../store/sharedOrdersStore";
 
 export function DashboardLayout() {
   const { user } = useAuthStore();
-  const { hydrateClient, isHydrated, orderFlowStatus, activeSharedOrderId, applyPerformerFromSharedOrder } = useDashboardStore();
+  const { hydrateClient, isHydrated, orders, applyPerformerFromSharedOrder } = useDashboardStore();
   const { updateOrder: updateSharedOrder } = useSharedOrdersStore();
 
   useEffect(() => {
@@ -19,9 +19,16 @@ export function DashboardLayout() {
     }
   }, [user?.id]);
 
-  // Subscribe to Realtime + poll while searching for a performer
+  // IDs of all orders still searching — re-derived each render but stable as a key string
+  const searchingIds = useMemo(
+    () => orders.filter((o) => o.status === "searching").map((o) => o.id),
+    [orders]
+  );
+  const searchingKey = [...searchingIds].sort().join(",");
+
+  // Subscribe to Realtime + poll for ALL searching orders simultaneously
   useEffect(() => {
-    if (orderFlowStatus !== "searching" || !activeSharedOrderId) return;
+    if (searchingIds.length === 0) return;
 
     const handleUpdate = (order: SharedOrder) => {
       updateSharedOrder(order);
@@ -30,20 +37,24 @@ export function DashboardLayout() {
       }
     };
 
-    // Realtime (fires instantly when DB changes)
-    const unsubscribe = dbSubscribeSharedOrderUpdates(activeSharedOrderId, handleUpdate);
+    // Single Realtime channel receives all shared_orders updates; filter client-side
+    const unsubscribe = dbSubscribeSharedOrderUpdates("__all__", (order) => {
+      if (searchingIds.includes(order.id)) handleUpdate(order);
+    });
 
-    // Poll every 5 seconds as reliable fallback
+    // Poll every 5 s as a reliable fallback for each searching order
     const interval = setInterval(async () => {
-      const order = await dbGetSharedOrder(activeSharedOrderId);
-      if (order) handleUpdate(order);
+      for (const id of searchingIds) {
+        const order = await dbGetSharedOrder(id);
+        if (order) handleUpdate(order);
+      }
     }, 5000);
 
     return () => {
       unsubscribe();
       clearInterval(interval);
     };
-  }, [orderFlowStatus, activeSharedOrderId]);
+  }, [searchingKey]);
 
   return (
     <div className="flex min-h-screen bg-white">
