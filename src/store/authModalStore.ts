@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type AuthModalMode = "login" | "register";
+export type AuthModalMode = "login" | "register" | "cabinet";
 export type AuthModalRole = "client" | "performer" | null;
 export type AuthModalStep = "role" | "email" | "register_form" | "otp";
 

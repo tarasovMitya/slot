@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { X, User, Wrench, ArrowLeft } from "lucide-react";
+import { X, User, Wrench, ArrowLeft, LayoutDashboard } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthModalStore } from "../../store/authModalStore";
+import { useAuthStore } from "../../store/authStore";
 import { dbSaveProfile, dbLoadPerformerProfile } from "../../lib/db";
 
 const stepAnim = {
@@ -20,6 +21,8 @@ export function AuthModal() {
     pendingName, pendingPhone,
     close, setRole, setStep, setPending, reset, open,
   } = useAuthModalStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isPerformer = user?.user_metadata?.performer_role === true;
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -249,8 +252,80 @@ export function AuthModal() {
               {/* Content */}
               <div className="px-6 pb-8 pt-2 overflow-hidden">
                 <AnimatePresence mode="wait">
-                  {/* ── Role selection ── */}
-                  {step === "role" && (
+                  {/* ── Cabinet: role entry point (Мой кабинет) ── */}
+                  {mode === "cabinet" && (
+                    <motion.div key="cabinet" {...stepAnim}>
+                      <h2 className="text-2xl font-black text-gray-900 mb-1">Войти в аккаунт</h2>
+                      <p className="text-sm text-gray-400 mb-6">Выберите тип аккаунта</p>
+
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        {/* Client */}
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => {
+                            reset();
+                            if (isAuthenticated && !isPerformer) {
+                              navigate("/dashboard");
+                            } else {
+                              navigate("/auth");
+                            }
+                          }}
+                          className="flex flex-col items-start gap-3 p-5 rounded-2xl border-2 border-gray-100 hover:border-gray-900 hover:bg-gray-50 transition-all group text-left"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-gray-900 flex items-center justify-center transition-colors">
+                            <LayoutDashboard size={20} className="text-gray-600 group-hover:text-white transition-colors" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm">Я клиент</p>
+                            <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">Управление заказами и статусами</p>
+                          </div>
+                          <span className="text-xs font-semibold text-gray-900 group-hover:underline">
+                            Войти как клиент →
+                          </span>
+                        </motion.button>
+
+                        {/* Performer */}
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => {
+                            reset();
+                            if (isAuthenticated && isPerformer) {
+                              navigate("/performer");
+                            } else {
+                              navigate("/performer/auth");
+                            }
+                          }}
+                          className="flex flex-col items-start gap-3 p-5 rounded-2xl border-2 border-gray-100 hover:border-gray-900 hover:bg-gray-50 transition-all group text-left"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-gray-900 flex items-center justify-center transition-colors">
+                            <Wrench size={20} className="text-gray-600 group-hover:text-white transition-colors" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm">Я исполнитель</p>
+                            <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">Доступ к заказам и балансу</p>
+                          </div>
+                          <span className="text-xs font-semibold text-gray-900 group-hover:underline">
+                            Войти как исполнитель →
+                          </span>
+                        </motion.button>
+                      </div>
+
+                      <p className="text-center text-sm text-gray-400">
+                        Нет аккаунта?{" "}
+                        <button
+                          onClick={() => open("register")}
+                          className="text-gray-900 font-semibold hover:underline"
+                        >
+                          Зарегистрироваться
+                        </button>
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* ── Role selection (login / register) ── */}
+                  {mode !== "cabinet" && step === "role" && (
                     <motion.div key="role" {...stepAnim}>
                       <h2 className="text-2xl font-black text-gray-900 mb-1">
                         {mode === "login" ? "Войти как" : "Зарегистрироваться как"}
@@ -296,7 +371,7 @@ export function AuthModal() {
                   )}
 
                   {/* ── Email (login) ── */}
-                  {step === "email" && (
+                  {mode !== "cabinet" && step === "email" && (
                     <motion.div key="email" {...stepAnim}>
                       <h2 className="text-2xl font-black text-gray-900 mb-1">
                         {role === "performer" ? "Войти как исполнитель" : "Войти как клиент"}
@@ -333,7 +408,7 @@ export function AuthModal() {
                   )}
 
                   {/* ── Registration form (client) ── */}
-                  {step === "register_form" && (
+                  {mode !== "cabinet" && step === "register_form" && (
                     <motion.div key="register_form" {...stepAnim}>
                       <h2 className="text-2xl font-black text-gray-900 mb-1">Создать аккаунт</h2>
                       <p className="text-sm text-gray-400 mb-6">Введите данные для регистрации</p>
@@ -383,7 +458,7 @@ export function AuthModal() {
                   )}
 
                   {/* ── OTP ── */}
-                  {step === "otp" && (
+                  {mode !== "cabinet" && step === "otp" && (
                     <motion.div key="otp" {...stepAnim}>
                       <h2 className="text-2xl font-black text-gray-900 mb-1">Введите код</h2>
                       <p className="text-sm text-gray-400 mb-6">

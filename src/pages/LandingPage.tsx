@@ -81,12 +81,8 @@ const FAQ = [
 
 function Header() {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const { open: openModal } = useAuthModalStore();
-  const { isAuthenticated, user } = useAuthStore();
-
-  const isPerformer = user?.user_metadata?.performer_role === true;
-  const dashPath = isPerformer ? "/performer" : "/dashboard";
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
@@ -110,7 +106,7 @@ function Header() {
         <div className="hidden md:flex items-center gap-2">
           {isAuthenticated ? (
             <button
-              onClick={() => navigate(dashPath)}
+              onClick={() => openModal("cabinet")}
               className="text-sm font-semibold bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-all active:scale-95"
             >
               Мой кабинет
@@ -155,7 +151,7 @@ function Header() {
             <div className="pt-3 flex flex-col gap-2">
               {isAuthenticated ? (
                 <button
-                  onClick={() => { setOpen(false); navigate(dashPath); }}
+                  onClick={() => { setOpen(false); openModal("cabinet"); }}
                   className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold"
                 >
                   Мой кабинет
@@ -188,7 +184,6 @@ function Header() {
 
 function HeroSection() {
   const navigate = useNavigate();
-  const { open: openModal } = useAuthModalStore();
 
   return (
     <section className="pt-28 pb-20 px-4 sm:px-6 max-w-6xl mx-auto">
@@ -217,7 +212,7 @@ function HeroSection() {
               Рассчитать стоимость <ArrowRight size={18} />
             </button>
             <button
-              onClick={() => openModal("register")}
+              onClick={() => navigate("/performer/onboarding")}
               className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl hover:border-gray-400 hover:text-gray-900 transition-all text-base"
             >
               Стать исполнителем
@@ -506,7 +501,7 @@ function TrustSection() {
 // ─── Performer ────────────────────────────────────────────────────────────────
 
 function PerformerSection() {
-  const { open: openModal } = useAuthModalStore();
+  const navigate = useNavigate();
 
   return (
     <section className="py-20 bg-gray-900">
@@ -521,7 +516,7 @@ function PerformerSection() {
               Свободные заказы в вашем районе. Берёте когда удобно — получаете оплату сразу после выполнения.
             </p>
             <button
-              onClick={() => openModal("register")}
+              onClick={() => navigate("/performer/onboarding")}
               className="flex items-center gap-2 px-6 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all active:scale-95"
             >
               Стать исполнителем <ArrowRight size={18} />
@@ -621,6 +616,7 @@ function FinalCTASection() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
+  const navigate = useNavigate();
   const { open: openModal } = useAuthModalStore();
 
   return (
@@ -651,7 +647,7 @@ function Footer() {
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Вход в кабинет</p>
             <div className="flex flex-col gap-2.5">
-              <button onClick={() => openModal("register")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
+              <button onClick={() => navigate("/performer/onboarding")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
               <button onClick={() => openModal("login")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Вход в кабинет</button>
             </div>
           </div>
