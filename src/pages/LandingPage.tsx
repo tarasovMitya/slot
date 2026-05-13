@@ -649,7 +649,7 @@ function Footer() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Исполнителям</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Вход в кабинет</p>
             <div className="flex flex-col gap-2.5">
               <button onClick={() => openModal("register")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
               <button onClick={() => openModal("login")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Вход в кабинет</button>

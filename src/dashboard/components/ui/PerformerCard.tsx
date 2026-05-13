@@ -15,7 +15,17 @@ export function PerformerCard({ performer, showPhone = false }: PerformerCardPro
     <div className="flex items-center gap-4">
       <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
         {isPhotoUrl ? (
-          <img src={performer.avatar} alt={displayName} className="w-full h-full object-cover" />
+          <img
+            src={performer.avatar}
+            alt={displayName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = "none";
+              const parent = target.parentElement;
+              if (parent) parent.textContent = initials;
+            }}
+          />
         ) : (
           performer.avatar || initials
         )}

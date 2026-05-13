@@ -111,6 +111,43 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
     let flowRestore: Partial<DashboardState> = {};
     if (assignedOrder) {
+      // If performer data is missing (old order before fix), re-fetch from shared_orders
+      if (!assignedOrder.performer) {
+        const sharedOrder = await dbGetSharedOrder(assignedOrder.id);
+        if (sharedOrder?.status === "performer_assigned") {
+          const assignedAt = sharedOrder.acceptedAt ?? assignedOrder.assignedAt ?? new Date().toISOString();
+          const perfName = sharedOrder.performerName || "Исполнитель";
+          orders = orders.map((o) =>
+            o.id === assignedOrder.id
+              ? {
+                  ...o,
+                  assignedAt,
+                  performer: {
+                    id: sharedOrder.performerId ?? "",
+                    name: perfName,
+                    avatar: sharedOrder.performerAvatar || perfName.slice(0, 2).toUpperCase(),
+                    rating: sharedOrder.performerRating ?? 0,
+                    reviewCount: sharedOrder.performerJobsCompleted ?? 0,
+                    phone: sharedOrder.performerPhone ?? "",
+                    jobsCompleted: sharedOrder.performerJobsCompleted ?? 0,
+                    telegram: sharedOrder.performerTelegram ?? undefined,
+                  },
+                }
+              : o
+          );
+          // Persist so next refresh won't need this check
+          dbUpdateOrder(assignedOrder.id, {
+            performer_name: sharedOrder.performerName,
+            performer_phone: sharedOrder.performerPhone ?? null,
+            performer_telegram: sharedOrder.performerTelegram ?? null,
+            performer_rating: sharedOrder.performerRating ?? null,
+            performer_avatar: sharedOrder.performerAvatar ?? null,
+            performer_id: sharedOrder.performerId ?? null,
+            performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
+            assigned_at: assignedAt,
+          });
+        }
+      }
       flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: assignedOrder.id };
     } else if (searchingOrder) {
       // Check shared_orders immediately — performer may have already been assigned
