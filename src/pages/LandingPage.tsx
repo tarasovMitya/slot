@@ -8,6 +8,9 @@ import {
   Menu, X, ArrowRight, MapPin, UserCheck, Lock, TrendingUp,
 } from "lucide-react";
 import { Calculator } from "../components/Calculator";
+import { AuthModal } from "../components/auth/AuthModal";
+import { useAuthModalStore } from "../store/authModalStore";
+import { useAuthStore } from "../store/authStore";
 
 // ─── Animation presets ───────────────────────────────────────────────────────
 
@@ -79,6 +82,11 @@ const FAQ = [
 function Header() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { open: openModal } = useAuthModalStore();
+  const { isAuthenticated, user } = useAuthStore();
+
+  const isPerformer = user?.user_metadata?.performer_role === true;
+  const dashPath = isPerformer ? "/performer" : "/dashboard";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
@@ -99,19 +107,30 @@ function Header() {
         </nav>
 
         {/* Desktop CTAs */}
-        <div className="hidden md:flex items-center gap-3">
-          <button
-            onClick={() => navigate("/performer/onboarding")}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-xl border border-gray-200 hover:border-gray-400"
-          >
-            Стать исполнителем
-          </button>
-          <button
-            onClick={() => navigate("/calculator")}
-            className="text-sm font-semibold bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-all active:scale-95"
-          >
-            Создать заказ
-          </button>
+        <div className="hidden md:flex items-center gap-2">
+          {isAuthenticated ? (
+            <button
+              onClick={() => navigate(dashPath)}
+              className="text-sm font-semibold bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-all active:scale-95"
+            >
+              Мой кабинет
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => openModal("login")}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-xl border border-gray-200 hover:border-gray-400"
+              >
+                Войти
+              </button>
+              <button
+                onClick={() => openModal("register")}
+                className="text-sm font-semibold bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-all active:scale-95"
+              >
+                Зарегистрироваться
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile burger */}
@@ -134,8 +153,29 @@ function Header() {
               <a key={href} href={href} onClick={() => setOpen(false)} className="text-sm font-medium text-gray-700 py-2.5 border-b border-gray-50">{label}</a>
             ))}
             <div className="pt-3 flex flex-col gap-2">
-              <button onClick={() => { setOpen(false); navigate("/performer/onboarding"); }} className="w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700">Стать исполнителем</button>
-              <button onClick={() => { setOpen(false); navigate("/calculator"); }} className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold">Создать заказ</button>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => { setOpen(false); navigate(dashPath); }}
+                  className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold"
+                >
+                  Мой кабинет
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => { setOpen(false); openModal("login"); }}
+                    className="w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700"
+                  >
+                    Войти
+                  </button>
+                  <button
+                    onClick={() => { setOpen(false); openModal("register"); }}
+                    className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold"
+                  >
+                    Зарегистрироваться
+                  </button>
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -148,6 +188,7 @@ function Header() {
 
 function HeroSection() {
   const navigate = useNavigate();
+  const { open: openModal } = useAuthModalStore();
 
   return (
     <section className="pt-28 pb-20 px-4 sm:px-6 max-w-6xl mx-auto">
@@ -176,7 +217,7 @@ function HeroSection() {
               Рассчитать стоимость <ArrowRight size={18} />
             </button>
             <button
-              onClick={() => navigate("/performer/onboarding")}
+              onClick={() => openModal("register")}
               className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl hover:border-gray-400 hover:text-gray-900 transition-all text-base"
             >
               Стать исполнителем
@@ -465,7 +506,7 @@ function TrustSection() {
 // ─── Performer ────────────────────────────────────────────────────────────────
 
 function PerformerSection() {
-  const navigate = useNavigate();
+  const { open: openModal } = useAuthModalStore();
 
   return (
     <section className="py-20 bg-gray-900">
@@ -480,7 +521,7 @@ function PerformerSection() {
               Свободные заказы в вашем районе. Берёте когда удобно — получаете оплату сразу после выполнения.
             </p>
             <button
-              onClick={() => navigate("/performer/onboarding")}
+              onClick={() => openModal("register")}
               className="flex items-center gap-2 px-6 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all active:scale-95"
             >
               Стать исполнителем <ArrowRight size={18} />
@@ -580,7 +621,7 @@ function FinalCTASection() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
-  const navigate = useNavigate();
+  const { open: openModal } = useAuthModalStore();
 
   return (
     <footer className="py-12 border-t border-gray-100">
@@ -610,8 +651,8 @@ function Footer() {
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Исполнителям</p>
             <div className="flex flex-col gap-2.5">
-              <button onClick={() => navigate("/performer/onboarding")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
-              <button onClick={() => navigate("/performer/auth")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Вход в кабинет</button>
+              <button onClick={() => openModal("register")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
+              <button onClick={() => openModal("login")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Вход в кабинет</button>
             </div>
           </div>
 
@@ -638,11 +679,12 @@ function Footer() {
 
 function MobileBottomCTA() {
   const navigate = useNavigate();
+  const { open: openModal } = useAuthModalStore();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3 flex gap-2">
-      <button onClick={() => navigate("/performer/onboarding")} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 active:scale-95 transition-all">
-        Исполнитель
+      <button onClick={() => openModal("login")} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 active:scale-95 transition-all">
+        Войти
       </button>
       <button onClick={() => navigate("/calculator")} className="flex-1 py-3 rounded-xl bg-black text-white text-sm font-semibold active:scale-95 transition-all">
         Создать заказ
@@ -677,6 +719,7 @@ export function LandingPage() {
         <FAQSection />
         <FinalCTASection />
       </main>
+      <AuthModal />
       <Footer />
       <MobileBottomCTA />
     </div>
