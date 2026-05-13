@@ -10,8 +10,9 @@ export function PerformerAssignedView() {
 
   const { performer } = order;
   const eta = order.eta ?? "";
-  const displayName = performer.name || "Исполнитель";
+  const displayName = (performer.name || "").trim() || "Исполнитель";
   const initials = displayName.slice(0, 2).toUpperCase();
+  const avatarText = (performer.avatar || "").trim();
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-8 pb-10">
@@ -40,10 +41,20 @@ export function PerformerAssignedView() {
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
             className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-600 shrink-0"
           >
-            {performer.avatar?.startsWith("http") ? (
-            <img src={performer.avatar} alt={displayName} className="w-full h-full object-cover rounded-full" />
+            {avatarText.startsWith("http") ? (
+            <img
+              src={avatarText}
+              alt={displayName}
+              className="w-full h-full object-cover rounded-full"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = "none";
+                const parent = target.parentElement;
+                if (parent) parent.textContent = initials;
+              }}
+            />
           ) : (
-            performer.avatar || initials
+            avatarText || initials
           )}
           </motion.div>
           <div>

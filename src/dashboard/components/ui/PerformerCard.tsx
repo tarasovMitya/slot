@@ -7,16 +7,17 @@ interface PerformerCardProps {
 }
 
 export function PerformerCard({ performer, showPhone = false }: PerformerCardProps) {
-  const displayName = performer.name || "Исполнитель";
+  const displayName = (performer.name || "").trim() || "Исполнитель";
   const initials = displayName.slice(0, 2).toUpperCase();
-  const isPhotoUrl = performer.avatar?.startsWith("http");
+  const avatarText = (performer.avatar || "").trim();
+  const isPhotoUrl = avatarText.startsWith("http");
 
   return (
     <div className="flex items-center gap-4">
       <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
         {isPhotoUrl ? (
           <img
-            src={performer.avatar}
+            src={avatarText}
             alt={displayName}
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -27,7 +28,7 @@ export function PerformerCard({ performer, showPhone = false }: PerformerCardPro
             }}
           />
         ) : (
-          performer.avatar || initials
+          avatarText || initials
         )}
       </div>
       <div className="flex-1 min-w-0">
