@@ -379,12 +379,15 @@ export async function dbCancelSharedOrder(orderId: string): Promise<void> {
 
 export async function dbRequestOrderCompletion(orderId: string, comment: string): Promise<void> {
   const now = new Date().toISOString();
-  await supabase.from("shared_orders").update({
-    status: "waiting_client_confirmation",
-    completion_comment: comment,
-    completion_requested_at: now,
-    updated_at: now,
-  }).eq("id", orderId);
+  // Status update is always attempted first — critical for client to receive update
+  await supabase.from("shared_orders")
+    .update({ status: "waiting_client_confirmation", updated_at: now })
+    .eq("id", orderId);
+  // Metadata columns may not exist yet — fail silently if migration not run
+  await supabase.from("shared_orders")
+    .update({ completion_comment: comment, completion_requested_at: now })
+    .eq("id", orderId)
+    .then(() => {}, () => {});
   await dbUpdateOrder(orderId, {
     status: "waiting_client_confirmation",
     completion_comment: comment,
@@ -394,20 +397,24 @@ export async function dbRequestOrderCompletion(orderId: string, comment: string)
 
 export async function dbConfirmOrderCompletion(orderId: string): Promise<void> {
   const now = new Date().toISOString();
-  await supabase.from("shared_orders").update({
-    status: "completed",
-    client_confirmed_at: now,
-    updated_at: now,
-  }).eq("id", orderId);
+  await supabase.from("shared_orders")
+    .update({ status: "completed", updated_at: now })
+    .eq("id", orderId);
+  await supabase.from("shared_orders")
+    .update({ client_confirmed_at: now })
+    .eq("id", orderId)
+    .then(() => {}, () => {});
   await dbUpdateOrder(orderId, { status: "completed", client_confirmed_at: now });
 }
 
 export async function dbOpenDispute(orderId: string, comment: string): Promise<void> {
   const now = new Date().toISOString();
-  await supabase.from("shared_orders").update({
-    status: "dispute_opened",
-    dispute_comment: comment,
-    updated_at: now,
-  }).eq("id", orderId);
+  await supabase.from("shared_orders")
+    .update({ status: "dispute_opened", updated_at: now })
+    .eq("id", orderId);
+  await supabase.from("shared_orders")
+    .update({ dispute_comment: comment })
+    .eq("id", orderId)
+    .then(() => {}, () => {});
   await dbUpdateOrder(orderId, { status: "dispute_opened", dispute_comment: comment });
 }
