@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronLeft, RotateCcw, MessageCircle } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, RotateCcw, MessageCircle, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
 import { StatusBadge } from "../components/ui/StatusBadge";
@@ -12,7 +12,8 @@ import { formatPrice } from "../../utils/priceCalculator";
 
 export function OrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { orders, confirmOrderCompletion, openDispute } = useDashboardStore();
+  const navigate = useNavigate();
+  const { orders, confirmOrderCompletion, openDispute, resumePayment } = useDashboardStore();
   const order = orders.find((o) => o.id === id);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
 
@@ -101,6 +102,15 @@ export function OrderDetailsPage() {
 
       {/* Actions */}
       <div className="mt-8 flex flex-col gap-3">
+        {order.status === "pending_payment" && (
+          <button
+            onClick={() => { resumePayment(order.id); navigate("/dashboard"); }}
+            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-black text-white font-semibold hover:bg-gray-800 transition-all active:scale-95"
+          >
+            <CreditCard size={16} />
+            Оплатить заказ
+          </button>
+        )}
         {order.status === "completed" && (
           <Link
             to="/calculator"

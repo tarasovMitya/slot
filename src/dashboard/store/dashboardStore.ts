@@ -71,6 +71,7 @@ interface DashboardState {
   confirmOrderCompletion: (orderId: string) => Promise<void>;
   openDispute: (orderId: string, comment: string) => Promise<void>;
   cancelOrder: (orderId: string) => void;
+  resumePayment: (orderId: string) => void;
   resetOrderFlow: () => void;
 }
 
@@ -557,6 +558,22 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       ),
     }));
     await dbOpenDispute(orderId, comment);
+  },
+
+  resumePayment: (orderId) => {
+    const order = get().orders.find((o) => o.id === orderId && o.status === "pending_payment");
+    if (!order) return;
+    const pendingOrder: import("../types").PendingOrder = {
+      serviceName: order.serviceName,
+      categoryName: order.categoryName,
+      duration: order.duration,
+      scheduledDate: order.scheduledDate,
+      scheduledTime: order.scheduledTime,
+      priceTotal: order.priceTotal,
+      priceBreakdown: order.priceBreakdown,
+      address: order.address,
+    };
+    set({ pendingOrder, paymentStatus: "pending", draftOrderId: orderId });
   },
 
   cancelOrder: (orderId) => {

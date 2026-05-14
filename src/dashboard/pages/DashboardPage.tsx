@@ -11,14 +11,12 @@ import { SectionHeader } from "../components/ui/SectionHeader";
 import { DashboardSkeleton } from "../components/ui/SkeletonLoader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PaymentModal } from "../components/PaymentModal";
-import { SearchingPerformerView } from "../components/SearchingPerformerView";
-import { PerformerAssignedView } from "../components/PerformerAssignedView";
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const {
     orders, isHydrated, addresses,
-    orderFlowStatus, cancelOrder,
+    cancelOrder,
   } = useDashboardStore();
   const { setSkipAuth, setContacts } = useCalculatorStore();
   const { user, signOut } = useAuthStore();
@@ -57,9 +55,6 @@ export function DashboardPage() {
     hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер";
 
   if (!isHydrated) return <DashboardSkeleton />;
-
-  if (orderFlowStatus === "searching") return <SearchingPerformerView />;
-  if (orderFlowStatus === "assigned") return <PerformerAssignedView />;
 
   return (
     <>
