@@ -4,6 +4,8 @@ export type OrderStatus =
   | "assigned"
   | "on_the_way"
   | "in_progress"
+  | "waiting_client_confirmation"
+  | "dispute_opened"
   | "completed"
   | "cancelled";
 
@@ -43,6 +45,8 @@ export interface Order {
   assignedAt?: string;
   fieldValues: Record<string, unknown>;
   timeline: TimelineEvent[];
+  completionComment?: string | null;
+  completionRequestedAt?: string | null;
 }
 
 export interface TimelineEvent {

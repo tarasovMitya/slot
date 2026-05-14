@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, RotateCcw, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -5,12 +6,15 @@ import { useDashboardStore } from "../store/dashboardStore";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { Timeline } from "../components/ui/Timeline";
 import { PerformerCard } from "../components/ui/PerformerCard";
+import { CompletionConfirmBlock } from "../components/CompletionConfirmBlock";
+import { DisputeModal } from "../components/DisputeModal";
 import { formatPrice } from "../../utils/priceCalculator";
 
 export function OrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const orders = useDashboardStore((s) => s.orders);
+  const { orders, confirmOrderCompletion, openDispute } = useDashboardStore();
   const order = orders.find((o) => o.id === id);
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
 
   if (!order) {
     return (
@@ -83,6 +87,16 @@ export function OrderDetailsPage() {
         <Section title="История заказа">
           <Timeline events={order.timeline} />
         </Section>
+
+        {/* Completion confirm block */}
+        {order.status === "waiting_client_confirmation" && (
+          <CompletionConfirmBlock
+            comment={order.completionComment}
+            completionTime={order.completionRequestedAt}
+            onConfirm={async () => { await confirmOrderCompletion(order.id); }}
+            onDispute={() => setShowDisputeModal(true)}
+          />
+        )}
       </div>
 
       {/* Actions */}
@@ -104,6 +118,11 @@ export function OrderDetailsPage() {
           Связаться с поддержкой
         </Link>
       </div>
+      <DisputeModal
+        isOpen={showDisputeModal}
+        onClose={() => setShowDisputeModal(false)}
+        onSubmit={async (comment) => { await openDispute(order.id, comment); }}
+      />
     </motion.div>
   );
 }

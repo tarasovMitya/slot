@@ -1,21 +1,24 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { PerformerStatusBadge } from "../components/ui/StatusBadge";
+import { CompletionModal } from "../components/CompletionModal";
 import { formatPrice } from "../../utils/priceCalculator";
 import type { PerformerOrderStatus } from "../types";
 
 const statusFlow: { from: PerformerOrderStatus; to: PerformerOrderStatus; label: string }[] = [
   { from: "accepted", to: "on_the_way", label: "Еду к клиенту" },
   { from: "on_the_way", to: "in_progress", label: "Начать работу" },
-  { from: "in_progress", to: "completed", label: "Завершить заказ" },
+  { from: "in_progress", to: "waiting_client_confirmation", label: "Завершить заказ" },
 ];
 
 export function PerformerOrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeOrders, completedOrders, updateOrderStatus } = usePerformerStore();
+  const { activeOrders, completedOrders, updateOrderStatus, submitCompletion } = usePerformerStore();
+  const [showModal, setShowModal] = useState(false);
 
   const order =
     activeOrders.find((o) => o.id === id) ??
@@ -33,8 +36,16 @@ export function PerformerOrderDetailsPage() {
 
   const handleStatusUpdate = () => {
     if (!nextAction) return;
+    if (nextAction.to === "waiting_client_confirmation") {
+      setShowModal(true);
+      return;
+    }
     updateOrderStatus(order.id, nextAction.to);
-    if (nextAction.to === "completed") navigate("/performer/active");
+  };
+
+  const handleCompletionSubmit = async (comment: string) => {
+    await submitCompletion(order.id, comment);
+    setShowModal(false);
   };
 
   const date = new Date(order.scheduledDate).toLocaleDateString("ru-RU", {
@@ -96,8 +107,16 @@ export function PerformerOrderDetailsPage() {
           {/* Comment */}
           {order.comment && (
             <div className="border border-gray-100 rounded-2xl p-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Комментарий</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Комментарий клиента</p>
               <p className="text-sm text-gray-700">{order.comment}</p>
+            </div>
+          )}
+
+          {/* Completion comment (waiting confirmation) */}
+          {order.status === "waiting_client_confirmation" && order.completionComment && (
+            <div className="border border-orange-100 bg-orange-50 rounded-2xl p-4">
+              <p className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2">Ваш отчёт о работе</p>
+              <p className="text-sm text-gray-700">{order.completionComment}</p>
             </div>
           )}
 
@@ -140,9 +159,23 @@ export function PerformerOrderDetailsPage() {
         </div>
       </motion.div>
 
-      {/* Status action — sticky bottom */}
+      {/* Waiting state — client must confirm */}
+      {order.status === "waiting_client_confirmation" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 lg:max-w-2xl lg:mx-auto lg:left-60"
+        >
+          <div className="flex items-center justify-center gap-3 py-3 rounded-2xl bg-orange-50">
+            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+            <span className="text-sm font-semibold text-orange-700">Ожидаем подтверждения клиента</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Status action — only for active statuses */}
       <AnimatePresence>
-        {nextAction && (
+        {nextAction && order.status !== "waiting_client_confirmation" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -158,6 +191,12 @@ export function PerformerOrderDetailsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CompletionModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleCompletionSubmit}
+      />
     </div>
   );
 }

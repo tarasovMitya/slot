@@ -12,6 +12,8 @@ const statusProgress: Record<string, number> = {
   assigned: 30,
   on_the_way: 55,
   in_progress: 80,
+  waiting_client_confirmation: 90,
+  dispute_opened: 90,
   completed: 100,
 };
 
@@ -108,6 +110,16 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Confirm banner */}
+      {order.status === "waiting_client_confirmation" && (
+        <Link to={`/dashboard/orders/${order.id}`} className="block px-5 py-3 border-t border-green-100 bg-green-50">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+            <span className="text-xs font-semibold text-green-700">Работа завершена — подтвердите выполнение</span>
+          </div>
+        </Link>
       )}
 
       {/* Footer */}

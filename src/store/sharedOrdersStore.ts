@@ -7,6 +7,8 @@ export type SharedOrderStatus =
   | "searching_performer"
   | "performer_assigned"
   | "in_progress"
+  | "waiting_client_confirmation"
+  | "dispute_opened"
   | "completed"
   | "cancelled";
 
@@ -42,6 +44,10 @@ export interface SharedOrder {
   performerAvatar: string | null;
   performerJobsCompleted: number | null;
   acceptedAt: string | null;
+  completionComment: string | null;
+  completionRequestedAt: string | null;
+  clientConfirmedAt: string | null;
+  disputeComment: string | null;
 
   // Future: geo filtering
   lat?: number;
@@ -70,6 +76,10 @@ type CreateOrderData = Omit<
   | "performerAvatar"
   | "performerJobsCompleted"
   | "acceptedAt"
+  | "completionComment"
+  | "completionRequestedAt"
+  | "clientConfirmedAt"
+  | "disputeComment"
 >;
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -114,6 +124,10 @@ export const useSharedOrdersStore = create<SharedOrdersState>((set, get) => ({
       performerAvatar: null,
       performerJobsCompleted: null,
       acceptedAt: null,
+      completionComment: null,
+      completionRequestedAt: null,
+      clientConfirmedAt: null,
+      disputeComment: null,
     };
     set((s) => ({ orders: [order, ...s.orders] }));
     return id;
@@ -147,6 +161,10 @@ export const useSharedOrdersStore = create<SharedOrdersState>((set, get) => ({
               performerAvatar: performer.avatar,
               performerJobsCompleted: performer.jobsCompleted,
               acceptedAt: new Date().toISOString(),
+      completionComment: null,
+      completionRequestedAt: null,
+      clientConfirmedAt: null,
+      disputeComment: null,
             }
           : o
       ),

@@ -10,7 +10,7 @@ import type { SharedOrder } from "../../../store/sharedOrdersStore";
 
 export function DashboardLayout() {
   const { user } = useAuthStore();
-  const { hydrateClient, isHydrated, orders, applyPerformerFromSharedOrder } = useDashboardStore();
+  const { hydrateClient, isHydrated, orders, applyPerformerFromSharedOrder, applyCompletionRequest } = useDashboardStore();
   const { updateOrder: updateSharedOrder } = useSharedOrdersStore();
 
   useEffect(() => {
@@ -19,32 +19,37 @@ export function DashboardLayout() {
     }
   }, [user?.id]);
 
-  // IDs of all orders still searching — re-derived each render but stable as a key string
-  const searchingIds = useMemo(
-    () => orders.filter((o) => o.status === "searching").map((o) => o.id),
+  // IDs of orders that need live updates: searching + assigned + in_progress
+  const activeSyncIds = useMemo(
+    () =>
+      orders
+        .filter((o) => ["searching", "assigned", "in_progress"].includes(o.status))
+        .map((o) => o.id),
     [orders]
   );
-  const searchingKey = [...searchingIds].sort().join(",");
+  const activeSyncKey = [...activeSyncIds].sort().join(",");
 
-  // Subscribe to Realtime + poll for ALL searching orders simultaneously
+  // Subscribe to Realtime + poll for all active orders
   useEffect(() => {
-    if (searchingIds.length === 0) return;
+    if (activeSyncIds.length === 0) return;
 
     const handleUpdate = (order: SharedOrder) => {
       updateSharedOrder(order);
       if (order.status === "performer_assigned") {
         applyPerformerFromSharedOrder(order);
+      } else if (order.status === "waiting_client_confirmation") {
+        applyCompletionRequest(order);
       }
     };
 
     // Single Realtime channel receives all shared_orders updates; filter client-side
     const unsubscribe = dbSubscribeSharedOrderUpdates("__all__", (order) => {
-      if (searchingIds.includes(order.id)) handleUpdate(order);
+      if (activeSyncIds.includes(order.id)) handleUpdate(order);
     });
 
-    // Poll every 5 s as a reliable fallback for each searching order
+    // Poll every 5 s as a reliable fallback
     const interval = setInterval(async () => {
-      for (const id of searchingIds) {
+      for (const id of activeSyncIds) {
         const order = await dbGetSharedOrder(id);
         if (order) handleUpdate(order);
       }
@@ -54,7 +59,7 @@ export function DashboardLayout() {
       unsubscribe();
       clearInterval(interval);
     };
-  }, [searchingKey]);
+  }, [activeSyncKey]);
 
   return (
     <div className="flex min-h-screen bg-white">

@@ -27,6 +27,8 @@ import {
   dbCreateSharedOrder,
   dbCancelSharedOrder,
   dbGetSharedOrder,
+  dbConfirmOrderCompletion,
+  dbOpenDispute,
 } from "../../lib/db";
 
 interface DashboardState {
@@ -65,6 +67,9 @@ interface DashboardState {
   setOrderFlowStatus: (status: OrderFlowStatus) => void;
   onPerformerAssigned: () => void;
   applyPerformerFromSharedOrder: (sharedOrder: SharedOrder) => void;
+  applyCompletionRequest: (sharedOrder: SharedOrder) => void;
+  confirmOrderCompletion: (orderId: string) => Promise<void>;
+  openDispute: (orderId: string, comment: string) => Promise<void>;
   cancelOrder: (orderId: string) => void;
   resetOrderFlow: () => void;
 }
@@ -515,6 +520,43 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
       });
     }
+  },
+
+  applyCompletionRequest: (sharedOrder) => {
+    set((s) => ({
+      orders: s.orders.map((o) =>
+        o.id === sharedOrder.id
+          ? {
+              ...o,
+              status: "waiting_client_confirmation" as const,
+              completionComment: sharedOrder.completionComment,
+              completionRequestedAt: sharedOrder.completionRequestedAt,
+            }
+          : o
+      ),
+    }));
+  },
+
+  confirmOrderCompletion: async (orderId) => {
+    set((s) => ({
+      orders: s.orders.map((o) =>
+        o.id === orderId ? { ...o, status: "completed" as const } : o
+      ),
+      ...(s.activeSharedOrderId === orderId && {
+        orderFlowStatus: "idle" as const,
+        activeSharedOrderId: null as null,
+      }),
+    }));
+    await dbConfirmOrderCompletion(orderId);
+  },
+
+  openDispute: async (orderId, comment) => {
+    set((s) => ({
+      orders: s.orders.map((o) =>
+        o.id === orderId ? { ...o, status: "dispute_opened" as const } : o
+      ),
+    }));
+    await dbOpenDispute(orderId, comment);
   },
 
   cancelOrder: (orderId) => {

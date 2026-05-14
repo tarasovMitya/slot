@@ -166,6 +166,8 @@ function rowToOrder(r: Record<string, unknown>): Order {
     assignedAt: (r.assigned_at as string) ?? undefined,
     fieldValues: (r.field_values as Order["fieldValues"]) ?? {},
     timeline: (r.timeline as Order["timeline"]) ?? [],
+    completionComment: (r.completion_comment as string) ?? null,
+    completionRequestedAt: (r.completion_requested_at as string) ?? null,
   };
 }
 
@@ -256,6 +258,10 @@ function rowToSharedOrder(r: Record<string, unknown>): SharedOrder {
     performerAvatar: (r.performer_avatar as string) ?? null,
     performerJobsCompleted: (r.performer_jobs_completed as number) ?? null,
     acceptedAt: (r.accepted_at as string) ?? null,
+    completionComment: (r.completion_comment as string) ?? null,
+    completionRequestedAt: (r.completion_requested_at as string) ?? null,
+    clientConfirmedAt: (r.client_confirmed_at as string) ?? null,
+    disputeComment: (r.dispute_comment as string) ?? null,
   };
 }
 
@@ -349,7 +355,7 @@ export async function dbLoadPerformerActiveOrders(performerId: string): Promise<
     .from("shared_orders")
     .select("*")
     .eq("performer_id", performerId)
-    .in("status", ["performer_assigned", "in_progress"])
+    .in("status", ["performer_assigned", "in_progress", "waiting_client_confirmation"])
     .order("created_at", { ascending: false });
   if (!data) return [];
   return data.map(rowToSharedOrder);
@@ -369,4 +375,39 @@ export async function dbCancelSharedOrder(orderId: string): Promise<void> {
     .from("shared_orders")
     .update({ status: "cancelled", updated_at: new Date().toISOString() })
     .eq("id", orderId);
+}
+
+export async function dbRequestOrderCompletion(orderId: string, comment: string): Promise<void> {
+  const now = new Date().toISOString();
+  await supabase.from("shared_orders").update({
+    status: "waiting_client_confirmation",
+    completion_comment: comment,
+    completion_requested_at: now,
+    updated_at: now,
+  }).eq("id", orderId);
+  await dbUpdateOrder(orderId, {
+    status: "waiting_client_confirmation",
+    completion_comment: comment,
+    completion_requested_at: now,
+  });
+}
+
+export async function dbConfirmOrderCompletion(orderId: string): Promise<void> {
+  const now = new Date().toISOString();
+  await supabase.from("shared_orders").update({
+    status: "completed",
+    client_confirmed_at: now,
+    updated_at: now,
+  }).eq("id", orderId);
+  await dbUpdateOrder(orderId, { status: "completed", client_confirmed_at: now });
+}
+
+export async function dbOpenDispute(orderId: string, comment: string): Promise<void> {
+  const now = new Date().toISOString();
+  await supabase.from("shared_orders").update({
+    status: "dispute_opened",
+    dispute_comment: comment,
+    updated_at: now,
+  }).eq("id", orderId);
+  await dbUpdateOrder(orderId, { status: "dispute_opened", dispute_comment: comment });
 }

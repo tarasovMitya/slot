@@ -20,6 +20,7 @@ import {
   dbUpdateOrder,
   dbAcceptSharedOrder,
   dbLoadPerformerActiveOrders,
+  dbRequestOrderCompletion,
 } from "../../lib/db";
 
 interface PerformerState {
@@ -42,6 +43,8 @@ interface PerformerState {
   acceptOrder: (orderId: string) => Promise<AcceptResult>;
   rejectOrder: (orderId: string) => void;
   updateOrderStatus: (orderId: string, status: PerformerOrderStatus) => void;
+  submitCompletion: (orderId: string, comment: string) => Promise<void>;
+  onClientConfirmed: (orderId: string) => void;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
   updateProfile: (data: Partial<PerformerProfile>) => void;
@@ -104,27 +107,38 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       dbLoadPerformerActiveOrders(userId),
     ]);
 
-    const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => ({
-      id: o.id,
-      createdAt: o.createdAt,
-      scheduledDate: o.scheduledDate,
-      scheduledTime: o.scheduledTime,
-      status: "accepted" as PerformerOrderStatus,
-      categoryName: o.categoryName,
-      serviceName: o.serviceName,
-      address: o.address,
-      priceTotal: o.priceTotal,
-      priceBreakdown: o.priceBreakdown,
-      duration: o.duration,
-      comment: o.comment,
-      client: { name: o.clientName, phone: o.clientPhone },
-      timeline: [
-        { id: "t1", label: "Заказ принят", time: o.acceptedAt ?? "", completed: true },
-        { id: "t2", label: "Еду к клиенту", time: "", completed: false },
-        { id: "t3", label: "Работа выполняется", time: "", completed: false },
-        { id: "t4", label: "Завершено", time: "", completed: false },
-      ],
-    }));
+    const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => {
+      const isWaiting = o.status === "waiting_client_confirmation";
+      const isInProgress = o.status === "in_progress";
+      const mappedStatus: PerformerOrderStatus = isWaiting
+        ? "waiting_client_confirmation"
+        : isInProgress
+        ? "in_progress"
+        : "accepted";
+      return {
+        id: o.id,
+        createdAt: o.createdAt,
+        scheduledDate: o.scheduledDate,
+        scheduledTime: o.scheduledTime,
+        status: mappedStatus,
+        categoryName: o.categoryName,
+        serviceName: o.serviceName,
+        address: o.address,
+        priceTotal: o.priceTotal,
+        priceBreakdown: o.priceBreakdown,
+        duration: o.duration,
+        comment: o.comment,
+        completionComment: o.completionComment,
+        completionRequestedAt: o.completionRequestedAt,
+        client: { name: o.clientName, phone: o.clientPhone },
+        timeline: [
+          { id: "t1", label: "Заказ принят", time: o.acceptedAt ?? "", completed: true },
+          { id: "t2", label: "Еду к клиенту", time: "", completed: false },
+          { id: "t3", label: "Работа выполняется", time: "", completed: isInProgress || isWaiting },
+          { id: "t4", label: "Завершено", time: isWaiting ? (o.completionRequestedAt ? new Date(o.completionRequestedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : "") : "", completed: isWaiting },
+        ],
+      };
+    });
 
     if (profile) {
       set((s) => ({
@@ -229,6 +243,56 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       availableOrders: s.availableOrders.filter((o) => o.id !== orderId),
     })),
 
+  submitCompletion: async (orderId, comment) => {
+    const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    set((s) => ({
+      activeOrders: s.activeOrders.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "waiting_client_confirmation" as PerformerOrderStatus,
+              completionComment: comment,
+              completionRequestedAt: new Date().toISOString(),
+              timeline: o.timeline.map((t) =>
+                t.label === "Завершено" ? { ...t, time: now, completed: true } : t
+              ),
+            }
+          : o
+      ),
+    }));
+    await dbRequestOrderCompletion(orderId, comment);
+  },
+
+  onClientConfirmed: (orderId) => {
+    const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    set((s) => {
+      const order = s.activeOrders.find((o) => o.id === orderId);
+      if (!order) return s;
+      const earningsRecord: EarningsRecord = {
+        id: `e-${Date.now()}`,
+        orderId: order.id,
+        serviceName: order.serviceName,
+        amount: order.priceTotal,
+        date: new Date().toISOString().split("T")[0],
+        time: now,
+      };
+      const newPendingBalance = s.pendingBalance + order.priceTotal;
+      const newCompleted = s.profile.completedOrders + 1;
+      const userId = useAuthStore.getState().user?.id;
+      if (userId) {
+        dbUpdatePerformerBalance(userId, s.balance, newPendingBalance);
+        dbSavePerformerProfile(userId, { completedOrders: newCompleted });
+      }
+      return {
+        activeOrders: s.activeOrders.filter((o) => o.id !== orderId),
+        completedOrders: [{ ...order, status: "completed" as PerformerOrderStatus }, ...s.completedOrders],
+        earnings: [earningsRecord, ...s.earnings],
+        pendingBalance: newPendingBalance,
+        profile: { ...s.profile, completedOrders: newCompleted },
+      };
+    });
+  },
+
   updateOrderStatus: (orderId, status) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
     const timelineLabel: Record<string, string> = {
@@ -247,30 +311,6 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       // Persist status change to DB (updates client-visible order_history row)
       dbUpdateOrder(orderId, { status });
 
-      if (status === "completed") {
-        const earningsRecord: EarningsRecord = {
-          id: `e-${Date.now()}`,
-          orderId: order.id,
-          serviceName: order.serviceName,
-          amount: order.priceTotal,
-          date: new Date().toISOString().split("T")[0],
-          time: now,
-        };
-        const newPendingBalance = s.pendingBalance + order.priceTotal;
-        const newCompleted = s.profile.completedOrders + 1;
-        const userId = useAuthStore.getState().user?.id;
-        if (userId) {
-          dbUpdatePerformerBalance(userId, s.balance, newPendingBalance);
-          dbSavePerformerProfile(userId, { completedOrders: newCompleted });
-        }
-        return {
-          activeOrders: s.activeOrders.filter((o) => o.id !== orderId),
-          completedOrders: [updatedOrder, ...s.completedOrders],
-          earnings: [earningsRecord, ...s.earnings],
-          pendingBalance: newPendingBalance,
-          profile: { ...s.profile, completedOrders: newCompleted },
-        };
-      }
       return { activeOrders: s.activeOrders.map((o) => (o.id === orderId ? updatedOrder : o)) };
     });
   },

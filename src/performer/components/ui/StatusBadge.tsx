@@ -5,6 +5,8 @@ const config: Record<PerformerOrderStatus, { label: string; className: string }>
   accepted: { label: "Принят", className: "bg-blue-50 text-blue-700" },
   on_the_way: { label: "Еду к клиенту", className: "bg-indigo-50 text-indigo-700" },
   in_progress: { label: "Выполняется", className: "bg-purple-50 text-purple-700" },
+  waiting_client_confirmation: { label: "Ожидает подтверждения", className: "bg-orange-50 text-orange-700" },
+  dispute_opened: { label: "Спор открыт", className: "bg-red-50 text-red-600" },
   completed: { label: "Завершён", className: "bg-green-50 text-green-700" },
   rejected: { label: "Отклонён", className: "bg-gray-100 text-gray-500" },
 };

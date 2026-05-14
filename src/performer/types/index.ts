@@ -3,6 +3,8 @@ export type PerformerOrderStatus =
   | "accepted"
   | "on_the_way"
   | "in_progress"
+  | "waiting_client_confirmation"
+  | "dispute_opened"
   | "completed"
   | "rejected";
 
@@ -42,6 +44,8 @@ export interface PerformerOrder {
   comment?: string;
   client: ClientInfo;
   timeline: TimelineEvent[];
+  completionComment?: string | null;
+  completionRequestedAt?: string | null;
 }
 
 export interface PerformerProfile {
