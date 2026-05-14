@@ -164,7 +164,7 @@ export function PerformerOrderDetailsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 lg:max-w-2xl lg:mx-auto lg:left-60"
+          className="fixed bottom-20 lg:bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 lg:max-w-2xl lg:mx-auto lg:left-60"
         >
           <div className="flex items-center justify-center gap-3 py-3 rounded-2xl bg-orange-50">
             <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
@@ -180,7 +180,7 @@ export function PerformerOrderDetailsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 lg:max-w-2xl lg:mx-auto lg:left-60"
+            className="fixed bottom-20 lg:bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 lg:max-w-2xl lg:mx-auto lg:left-60"
           >
             <button
               onClick={handleStatusUpdate}

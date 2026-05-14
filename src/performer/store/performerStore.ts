@@ -245,21 +245,28 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
 
   submitCompletion: async (orderId, comment) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-    set((s) => ({
-      activeOrders: s.activeOrders.map((o) =>
-        o.id === orderId
-          ? {
-              ...o,
-              status: "waiting_client_confirmation" as PerformerOrderStatus,
-              completionComment: comment,
-              completionRequestedAt: new Date().toISOString(),
-              timeline: o.timeline.map((t) =>
-                t.label === "Завершено" ? { ...t, time: now, completed: true } : t
-              ),
-            }
-          : o
-      ),
-    }));
+    set((s) => {
+      const order = s.activeOrders.find((o) => o.id === orderId);
+      const newPendingBalance = s.pendingBalance + (order?.priceTotal ?? 0);
+      const userId = useAuthStore.getState().user?.id;
+      if (userId && order) dbUpdatePerformerBalance(userId, s.balance, newPendingBalance);
+      return {
+        pendingBalance: newPendingBalance,
+        activeOrders: s.activeOrders.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                status: "waiting_client_confirmation" as PerformerOrderStatus,
+                completionComment: comment,
+                completionRequestedAt: new Date().toISOString(),
+                timeline: o.timeline.map((t) =>
+                  t.label === "Завершено" ? { ...t, time: now, completed: true } : t
+                ),
+              }
+            : o
+        ),
+      };
+    });
     await dbRequestOrderCompletion(orderId, comment);
   },
 
@@ -276,17 +283,20 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         date: new Date().toISOString().split("T")[0],
         time: now,
       };
-      const newPendingBalance = s.pendingBalance + order.priceTotal;
+      // Move from pendingBalance → balance (client confirmed, funds now available)
+      const newBalance = s.balance + order.priceTotal;
+      const newPendingBalance = Math.max(0, s.pendingBalance - order.priceTotal);
       const newCompleted = s.profile.completedOrders + 1;
       const userId = useAuthStore.getState().user?.id;
       if (userId) {
-        dbUpdatePerformerBalance(userId, s.balance, newPendingBalance);
+        dbUpdatePerformerBalance(userId, newBalance, newPendingBalance);
         dbSavePerformerProfile(userId, { completedOrders: newCompleted });
       }
       return {
         activeOrders: s.activeOrders.filter((o) => o.id !== orderId),
         completedOrders: [{ ...order, status: "completed" as PerformerOrderStatus }, ...s.completedOrders],
         earnings: [earningsRecord, ...s.earnings],
+        balance: newBalance,
         pendingBalance: newPendingBalance,
         profile: { ...s.profile, completedOrders: newCompleted },
       };

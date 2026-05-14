@@ -1,19 +1,46 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Outlet } from "react-router-dom";
 import { PerformerSidebar } from "./PerformerSidebar";
 import { MobilePerformerNav } from "./MobilePerformerNav";
 import { useAuthStore } from "../../../store/authStore";
 import { usePerformerStore } from "../../store/performerStore";
+import { dbSubscribeSharedOrderUpdates, dbGetSharedOrder } from "../../../lib/db";
 
 export function PerformerLayout() {
   const { user } = useAuthStore();
-  const { hydratePerformer, isHydrated } = usePerformerStore();
+  const { hydratePerformer, isHydrated, activeOrders, onClientConfirmed } = usePerformerStore();
 
   useEffect(() => {
     if (user?.id && !isHydrated) {
       hydratePerformer(user.id);
     }
   }, [user?.id]);
+
+  // Watch waiting orders for client confirmation
+  const waitingIds = useMemo(
+    () => activeOrders.filter((o) => o.status === "waiting_client_confirmation").map((o) => o.id),
+    [activeOrders]
+  );
+  const waitingKey = [...waitingIds].sort().join(",");
+
+  useEffect(() => {
+    if (waitingIds.length === 0) return;
+
+    const unsubscribe = dbSubscribeSharedOrderUpdates("__all__", (order) => {
+      if (waitingIds.includes(order.id) && order.status === "completed") {
+        onClientConfirmed(order.id);
+      }
+    });
+
+    const interval = setInterval(async () => {
+      for (const id of waitingIds) {
+        const order = await dbGetSharedOrder(id);
+        if (order?.status === "completed") onClientConfirmed(order.id);
+      }
+    }, 5000);
+
+    return () => { unsubscribe(); clearInterval(interval); };
+  }, [waitingKey]);
 
   return (
     <div className="flex min-h-screen bg-white">
