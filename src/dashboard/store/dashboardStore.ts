@@ -151,6 +151,28 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           assigned_at: assignedAt,
         });
       }
+      // Ensure performer is never null for an assigned order — PerformerAssignedView
+      // returns null (blank screen) if performer is missing, so set a minimal fallback
+      // when we couldn't restore real data from shared_orders.
+      if (!orders.find((o) => o.id === assignedOrder.id)?.performer) {
+        orders = orders.map((o) =>
+          o.id === assignedOrder.id && !o.performer
+            ? {
+                ...o,
+                performer: {
+                  id: "",
+                  name: "Исполнитель",
+                  avatar: "ИС",
+                  rating: 0,
+                  reviewCount: 0,
+                  phone: "",
+                  jobsCompleted: 0,
+                  telegram: undefined,
+                },
+              }
+            : o
+        );
+      }
       flowRestore = { orderFlowStatus: "assigned" as const, activeSharedOrderId: assignedOrder.id };
     }
 

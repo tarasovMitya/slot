@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Star, Phone } from "lucide-react";
 import type { Performer } from "../../types";
 
@@ -7,28 +8,26 @@ interface PerformerCardProps {
 }
 
 export function PerformerCard({ performer, showPhone = false }: PerformerCardProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   const displayName = (performer.name || "").trim() || "Исполнитель";
   const initials = displayName.slice(0, 2).toUpperCase();
   const avatarText = (performer.avatar || "").trim();
   const isPhotoUrl = avatarText.startsWith("http");
+  const showImg = isPhotoUrl && !imgFailed;
 
   return (
     <div className="flex items-center gap-4">
       <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
-        {isPhotoUrl ? (
+        {showImg ? (
           <img
             src={avatarText}
             alt={displayName}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.style.display = "none";
-              const parent = target.parentElement;
-              if (parent) parent.textContent = initials;
-            }}
+            onError={() => setImgFailed(true)}
           />
         ) : (
-          avatarText || initials
+          avatarText && !isPhotoUrl ? avatarText : initials
         )}
       </div>
       <div className="flex-1 min-w-0">

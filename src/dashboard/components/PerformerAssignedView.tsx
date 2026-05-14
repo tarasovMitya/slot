@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, MessageCircle, Star, Clock, CheckCircle } from "lucide-react";
 import { useDashboardStore } from "../store/dashboardStore";
@@ -6,6 +7,8 @@ export function PerformerAssignedView() {
   const { activeSharedOrderId, orders, resetOrderFlow } = useDashboardStore();
   const order = orders.find((o) => o.id === activeSharedOrderId) ?? null;
 
+  const [imgFailed, setImgFailed] = useState(false);
+
   if (!order?.performer) return null;
 
   const { performer } = order;
@@ -13,6 +16,8 @@ export function PerformerAssignedView() {
   const displayName = (performer.name || "").trim() || "Исполнитель";
   const initials = displayName.slice(0, 2).toUpperCase();
   const avatarText = (performer.avatar || "").trim();
+  const isPhotoUrl = avatarText.startsWith("http");
+  const showImg = isPhotoUrl && !imgFailed;
 
   return (
     <div className="max-w-sm mx-auto px-4 pt-8 pb-10">
@@ -41,20 +46,15 @@ export function PerformerAssignedView() {
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
             className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-600 shrink-0"
           >
-            {avatarText.startsWith("http") ? (
+            {showImg ? (
             <img
               src={avatarText}
               alt={displayName}
               className="w-full h-full object-cover rounded-full"
-              onError={(e) => {
-                const target = e.currentTarget;
-                target.style.display = "none";
-                const parent = target.parentElement;
-                if (parent) parent.textContent = initials;
-              }}
+              onError={() => setImgFailed(true)}
             />
           ) : (
-            avatarText || initials
+            avatarText && !isPhotoUrl ? avatarText : initials
           )}
           </motion.div>
           <div>

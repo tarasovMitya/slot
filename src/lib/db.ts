@@ -133,10 +133,11 @@ export async function dbDeleteOrder(id: string): Promise<void> {
 }
 
 function rowToOrder(r: Record<string, unknown>): Order {
-  const performer = r.performer_name
+  const performerName = ((r.performer_name as string) || "").trim();
+  const performer = performerName
     ? {
         id: (r.performer_id as string) ?? "",
-        name: r.performer_name as string,
+        name: performerName,
         avatar: (r.performer_avatar as string) ?? "",
         rating: (r.performer_rating as number) ?? 0,
         reviewCount: (r.performer_review_count as number) ?? 0,
