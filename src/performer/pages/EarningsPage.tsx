@@ -7,7 +7,7 @@ import { BalanceCard } from "../components/ui/BalanceCard";
 import { WithdrawModal } from "../components/ui/WithdrawModal";
 
 export function EarningsPage() {
-  const { earnings, profile, balance, pendingBalance, withdrawHistory } = usePerformerStore();
+  const { earnings, balance, pendingBalance, withdrawHistory } = usePerformerStore();
   const [showWithdraw, setShowWithdraw] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
@@ -17,7 +17,8 @@ export function EarningsPage() {
   const todayTotal = earnings.filter((e) => e.date === today).reduce((s, e) => s + e.amount, 0);
   const weekTotal = earnings.filter((e) => e.date >= weekAgo).reduce((s, e) => s + e.amount, 0);
   const monthTotal = earnings.filter((e) => e.date >= monthAgo).reduce((s, e) => s + e.amount, 0);
-  const avgCheck = earnings.length > 0 ? Math.round(monthTotal / earnings.length) : 0;
+  const completedCount = earnings.length;
+  const avgCheck = completedCount > 0 ? Math.round(monthTotal / completedCount) : 0;
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
@@ -69,7 +70,7 @@ export function EarningsPage() {
           className="grid grid-cols-2 gap-3 mb-6"
         >
           <Card icon={<TrendingUp size={14} className="text-gray-400" />} label="Месяц" value={formatPrice(monthTotal)} />
-          <Card icon={<CheckCircle size={14} className="text-gray-400" />} label="Средний чек" value={formatPrice(avgCheck)} sub={`${profile.completedOrders} заказов`} />
+          <Card icon={<CheckCircle size={14} className="text-gray-400" />} label="Средний чек" value={formatPrice(avgCheck)} sub={`${completedCount} заказов`} />
         </motion.div>
 
         {/* Bar chart */}

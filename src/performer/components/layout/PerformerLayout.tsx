@@ -26,16 +26,21 @@ export function PerformerLayout() {
   useEffect(() => {
     if (waitingIds.length === 0) return;
 
+    const confirmed = new Set<string>();
+    const confirm = (id: string) => {
+      if (confirmed.has(id)) return;
+      confirmed.add(id);
+      onClientConfirmed(id);
+    };
+
     const unsubscribe = dbSubscribeSharedOrderUpdates("__all__", (order) => {
-      if (waitingIds.includes(order.id) && order.status === "completed") {
-        onClientConfirmed(order.id);
-      }
+      if (waitingIds.includes(order.id) && order.status === "completed") confirm(order.id);
     });
 
     const interval = setInterval(async () => {
       for (const id of waitingIds) {
         const order = await dbGetSharedOrder(id);
-        if (order?.status === "completed") onClientConfirmed(order.id);
+        if (order?.status === "completed") confirm(order.id);
       }
     }, 5000);
 
