@@ -47,6 +47,17 @@ export function AdminSettingsPage() {
         </div>
       </Section>
 
+      {/* Travel cost settings */}
+      <Section title="Стоимость выезда исполнителя">
+        <div className="space-y-3">
+          <Field label="Базовая стоимость выезда (₽)" defaultValue="300" type="number" min={0} />
+          <Field label="Цена за км сверх базового радиуса (₽)" defaultValue="25" type="number" min={0} />
+          <Field label="Базовый радиус без доплаты (км)" defaultValue="5" type="number" min={0} />
+          <Field label="Минимальная доплата за выезд (₽)" defaultValue="100" type="number" min={0} />
+          <Field label="Максимальная доплата за выезд (₽)" defaultValue="2000" type="number" min={0} />
+        </div>
+      </Section>
+
       {/* Payout settings */}
       <Section title="Выплаты">
         <div className="space-y-3">
