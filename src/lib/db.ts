@@ -456,6 +456,18 @@ export async function dbCreateReview(
     .eq("id", orderId)
     .then(() => {}, () => {});
   await dbUpdateOrder(orderId, { client_rating: rating, client_review: comment });
+
+  // Recalculate performer's average rating from all reviews
+  const { data: allReviews } = await supabase
+    .from("reviews")
+    .select("rating")
+    .eq("performer_id", performerId);
+  if (allReviews && allReviews.length > 0) {
+    const avg = allReviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / allReviews.length;
+    const rounded = Math.round(avg * 10) / 10;
+    await supabase.from("performer_profiles").update({ rating: rounded }).eq("user_id", performerId);
+  }
+
   return true;
 }
 
