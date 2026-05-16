@@ -78,10 +78,10 @@ export function AddressSuggest({
       setLoading(true);
       debounceRef.current = setTimeout(() => {
         window.ymaps
-          .suggest(query, { results: 6, lang: "ru_RU" })
+          .suggest(query, { results: 6 })
           .then((items: any[]) => {
             const names = items
-              .map((i) => i.displayName ?? i.value ?? "")
+              .map((i) => (typeof i === "string" ? i : (i.value ?? i.displayName ?? "")))
               .filter(Boolean);
             setSuggestions(names);
             setOpen(names.length > 0);
