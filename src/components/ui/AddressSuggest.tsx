@@ -47,7 +47,7 @@ export function AddressSuggest({
   const [ymapsReady, setYmapsReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const apiKey = (import.meta as any).env?.VITE_YMAPS_KEY ?? "";
 
   useEffect(() => {
