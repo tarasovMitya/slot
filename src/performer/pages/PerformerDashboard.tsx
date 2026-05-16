@@ -1,13 +1,20 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Star, TrendingUp, CheckCircle, ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import { AvailabilityToggle } from "../components/ui/AvailabilityToggle";
 import { PerformerActiveOrderCard } from "../components/cards/ActiveOrderCard";
-import { formatPrice } from "../../utils/priceCalculator";
+import { formatPrice, pluralRu } from "../../utils/priceCalculator";
 
 export function PerformerDashboard() {
-  const { profile, isOnline, activeOrders, availableOrders, earnings } = usePerformerStore();
+  const { profile, isOnline, activeOrders, earnings } = usePerformerStore();
+  const { orders: sharedOrders } = useSharedOrdersStore();
+  const availableCount = useMemo(
+    () => sharedOrders.filter((o) => o.status === "searching_performer").length,
+    [sharedOrders]
+  );
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер";
@@ -81,7 +88,7 @@ export function PerformerDashboard() {
       </motion.div>
 
       {/* Available orders alert */}
-      {isOnline && availableOrders.length > 0 && (
+      {isOnline && availableCount > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -98,7 +105,7 @@ export function PerformerDashboard() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-amber-900">
-                  {availableOrders.length} {availableOrders.length === 1 ? "новый заказ" : "новых заказа"} рядом
+                  {availableCount} {pluralRu(availableCount, "новый заказ", "новых заказа", "новых заказов")} рядом
                 </p>
                 <p className="text-xs text-amber-700 mt-0.5">Нажмите, чтобы принять</p>
               </div>

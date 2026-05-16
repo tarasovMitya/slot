@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ClipboardList, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
+import { pluralRu } from "../../utils/priceCalculator";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
 import { SearchingOrderCard } from "../components/cards/SearchingOrderCard";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -32,7 +33,7 @@ export function ActiveOrdersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Активные заказы</h1>
           {activeOrders.length > 0 && (
-            <p className="text-sm text-gray-400 mt-0.5">{activeOrders.length} заказа</p>
+            <p className="text-sm text-gray-400 mt-0.5">{activeOrders.length} {pluralRu(activeOrders.length, "заказ", "заказа", "заказов")}</p>
           )}
         </div>
         <Link

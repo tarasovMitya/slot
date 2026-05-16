@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { MapPin, Plus, Navigation, Loader2 } from "lucide-react";
@@ -7,7 +6,6 @@ import { supabase } from "../../lib/supabase";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { useDashboardStore } from "../../dashboard/store/dashboardStore";
-import { calculatePrice } from "../../utils/priceCalculator";
 
 type SubStep = "email" | "otp" | "profile";
 
@@ -27,7 +25,6 @@ function applyPhoneMask(value: string): string {
 }
 
 export function AuthStep() {
-  const navigate = useNavigate();
   const [subStep, setSubStep] = useState<SubStep>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -53,10 +50,9 @@ export function AuthStep() {
     }, 1000);
   };
 
-  const { selectedCategory, selectedService, fieldValues, schedule, setContacts } =
-    useCalculatorStore();
+  const { setContacts, goNext } = useCalculatorStore();
   const { user, isAuthenticated } = useAuthStore();
-  const { setPendingOrder, updateProfile, addresses, addAddress } = useDashboardStore();
+  const { updateProfile, addresses, addAddress } = useDashboardStore();
 
   // Address selection: saved address id | "new" | null
   const defaultAddr = addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;
@@ -191,18 +187,6 @@ export function AuthStep() {
     const resolvedEmail = email || user?.email || "";
     setContacts({ name, email: resolvedEmail, phone, address: resolvedAddress, comment: comment ?? "" });
 
-    const price = calculatePrice(selectedService, fieldValues);
-    setPendingOrder({
-      serviceName: selectedService?.name ?? "",
-      categoryName: selectedCategory?.name ?? "",
-      duration: "По согласованию",
-      scheduledDate: schedule.date,
-      scheduledTime: schedule.time,
-      priceTotal: price.total,
-      priceBreakdown: price.items,
-      address: resolvedAddress,
-    });
-
     updateProfile({ name, email: resolvedEmail, phone, address: resolvedAddress });
 
     await supabase.auth.updateUser({
@@ -210,7 +194,7 @@ export function AuthStep() {
     });
 
     setLoading(false);
-    navigate("/dashboard", { replace: true });
+    goNext();
   });
 
   const handleOtpChange = (i: number, val: string) => {

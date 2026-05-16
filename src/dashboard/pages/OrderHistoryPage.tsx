@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
@@ -8,6 +9,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 type Filter = "all" | "completed" | "cancelled";
 
 export function OrderHistoryPage() {
+  const navigate = useNavigate();
   const { orders } = useDashboardStore();
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
@@ -80,7 +82,7 @@ export function OrderHistoryPage() {
               <OrderCard
                 key={order.id}
                 order={order}
-                onRepeat={order.status === "completed" ? () => window.location.href = "/calculator" : undefined}
+                onRepeat={order.status === "completed" ? () => navigate("/calculator") : undefined}
               />
             ))}
           </motion.div>

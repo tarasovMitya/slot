@@ -6,6 +6,7 @@ import type { PriceItem } from "../dashboard/types";
 export type SharedOrderStatus =
   | "searching_performer"
   | "performer_assigned"
+  | "performer_on_the_way"
   | "in_progress"
   | "waiting_client_confirmation"
   | "dispute_opened"
@@ -48,6 +49,11 @@ export interface SharedOrder {
   completionRequestedAt: string | null;
   clientConfirmedAt: string | null;
   disputeComment: string | null;
+
+  // Live tracking
+  performerLat?: number | null;
+  performerLng?: number | null;
+  performerLastSeen?: string | null;
 
   // Future: geo filtering
   lat?: number;

@@ -21,7 +21,13 @@ import {
   dbAcceptSharedOrder,
   dbLoadPerformerActiveOrders,
   dbRequestOrderCompletion,
+  dbUpdateSharedOrderStatus,
+  dbUpdatePerformerLocation,
 } from "../../lib/db";
+
+// Module-level watch ID — doesn't need to be reactive state
+let _locationWatchId: number | null = null;
+let _locationLastSent = 0;
 
 interface PerformerState {
   profile: PerformerProfile;
@@ -45,6 +51,9 @@ interface PerformerState {
   updateOrderStatus: (orderId: string, status: PerformerOrderStatus) => void;
   submitCompletion: (orderId: string, comment: string) => Promise<void>;
   onClientConfirmed: (orderId: string) => void;
+  onClientCancelled: (orderId: string) => void;
+  startLocationTracking: (orderId: string) => Promise<boolean>;
+  stopLocationTracking: () => void;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
   updateProfile: (data: Partial<PerformerProfile>) => void;
@@ -303,6 +312,22 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     });
   },
 
+  onClientCancelled: (orderId) => {
+    set((s) => {
+      const order = s.activeOrders.find((o) => o.id === orderId);
+      if (!order) return s;
+      // If order was in waiting_client_confirmation, refund pendingBalance
+      const refund = order.status === "waiting_client_confirmation" ? order.priceTotal : 0;
+      const newPendingBalance = Math.max(0, s.pendingBalance - refund);
+      const userId = useAuthStore.getState().user?.id;
+      if (userId && refund > 0) dbUpdatePerformerBalance(userId, s.balance, newPendingBalance);
+      return {
+        activeOrders: s.activeOrders.filter((o) => o.id !== orderId),
+        pendingBalance: newPendingBalance,
+      };
+    });
+  },
+
   updateOrderStatus: (orderId, status) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
     const timelineLabel: Record<string, string> = {
@@ -318,8 +343,11 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       );
       const updatedOrder: PerformerOrder = { ...order, status, timeline: updatedTimeline };
 
-      // Persist status change to DB (updates client-visible order_history row)
+      // Persist to order_history
       dbUpdateOrder(orderId, { status });
+      // Sync to shared_orders so client sees the update via Realtime
+      if (status === "on_the_way") dbUpdateSharedOrderStatus(orderId, "performer_on_the_way");
+      else if (status === "in_progress") dbUpdateSharedOrderStatus(orderId, "in_progress");
 
       return { activeOrders: s.activeOrders.map((o) => (o.id === orderId ? updatedOrder : o)) };
     });
@@ -376,4 +404,39 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     set((s) => ({
       bankCards: s.bankCards.map((c) => ({ ...c, isDefault: c.id === id })),
     })),
+
+  startLocationTracking: (orderId) => {
+    if (!navigator.geolocation) return Promise.resolve(false);
+    return new Promise<boolean>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          dbUpdatePerformerLocation(orderId, pos.coords.latitude, pos.coords.longitude);
+          _locationLastSent = Date.now();
+          if (_locationWatchId === null) {
+            _locationWatchId = navigator.geolocation.watchPosition(
+              (p) => {
+                const now = Date.now();
+                if (now - _locationLastSent < 10_000) return;
+                _locationLastSent = now;
+                dbUpdatePerformerLocation(orderId, p.coords.latitude, p.coords.longitude);
+              },
+              (err) => console.warn("GPS error:", err),
+              { enableHighAccuracy: true, timeout: 15_000, maximumAge: 5_000 }
+            );
+          }
+          resolve(true);
+        },
+        () => resolve(false),
+        { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 }
+      );
+    });
+  },
+
+  stopLocationTracking: () => {
+    if (_locationWatchId !== null) {
+      navigator.geolocation.clearWatch(_locationWatchId);
+      _locationWatchId = null;
+      _locationLastSent = 0;
+    }
+  },
 }));

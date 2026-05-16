@@ -1,14 +1,16 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import { PerformerSidebar } from "./PerformerSidebar";
 import { MobilePerformerNav } from "./MobilePerformerNav";
 import { useAuthStore } from "../../../store/authStore";
 import { usePerformerStore } from "../../store/performerStore";
-import { dbSubscribeSharedOrderUpdates, dbGetSharedOrder } from "../../../lib/db";
+import { useSharedOrdersStore } from "../../../store/sharedOrdersStore";
+import { dbSubscribeSharedOrderUpdates, dbGetSharedOrder, dbLoadSearchingOrders, dbSubscribeSharedOrders } from "../../../lib/db";
 
 export function PerformerLayout() {
   const { user } = useAuthStore();
-  const { hydratePerformer, isHydrated, activeOrders, onClientConfirmed } = usePerformerStore();
+  const { hydratePerformer, isHydrated, activeOrders, onClientConfirmed, onClientCancelled } = usePerformerStore();
+  const { addOrder, updateOrder } = useSharedOrdersStore();
 
   useEffect(() => {
     if (user?.id && !isHydrated) {
@@ -16,36 +18,58 @@ export function PerformerLayout() {
     }
   }, [user?.id]);
 
-  // Watch waiting orders for client confirmation
-  const waitingIds = useMemo(
-    () => activeOrders.filter((o) => o.status === "waiting_client_confirmation").map((o) => o.id),
-    [activeOrders]
-  );
-  const waitingKey = [...waitingIds].sort().join(",");
+  // Load available orders once and keep them live for the dashboard badge
+  useEffect(() => {
+    dbLoadSearchingOrders().then((orders) => orders.forEach(addOrder));
+    const unsubInsert = dbSubscribeSharedOrders(addOrder);
+    // Also handle UPDATEs so taken orders are removed from the available list
+    const unsubUpdate = dbSubscribeSharedOrderUpdates("__all__", updateOrder);
+    return () => { unsubInsert(); unsubUpdate(); };
+  }, []);
+
+  const activeIds = useMemo(() => activeOrders.map((o) => o.id), [activeOrders]);
+  const activeKey = [...activeIds].sort().join(",");
+
+  // Ref so the subscription closure always reads the current waiting set without re-subscribing
+  const waitingIdsRef = useRef<string[]>([]);
+  waitingIdsRef.current = activeOrders
+    .filter((o) => o.status === "waiting_client_confirmation")
+    .map((o) => o.id);
 
   useEffect(() => {
-    if (waitingIds.length === 0) return;
+    if (activeIds.length === 0) return;
 
     const confirmed = new Set<string>();
+    const cancelled = new Set<string>();
+
     const confirm = (id: string) => {
       if (confirmed.has(id)) return;
       confirmed.add(id);
       onClientConfirmed(id);
     };
+    const cancel = (id: string) => {
+      if (cancelled.has(id)) return;
+      cancelled.add(id);
+      onClientCancelled(id);
+    };
 
     const unsubscribe = dbSubscribeSharedOrderUpdates("__all__", (order) => {
-      if (waitingIds.includes(order.id) && order.status === "completed") confirm(order.id);
+      if (!activeIds.includes(order.id)) return;
+      if (order.status === "completed" && waitingIdsRef.current.includes(order.id)) confirm(order.id);
+      if (order.status === "cancelled") cancel(order.id);
     });
 
     const interval = setInterval(async () => {
-      for (const id of waitingIds) {
+      for (const id of activeIds) {
         const order = await dbGetSharedOrder(id);
-        if (order?.status === "completed") confirm(order.id);
+        if (!order) continue;
+        if (order.status === "completed" && waitingIdsRef.current.includes(id)) confirm(id);
+        if (order.status === "cancelled") cancel(id);
       }
     }, 5000);
 
     return () => { unsubscribe(); clearInterval(interval); };
-  }, [waitingKey]);
+  }, [activeKey]);
 
   return (
     <div className="flex min-h-screen bg-white">

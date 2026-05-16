@@ -38,7 +38,7 @@ export function AvailableOrderCard({ order, onAccept, onReject, isAccepting, isU
                 <DistanceBadge distance={order.distance} etaMinutes={order.etaMinutes} />
               )}
             </div>
-            <p className="text-base font-semibold text-gray-900">{order.serviceName}</p>
+            <p className="text-base font-semibold text-gray-900 line-clamp-1">{order.serviceName}</p>
           </div>
           <div className="text-right shrink-0">
             <p className="text-xl font-bold text-gray-900">{formatPrice(order.priceTotal)}</p>

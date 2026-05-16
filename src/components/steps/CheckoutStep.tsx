@@ -1,15 +1,18 @@
 import { useCalculatorStore } from "../../store/calculatorStore";
-import { calculatePrice, formatPrice } from "../../utils/priceCalculator";
+import { formatPrice, pluralService } from "../../utils/priceCalculator";
 
 export function CheckoutStep() {
-  const { selectedService, fieldValues, schedule, contacts, selectedCategory } =
-    useCalculatorStore();
-  const breakdown = calculatePrice(selectedService, fieldValues);
+  const { cart, schedule, contacts } = useCalculatorStore();
+
+  const grandTotal = cart.reduce((sum, item) => sum + item.priceTotal, 0);
 
   const formatDate = (iso: string) => {
     if (!iso) return "—";
-    const d = new Date(iso);
-    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "long" });
+    return new Date(iso).toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      weekday: "long",
+    });
   };
 
   return (
@@ -22,18 +25,34 @@ export function CheckoutStep() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Section title="Услуга">
-          <Row label="Категория" value={selectedCategory?.name ?? "—"} />
-          <Row label="Услуга" value={selectedService?.name ?? "—"} />
-        </Section>
-
-        <Section title="Состав заказа">
-          {breakdown.items.map((item, i) => (
-            <Row key={i} label={item.label} value={formatPrice(item.amount)} />
+        {/* Services — one card per service */}
+        <Section title={`Состав заказа · ${cart.length} ${pluralService(cart.length)}`}>
+          {cart.map((item, idx) => (
+            <div key={item.id} className={idx > 0 ? "pt-4 border-t border-gray-50" : ""}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0">
+                  {idx + 1}
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{item.serviceName}</span>
+              </div>
+              <div className="flex flex-col gap-1.5 pl-7">
+                {item.priceBreakdown.map((b, i) => (
+                  <Row key={i} label={b.label} value={formatPrice(b.amount)} />
+                ))}
+                {item.priceBreakdown.length > 1 && (
+                  <div className="flex items-center justify-between pt-1.5 border-t border-gray-50">
+                    <span className="text-xs text-gray-400">Подитог</span>
+                    <span className="text-xs font-semibold text-gray-700">{formatPrice(item.priceTotal)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+
+          {/* Grand total */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-2">
             <span className="text-base font-bold text-gray-900">Итого</span>
-            <span className="text-xl font-bold text-gray-900">{formatPrice(breakdown.total)}</span>
+            <span className="text-xl font-bold text-gray-900">{formatPrice(grandTotal)}</span>
           </div>
         </Section>
 
@@ -56,7 +75,7 @@ export function CheckoutStep() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-gray-100 p-5">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{title}</p>
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{title}</p>
       <div className="flex flex-col gap-2">{children}</div>
     </div>
   );
@@ -65,7 +84,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm text-gray-500 shrink-0">{label}</span>
       <span className="text-sm font-medium text-gray-900 text-right">{value}</span>
     </div>
   );

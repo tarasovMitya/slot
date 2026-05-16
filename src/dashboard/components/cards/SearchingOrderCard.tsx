@@ -39,7 +39,7 @@ export function SearchingOrderCard({ order, onCancel }: SearchingOrderCardProps)
           </span>
         </div>
 
-        <p className="text-base font-semibold text-gray-900">{order.serviceName}</p>
+        <p className="text-base font-semibold text-gray-900 line-clamp-1">{order.serviceName}</p>
 
         <div className="flex items-center gap-3 mt-1.5 flex-wrap">
           <span className="flex items-center gap-1 text-xs text-gray-400">

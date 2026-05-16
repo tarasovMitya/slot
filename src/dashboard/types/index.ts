@@ -47,6 +47,9 @@ export interface Order {
   timeline: TimelineEvent[];
   completionComment?: string | null;
   completionRequestedAt?: string | null;
+  performerLat?: number | null;
+  performerLng?: number | null;
+  performerLastSeen?: string | null;
 }
 
 export interface TimelineEvent {

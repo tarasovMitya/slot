@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, CreditCard } from "lucide-react";
+import { X, Check, CreditCard, Plus, ChevronLeft } from "lucide-react";
 import { usePerformerStore } from "../../store/performerStore";
 import { formatPrice } from "../../../utils/priceCalculator";
 
@@ -8,17 +8,39 @@ interface WithdrawModalProps {
   onClose: () => void;
 }
 
-type Step = "form" | "processing" | "success";
+type Step = "form" | "add-card" | "processing" | "success";
+
+function detectBrand(num: string): "Visa" | "Mastercard" | "МИР" {
+  if (num.startsWith("4")) return "Visa";
+  if (num.startsWith("5")) return "Mastercard";
+  return "МИР";
+}
+
+function formatCardNumber(val: string): string {
+  const digits = val.replace(/\D/g, "").slice(0, 16);
+  return digits.replace(/(.{4})/g, "$1 ").trim();
+}
+
+function formatExpiry(val: string): string {
+  const digits = val.replace(/\D/g, "").slice(0, 4);
+  if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return digits;
+}
 
 const QUICK_AMOUNTS = [1000, 3000, 5000, 10000];
 
 export function WithdrawModal({ onClose }: WithdrawModalProps) {
-  const { balance, bankCards, withdraw } = usePerformerStore();
+  const { balance, bankCards, withdraw, addBankCard } = usePerformerStore();
   const defaultCard = bankCards.find((c) => c.isDefault) ?? bankCards[0];
 
   const [amount, setAmount] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(defaultCard?.id ?? "");
   const [step, setStep] = useState<Step>("form");
+
+  // Add card form state
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardError, setCardError] = useState("");
 
   const numericAmount = Number(amount.replace(/\D/g, ""));
   const isValid = numericAmount >= 100 && numericAmount <= balance && selectedCardId;
@@ -29,6 +51,26 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
     await new Promise((r) => setTimeout(r, 2200));
     withdraw(numericAmount, selectedCardId);
     setStep("success");
+  };
+
+  const handleAddCard = () => {
+    const digits = cardNumber.replace(/\D/g, "");
+    const expiryParts = cardExpiry.split("/");
+    if (digits.length < 16) { setCardError("Введите 16 цифр карты"); return; }
+    if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+      setCardError("Введите срок в формате ММ/ГГ"); return;
+    }
+    const newCard = {
+      last4: digits.slice(-4),
+      brand: detectBrand(digits),
+      expiry: cardExpiry,
+      isDefault: bankCards.length === 0,
+    };
+    addBankCard(newCard);
+    setCardNumber("");
+    setCardExpiry("");
+    setCardError("");
+    setStep("form");
   };
 
   return (
@@ -52,6 +94,51 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
       >
         <div className="bg-white rounded-3xl w-full max-w-md mx-auto shadow-2xl overflow-hidden">
           <AnimatePresence mode="wait">
+
+            {/* Add card */}
+            {step === "add-card" && (
+              <motion.div key="add-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-50">
+                  <button onClick={() => { setStep("form"); setCardError(""); }} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
+                    <ChevronLeft size={16} />
+                    Назад
+                  </button>
+                  <h2 className="text-base font-bold text-gray-900">Новая карта</h2>
+                  <div className="w-14" />
+                </div>
+                <div className="px-6 py-5 flex flex-col gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Номер карты</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="0000 0000 0000 0000"
+                      value={cardNumber}
+                      onChange={(e) => { setCardNumber(formatCardNumber(e.target.value)); setCardError(""); }}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium tracking-widest transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Срок действия</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="ММ/ГГ"
+                      value={cardExpiry}
+                      onChange={(e) => { setCardExpiry(formatExpiry(e.target.value)); setCardError(""); }}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium transition-colors"
+                    />
+                  </div>
+                  {cardError && <p className="text-xs text-red-500">{cardError}</p>}
+                  <button
+                    onClick={handleAddCard}
+                    className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 mt-1"
+                  >
+                    Сохранить карту
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Processing */}
             {step === "processing" && (
@@ -201,6 +288,44 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                           )}
                         </button>
                       ))}
+
+                      {/* Inline add-card form when no cards, or button when cards exist */}
+                      {bankCards.length === 0 ? (
+                        <div className="flex flex-col gap-2 pt-1">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="0000 0000 0000 0000"
+                            value={cardNumber}
+                            onChange={(e) => { setCardNumber(formatCardNumber(e.target.value)); setCardError(""); }}
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium tracking-widest transition-colors"
+                          />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="ММ/ГГ"
+                            value={cardExpiry}
+                            onChange={(e) => { setCardExpiry(formatExpiry(e.target.value)); setCardError(""); }}
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium transition-colors"
+                          />
+                          {cardError && <p className="text-xs text-red-500">{cardError}</p>}
+                          <button
+                            onClick={handleAddCard}
+                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-black transition-all text-sm font-semibold text-gray-600 hover:text-black"
+                          >
+                            <Plus size={14} />
+                            Сохранить карту
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setStep("add-card")}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-400 transition-all text-sm font-medium text-gray-500 hover:text-gray-700"
+                        >
+                          <Plus size={15} />
+                          Добавить карту
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

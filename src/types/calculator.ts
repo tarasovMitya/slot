@@ -54,6 +54,7 @@ export type Step =
   | "category"
   | "service"
   | "parameters"
+  | "add-more"
   | "datetime"
   | "summary"
   | "auth"
@@ -68,4 +69,16 @@ export interface PriceBreakdownItem {
 export interface PriceBreakdown {
   items: PriceBreakdownItem[];
   total: number;
+}
+
+export interface CartItem {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  serviceId: string;
+  serviceName: string;
+  fieldValues: FieldValues;
+  priceBreakdown: PriceBreakdownItem[];
+  priceTotal: number;
+  duration: string;
 }

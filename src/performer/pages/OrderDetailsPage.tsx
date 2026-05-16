@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check } from "lucide-react";
+import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { PerformerStatusBadge } from "../components/ui/StatusBadge";
 import { CompletionModal } from "../components/CompletionModal";
@@ -17,8 +17,11 @@ const statusFlow: { from: PerformerOrderStatus; to: PerformerOrderStatus; label:
 export function PerformerOrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeOrders, completedOrders, updateOrderStatus, submitCompletion } = usePerformerStore();
+  const { activeOrders, completedOrders, updateOrderStatus, submitCompletion, startLocationTracking, stopLocationTracking } = usePerformerStore();
   const [showModal, setShowModal] = useState(false);
+  const [showGeoSheet, setShowGeoSheet] = useState(false);
+  const [geoBlocked, setGeoBlocked] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const order =
     activeOrders.find((o) => o.id === id) ??
@@ -35,12 +38,36 @@ export function PerformerOrderDetailsPage() {
   const nextAction = statusFlow.find((s) => s.from === order.status);
 
   const handleStatusUpdate = () => {
-    if (!nextAction) return;
+    if (!nextAction || isUpdating) return;
     if (nextAction.to === "waiting_client_confirmation") {
       setShowModal(true);
       return;
     }
+    if (nextAction.to === "on_the_way") {
+      setShowGeoSheet(true);
+      return;
+    }
     updateOrderStatus(order.id, nextAction.to);
+    if (nextAction.to === "in_progress") stopLocationTracking();
+  };
+
+  const handleConfirmGeo = async () => {
+    setGeoBlocked(false);
+    setIsUpdating(true);
+    const granted = await startLocationTracking(order.id);
+    if (!granted) {
+      setGeoBlocked(true);
+      setIsUpdating(false);
+      return;
+    }
+    updateOrderStatus(order.id, "on_the_way");
+    setShowGeoSheet(false);
+    setIsUpdating(false);
+  };
+
+  const handleSkipGeo = () => {
+    updateOrderStatus(order.id, "on_the_way");
+    setShowGeoSheet(false);
   };
 
   const handleCompletionSubmit = async (comment: string) => {
@@ -184,9 +211,10 @@ export function PerformerOrderDetailsPage() {
           >
             <button
               onClick={handleStatusUpdate}
-              className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95"
+              disabled={isUpdating}
+              className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-60"
             >
-              {nextAction.label}
+              {isUpdating ? "Определяем геолокацию..." : nextAction.label}
             </button>
           </motion.div>
         )}
@@ -197,6 +225,67 @@ export function PerformerOrderDetailsPage() {
         onClose={() => setShowModal(false)}
         onSubmit={handleCompletionSubmit}
       />
+
+      {/* Geolocation permission sheet */}
+      <AnimatePresence>
+        {showGeoSheet && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => !isUpdating && setShowGeoSheet(false)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-3xl p-6 pb-10 shadow-xl"
+            >
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
+                  <LocateFixed size={28} className="text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900">Поделиться геолокацией</p>
+                  <p className="text-sm text-gray-500 mt-1.5">
+                    Клиент увидит вашу точку на карте и сможет отследить, когда вы приедете
+                  </p>
+                </div>
+
+                {geoBlocked && (
+                  <div className="w-full flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl p-4 text-left">
+                    <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-700">Доступ к геолокации запрещён</p>
+                      <p className="text-xs text-red-500 mt-0.5">
+                        Разрешите доступ в настройках браузера или нажмите «Продолжить без геолокации»
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleConfirmGeo}
+                  disabled={isUpdating}
+                  className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base disabled:opacity-60 transition-all active:scale-95"
+                >
+                  {isUpdating ? "Определяем местоположение..." : "Разрешить геолокацию"}
+                </button>
+                <button
+                  onClick={handleSkipGeo}
+                  disabled={isUpdating}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Продолжить без геолокации
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

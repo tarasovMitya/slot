@@ -8,11 +8,10 @@ import { CategoryStep } from "./steps/CategoryStep";
 import { ServiceStep } from "./steps/ServiceStep";
 import { ParametersStep } from "./steps/ParametersStep";
 import { DateTimeStep } from "./steps/DateTimeStep";
-import { SummaryStep } from "./steps/SummaryStep";
+import { AddMoreStep } from "./steps/AddMoreStep";
 import { AuthStep } from "./steps/AuthStep";
 import { CheckoutStep } from "./steps/CheckoutStep";
 import { supabase } from "../lib/supabase";
-import { calculatePrice } from "../utils/priceCalculator";
 
 const variants = {
   enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
@@ -24,6 +23,7 @@ const STEPS_ORDER = [
   "category",
   "service",
   "parameters",
+  "add-more",
   "datetime",
   "auth",
   "checkout",
@@ -37,22 +37,37 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
     step,
     goBack,
     goNext,
+    setStep,
     setIsSubmitting,
     isSubmitting,
     reset,
-    selectedService,
-    selectedCategory,
-    fieldValues,
     schedule,
     contacts,
+    cart,
+    addToCart,
+    editingCartItemId,
+    clearCurrentService,
   } = useCalculatorStore();
 
   const stepIdx = STEPS_ORDER.indexOf(step);
 
+  // When at "category" with cart items already present, allow going back to the cart
+  const canGoBack =
+    step !== "auth" &&
+    step !== "add-more" &&
+    (stepIdx > 0 || (step === "category" && cart.length > 0));
+
+  const handleBack = () => {
+    if (step === "category" && cart.length > 0) {
+      clearCurrentService();
+      setStep("add-more");
+    } else {
+      goBack();
+    }
+  };
+
   const handleNext = () => {
     if (step === "auth") {
-      // AuthStep manages its own flow and calls goNext internally
-      // The profile sub-step submits via form id
       const form = document.getElementById("profile-form") as HTMLFormElement | null;
       form?.requestSubmit();
       return;
@@ -61,66 +76,87 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
       handleSubmit();
       return;
     }
+    if (step === "parameters") {
+      // Save current service to cart, then advance to add-more
+      addToCart();
+      goNext();
+      return;
+    }
     goNext();
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+
+    // Build aggregated breakdown from cart
+    const cartTotal = cart.reduce((sum, item) => sum + item.priceTotal, 0);
+    // For multi-service: one line per service; single-service: full detail breakdown
+    const allBreakdown =
+      cart.length === 1
+        ? cart[0].priceBreakdown
+        : cart.map((item) => ({ label: item.serviceName, amount: item.priceTotal }));
+    const primaryService = cart[0];
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const breakdown = calculatePrice(selectedService, fieldValues);
 
-      const { error } = await supabase.from("orders").insert({
+      await supabase.from("orders").insert({
         user_id: user?.id ?? null,
         email: contacts.email,
         name: contacts.name,
-        category_id: selectedCategory?.id,
-        category_name: selectedCategory?.name,
-        service_id: selectedService?.id,
-        service_name: selectedService?.name,
-        field_values: fieldValues,
-        price_total: breakdown.total,
-        price_breakdown: breakdown.items,
+        category_id: primaryService.categoryId,
+        category_name: primaryService.categoryName,
+        service_id: primaryService.serviceId,
+        service_name: cart.length === 1
+          ? primaryService.serviceName
+          : `${primaryService.serviceName} + ещё ${cart.length - 1}`,
+        field_values: cart.length === 1 ? primaryService.fieldValues : {},
+        price_total: cartTotal,
+        price_breakdown: allBreakdown,
         scheduled_date: schedule.date,
         scheduled_time: schedule.time,
         address: contacts.address,
         comment: contacts.comment,
       });
-
-      if (error) throw error;
     } catch (err) {
       console.error("Order save error:", err);
     } finally {
       setIsSubmitting(false);
     }
 
-    // Set pending order for payment modal and navigate to dashboard
-    const breakdown = calculatePrice(selectedService, fieldValues);
+    // Set pending order for dashboard payment modal
+    const duration = cart.length === 1 ? cart[0].duration : "По согласованию";
+
     setPendingOrder({
-      serviceName: selectedService?.name ?? "",
-      categoryName: selectedCategory?.name ?? "",
-      duration: selectedService && selectedService.fields.length > 0 ? "~1–2 часа" : "~1 час",
+      serviceName: cart.length === 1
+        ? primaryService.serviceName
+        : `${primaryService.serviceName} + ещё ${cart.length - 1}`,
+      categoryName: primaryService.categoryName,
+      duration,
       scheduledDate: schedule.date,
       scheduledTime: schedule.time,
-      priceTotal: breakdown.total,
-      priceBreakdown: breakdown.items,
+      priceTotal: cartTotal,
+      priceBreakdown: allBreakdown,
       address: contacts.address,
     });
+
     reset();
     navigate("/dashboard");
   };
-
-  const canGoBack = stepIdx > 0 && step !== "auth";
 
   const submitLabel =
     step === "checkout"
       ? "Оформить заказ"
       : step === "auth"
       ? "Далее"
+      : step === "parameters"
+      ? editingCartItemId
+        ? "Обновить услугу"
+        : "Добавить в заказ"
       : "Продолжить";
 
-  // Steps where we hide the nav (they have self-contained CTAs)
-  const selfContained = ["category", "service", "summary", "auth"];
+  // Steps that manage their own CTAs — no external nav buttons
+  const selfContained = ["category", "service", "add-more", "auth"];
   const showNavigation = !selfContained.includes(step);
 
   if (embedded) {
@@ -129,7 +165,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         <div className="p-6 sm:p-8">
           {canGoBack && (
             <button
-              onClick={goBack}
+              onClick={handleBack}
               className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors mb-4"
             >
               ← Назад
@@ -150,8 +186,8 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                 {step === "category" && <CategoryStep />}
                 {step === "service" && <ServiceStep />}
                 {step === "parameters" && <ParametersStep />}
+                {step === "add-more" && <AddMoreStep />}
                 {step === "datetime" && <DateTimeStep />}
-                {step === "summary" && <SummaryStep />}
                 {step === "auth" && <AuthStep />}
                 {step === "checkout" && <CheckoutStep />}
               </motion.div>
@@ -161,7 +197,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
               <div className="mt-6 flex gap-3">
                 {canGoBack && (
                   <button
-                    onClick={goBack}
+                    onClick={handleBack}
                     className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
                   >
                     Назад
@@ -191,7 +227,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
             <span className="text-xl font-bold text-gray-900 tracking-tight">SLOT</span>
             {canGoBack && (
               <button
-                onClick={goBack}
+                onClick={handleBack}
                 className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors"
               >
                 ← Назад
@@ -218,19 +254,19 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                 {step === "category" && <CategoryStep />}
                 {step === "service" && <ServiceStep />}
                 {step === "parameters" && <ParametersStep />}
+                {step === "add-more" && <AddMoreStep />}
                 {step === "datetime" && <DateTimeStep />}
-                {step === "summary" && <SummaryStep />}
                 {step === "auth" && <AuthStep />}
                 {step === "checkout" && <CheckoutStep />}
               </motion.div>
             </AnimatePresence>
 
-            {/* Desktop nav buttons */}
+            {/* Desktop nav */}
             {showNavigation && (
               <div className="mt-8 hidden lg:flex gap-3">
                 {canGoBack && (
                   <button
-                    onClick={goBack}
+                    onClick={handleBack}
                     className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
                   >
                     Назад
@@ -246,7 +282,6 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
               </div>
             )}
 
-            {/* Spacer for mobile bottom bar */}
             {showNavigation && <div className="h-24 lg:hidden" />}
           </div>
 

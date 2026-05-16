@@ -159,7 +159,7 @@ export function DashboardPage() {
               <OrderCard
                 key={order.id}
                 order={order}
-                onRepeat={() => window.location.href = "/calculator"}
+                onRepeat={handleNewOrder}
               />
             ))}
           </div>

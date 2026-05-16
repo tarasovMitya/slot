@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
-import { dbLoadSearchingOrders, dbSubscribeSharedOrders } from "../../lib/db";
 import { AvailableOrderCard } from "../components/cards/AvailableOrderCard";
+import { pluralRu } from "../../utils/priceCalculator";
 import type { PerformerOrder } from "../types";
 import type { SharedOrder } from "../../store/sharedOrdersStore";
 
@@ -51,7 +51,7 @@ function sortOrders(orders: PerformerOrder[], by: SortKey): PerformerOrder[] {
 
 export function AvailableOrdersPage() {
   const { availableOrders, acceptOrder, rejectOrder, isOnline } = usePerformerStore();
-  const { orders: sharedOrders, addOrder } = useSharedOrdersStore();
+  const { orders: sharedOrders } = useSharedOrdersStore();
   const realOrders = useMemo(
     () => sharedOrders
       .filter((o) => o.status === "searching_performer")
@@ -62,12 +62,6 @@ export function AvailableOrdersPage() {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
-
-  useEffect(() => {
-    dbLoadSearchingOrders().then((orders) => orders.forEach(addOrder));
-    const unsubscribe = dbSubscribeSharedOrders(addOrder);
-    return unsubscribe;
-  }, []);
 
   const allOrders = [...realOrders, ...availableOrders];
   const sorted = sortOrders(allOrders, sortBy);
@@ -90,7 +84,7 @@ export function AvailableOrdersPage() {
         <p className="text-sm text-gray-400 mt-1">
           {isOnline
             ? allOrders.length > 0
-              ? `${allOrders.length} ${allOrders.length === 1 ? "заказ ждёт" : "заказа ждут"} вас`
+              ? `${allOrders.length} ${pluralRu(allOrders.length, "заказ ждёт", "заказа ждут", "заказов ждут")} вас`
               : "Новых заказов пока нет"
             : "Вы офлайн — заказы не поступают"}
         </p>

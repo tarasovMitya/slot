@@ -68,6 +68,9 @@ interface DashboardState {
   onPerformerAssigned: () => void;
   applyPerformerFromSharedOrder: (sharedOrder: SharedOrder) => void;
   applyCompletionRequest: (sharedOrder: SharedOrder) => void;
+  applyPerformerOnTheWay: (sharedOrder: SharedOrder) => void;
+  applyLocationUpdate: (orderId: string, lat: number, lng: number, lastSeen: string) => void;
+  applyOrderStatusFromShared: (orderId: string, status: Order["status"]) => void;
   confirmOrderCompletion: (orderId: string) => Promise<void>;
   openDispute: (orderId: string, comment: string) => Promise<void>;
   cancelOrder: (orderId: string) => void;
@@ -536,6 +539,38 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
             }
           : o
       ),
+    }));
+  },
+
+  applyPerformerOnTheWay: (sharedOrder) => {
+    set((s) => ({
+      orders: s.orders.map((o) =>
+        o.id === sharedOrder.id
+          ? {
+              ...o,
+              status: "on_the_way" as const,
+              performerLat: sharedOrder.performerLat ?? null,
+              performerLng: sharedOrder.performerLng ?? null,
+              performerLastSeen: sharedOrder.performerLastSeen ?? null,
+            }
+          : o
+      ),
+    }));
+  },
+
+  applyLocationUpdate: (orderId, lat, lng, lastSeen) => {
+    set((s) => ({
+      orders: s.orders.map((o) =>
+        o.id === orderId
+          ? { ...o, performerLat: lat, performerLng: lng, performerLastSeen: lastSeen }
+          : o
+      ),
+    }));
+  },
+
+  applyOrderStatusFromShared: (orderId, status) => {
+    set((s) => ({
+      orders: s.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
     }));
   },
 

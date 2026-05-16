@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { pluralRu } from "../../utils/priceCalculator";
 import { AddressSection } from "../components/ui/AddressSection";
 import { BankCardItem } from "../components/ui/BankCardItem";
 
@@ -14,6 +15,12 @@ export function PerformerProfilePage() {
     telegram: profile.telegram,
   });
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!editing) {
+      setForm({ name: profile.name, phone: profile.phone, telegram: profile.telegram });
+    }
+  }, [profile.name, profile.phone, profile.telegram]);
 
   const handleSave = () => {
     updateProfile(form);
@@ -69,7 +76,7 @@ export function PerformerProfilePage() {
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="text-amber-400">★</span>
                 <span className="text-sm font-semibold text-gray-800">{profile.rating}</span>
-                <span className="text-sm text-gray-400">· {profile.completedOrders} заказов</span>
+                <span className="text-sm text-gray-400">· {profile.completedOrders} {pluralRu(profile.completedOrders, "заказ", "заказа", "заказов")}</span>
               </div>
             ) : (
               <p className="text-sm text-gray-400 mt-1">Пока нет выполненных заказов</p>

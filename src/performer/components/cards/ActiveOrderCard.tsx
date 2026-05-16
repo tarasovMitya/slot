@@ -31,10 +31,10 @@ export function PerformerActiveOrderCard({ order }: ActiveOrderCardProps) {
     >
       <Link to={`/performer/orders/${order.id}`}>
         <div className="p-5">
-          <div className="flex items-start justify-between mb-1">
-            <div>
+          <div className="flex items-start justify-between mb-1 gap-2">
+            <div className="min-w-0 flex-1">
               <PerformerStatusBadge status={order.status} />
-              <p className="text-base font-semibold text-gray-900 mt-2">{order.serviceName}</p>
+              <p className="text-base font-semibold text-gray-900 mt-2 line-clamp-1">{order.serviceName}</p>
               <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                 <span className="flex items-center gap-1 text-xs text-gray-400">
                   <Clock size={12} />

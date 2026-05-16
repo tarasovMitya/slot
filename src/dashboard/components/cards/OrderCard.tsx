@@ -25,8 +25,8 @@ export function OrderCard({ order, onRepeat }: OrderCardProps) {
     >
       <Link to={`/dashboard/orders/${order.id}`} className="block p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div>
-            <p className="text-sm font-semibold text-gray-900">{order.serviceName}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900 line-clamp-1">{order.serviceName}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               {date} · {order.scheduledTime} · {order.address}
             </p>

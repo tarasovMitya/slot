@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Clock, MapPin, ChevronRight, X } from "lucide-react";
 import { motion } from "framer-motion";
@@ -17,27 +16,7 @@ const statusProgress: Record<string, number> = {
   completed: 100,
 };
 
-const CANCEL_WINDOW_MS = 15 * 60 * 1000;
-
-function useRemainingMs(assignedAt: string | undefined): number | null {
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => {
-    if (!assignedAt) return;
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, [assignedAt]);
-
-  if (!assignedAt) return null;
-  return Math.max(0, CANCEL_WINDOW_MS - (now - new Date(assignedAt).getTime()));
-}
-
-function formatTimer(ms: number): string {
-  const totalSec = Math.ceil(ms / 1000);
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  return `${min}:${sec.toString().padStart(2, "0")}`;
-}
+const CANCELLABLE = new Set(["searching", "assigned", "on_the_way", "in_progress", "waiting_client_confirmation"]);
 
 interface ActiveOrderCardProps {
   order: Order;
@@ -51,12 +30,7 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
     ? dateObj.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })
     : "";
 
-  const remainingMs = useRemainingMs(order.assignedAt);
-
-  // searching: always cancellable; assigned: cancellable within 15 min window
-  const canCancel =
-    order.status === "searching" ||
-    (order.status === "assigned" && remainingMs !== null && remainingMs > 0);
+  const canCancel = CANCELLABLE.has(order.status);
 
   return (
     <motion.div
@@ -67,10 +41,10 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
       {/* Header */}
       <Link to={`/dashboard/orders/${order.id}`}>
         <div className="p-5 pb-4">
-          <div className="flex items-start justify-between mb-1">
-            <div>
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="min-w-0 flex-1">
               <StatusBadge status={order.status} />
-              <p className="text-base font-semibold text-gray-900 mt-2">{order.serviceName}</p>
+              <p className="text-base font-semibold text-gray-900 mt-2 line-clamp-1">{order.serviceName}</p>
               <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                 <span className="flex items-center gap-1 text-xs text-gray-400">
                   <Clock size={12} />
@@ -138,9 +112,6 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
             >
               <X size={13} />
               Отменить
-              {order.status === "assigned" && remainingMs !== null && (
-                <span className="text-red-400 font-mono">{formatTimer(remainingMs)}</span>
-              )}
             </button>
           )}
           <span className="text-sm font-semibold text-gray-900">{formatPrice(order.priceTotal)}</span>

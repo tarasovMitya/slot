@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { TIME_SLOTS } from "../../data/services";
 
@@ -26,6 +27,18 @@ function getNextDays(count: number) {
 export function DateTimeStep() {
   const { schedule, setSchedule } = useCalculatorStore();
   const days = getNextDays(10);
+
+  // Ensure a default is always selected so the order is never saved with empty date/time
+  useEffect(() => {
+    const needsDate = !schedule.date;
+    const needsTime = !schedule.time;
+    if (needsDate || needsTime) {
+      setSchedule({
+        date: needsDate ? days[0].iso : schedule.date,
+        time: needsTime ? TIME_SLOTS[0] : schedule.time,
+      });
+    }
+  }, []);
 
   const setDate = (date: string) => setSchedule({ ...schedule, date });
   const setTime = (time: string) => setSchedule({ ...schedule, time });

@@ -262,6 +262,9 @@ function rowToSharedOrder(r: Record<string, unknown>): SharedOrder {
     completionRequestedAt: (r.completion_requested_at as string) ?? null,
     clientConfirmedAt: (r.client_confirmed_at as string) ?? null,
     disputeComment: (r.dispute_comment as string) ?? null,
+    performerLat: (r.performer_lat as number) ?? null,
+    performerLng: (r.performer_lng as number) ?? null,
+    performerLastSeen: (r.performer_last_seen as string) ?? null,
   };
 }
 
@@ -405,6 +408,25 @@ export async function dbConfirmOrderCompletion(orderId: string): Promise<void> {
     .eq("id", orderId)
     .then(() => {}, () => {});
   await dbUpdateOrder(orderId, { status: "completed", client_confirmed_at: now });
+}
+
+export async function dbUpdateSharedOrderStatus(orderId: string, status: string): Promise<void> {
+  await supabase
+    .from("shared_orders")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", orderId);
+}
+
+export async function dbUpdatePerformerLocation(orderId: string, lat: number, lng: number): Promise<void> {
+  await supabase
+    .from("shared_orders")
+    .update({
+      performer_lat: lat,
+      performer_lng: lng,
+      performer_last_seen: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
 }
 
 export async function dbOpenDispute(orderId: string, comment: string): Promise<void> {

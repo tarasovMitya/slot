@@ -1,18 +1,27 @@
 import { useCalculatorStore } from "../store/calculatorStore";
 
-const STEPS = ["category", "service", "parameters", "datetime", "contacts", "checkout"];
+const STEPS = ["category", "service", "parameters", "add-more", "datetime", "contacts", "checkout"];
 const STEP_LABELS: Record<string, string> = {
   category: "Категория",
   service: "Услуга",
   parameters: "Параметры",
+  "add-more": "Состав",
   datetime: "Дата",
   contacts: "Контакты",
   checkout: "Итог",
 };
 
+// Map auth sub-step to its progress bar equivalent
+const STEP_ALIAS: Record<string, string> = {
+  auth: "contacts",
+  summary: "add-more",
+  success: "checkout",
+};
+
 export function ProgressBar() {
   const { step } = useCalculatorStore();
-  const currentIdx = STEPS.indexOf(step);
+  const resolvedStep = STEP_ALIAS[step] ?? step;
+  const currentIdx = STEPS.indexOf(resolvedStep);
   if (currentIdx === -1) return null;
 
   return (

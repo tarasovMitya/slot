@@ -6,7 +6,10 @@ import type {
   FieldValues,
   ContactInfo,
   ScheduleInfo,
+  CartItem,
 } from "../types/calculator";
+import { calculatePrice } from "../utils/priceCalculator";
+import { categories } from "../data/services";
 
 interface CalculatorState {
   step: Step;
@@ -17,6 +20,10 @@ interface CalculatorState {
   contacts: ContactInfo;
   isSubmitting: boolean;
   skipAuth: boolean;
+
+  // Multi-service cart
+  cart: CartItem[];
+  editingCartItemId: string | null;
 
   setStep: (step: Step) => void;
   goNext: () => void;
@@ -29,14 +36,20 @@ interface CalculatorState {
   setIsSubmitting: (v: boolean) => void;
   setSkipAuth: (v: boolean) => void;
   reset: () => void;
+
+  // Cart actions
+  addToCart: () => void;
+  removeFromCart: (id: string) => void;
+  startEditCartItem: (id: string) => void;
+  clearCurrentService: () => void;
 }
 
 const STEPS: Step[] = [
   "category",
   "service",
   "parameters",
+  "add-more",
   "datetime",
-  "summary",
   "auth",
   "checkout",
   "success",
@@ -44,6 +57,10 @@ const STEPS: Step[] = [
 
 const defaultContacts: ContactInfo = { name: "", email: "", phone: "", address: "", comment: "" };
 const defaultSchedule: ScheduleInfo = { date: "", time: "" };
+
+function getDuration(service: Service): string {
+  return service.fields.length > 0 ? "~1–2 часа" : "~1 час";
+}
 
 export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   step: "category",
@@ -54,6 +71,8 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   contacts: defaultContacts,
   isSubmitting: false,
   skipAuth: false,
+  cart: [],
+  editingCartItemId: null,
 
   setStep: (step) => set({ step }),
 
@@ -66,7 +85,18 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   },
 
   goBack: () => {
-    const { step, skipAuth } = get();
+    const { step, skipAuth, editingCartItemId } = get();
+    // Editing a cart item from parameters → cancel and go back to add-more
+    if (step === "parameters" && editingCartItemId) {
+      set({
+        editingCartItemId: null,
+        selectedCategory: null,
+        selectedService: null,
+        fieldValues: {},
+        step: "add-more",
+      });
+      return;
+    }
     const idx = STEPS.indexOf(step);
     let prevIdx = idx - 1;
     if (skipAuth && STEPS[prevIdx] === "auth") prevIdx--;
@@ -97,6 +127,55 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
   setIsSubmitting: (v) => set({ isSubmitting: v }),
 
+  addToCart: () => {
+    const { selectedCategory, selectedService, fieldValues, editingCartItemId } = get();
+    if (!selectedService || !selectedCategory) return;
+
+    const breakdown = calculatePrice(selectedService, fieldValues);
+    const cartItem: CartItem = {
+      id: editingCartItemId ?? crypto.randomUUID(),
+      categoryId: selectedCategory.id,
+      categoryName: selectedCategory.name,
+      serviceId: selectedService.id,
+      serviceName: selectedService.name,
+      fieldValues: { ...fieldValues },
+      priceBreakdown: breakdown.items,
+      priceTotal: breakdown.total,
+      duration: getDuration(selectedService),
+    };
+
+    set((s) => ({
+      cart: editingCartItemId
+        ? s.cart.map((item) => (item.id === editingCartItemId ? cartItem : item))
+        : [...s.cart, cartItem],
+      editingCartItemId: null,
+      selectedCategory: null,
+      selectedService: null,
+      fieldValues: {},
+    }));
+  },
+
+  removeFromCart: (id) =>
+    set((s) => ({ cart: s.cart.filter((item) => item.id !== id) })),
+
+  startEditCartItem: (id) => {
+    const item = get().cart.find((c) => c.id === id);
+    if (!item) return;
+    const category = categories.find((c) => c.id === item.categoryId);
+    const service = category?.services.find((s) => s.id === item.serviceId);
+    if (!category || !service) return;
+    set({
+      editingCartItemId: id,
+      selectedCategory: category,
+      selectedService: service,
+      fieldValues: { ...item.fieldValues },
+      step: "parameters",
+    });
+  },
+
+  clearCurrentService: () =>
+    set({ selectedCategory: null, selectedService: null, fieldValues: {} }),
+
   reset: () =>
     set({
       step: "category",
@@ -107,5 +186,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
       contacts: defaultContacts,
       isSubmitting: false,
       skipAuth: false,
+      cart: [],
+      editingCartItemId: null,
     }),
 }));

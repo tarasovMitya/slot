@@ -10,7 +10,7 @@ import type { SharedOrder } from "../../../store/sharedOrdersStore";
 
 export function DashboardLayout() {
   const { user } = useAuthStore();
-  const { hydrateClient, isHydrated, orders, applyPerformerFromSharedOrder, applyCompletionRequest } = useDashboardStore();
+  const { hydrateClient, isHydrated, orders, applyPerformerFromSharedOrder, applyCompletionRequest, applyPerformerOnTheWay, applyLocationUpdate, applyOrderStatusFromShared } = useDashboardStore();
   const { updateOrder: updateSharedOrder } = useSharedOrdersStore();
 
   useEffect(() => {
@@ -19,11 +19,11 @@ export function DashboardLayout() {
     }
   }, [user?.id]);
 
-  // IDs of orders that need live updates: searching + assigned + in_progress
+  // IDs of orders that need live updates
   const activeSyncIds = useMemo(
     () =>
       orders
-        .filter((o) => ["searching", "assigned", "in_progress"].includes(o.status))
+        .filter((o) => ["searching", "assigned", "on_the_way", "in_progress"].includes(o.status))
         .map((o) => o.id),
     [orders]
   );
@@ -37,8 +37,18 @@ export function DashboardLayout() {
       updateSharedOrder(order);
       if (order.status === "performer_assigned") {
         applyPerformerFromSharedOrder(order);
+      } else if (order.status === "performer_on_the_way") {
+        applyPerformerOnTheWay(order);
+      } else if (order.status === "in_progress") {
+        applyOrderStatusFromShared(order.id, "in_progress");
       } else if (order.status === "waiting_client_confirmation") {
         applyCompletionRequest(order);
+      } else if (order.status === "cancelled") {
+        applyOrderStatusFromShared(order.id, "cancelled");
+      }
+      // Always sync location when available
+      if (order.performerLat != null && order.performerLng != null) {
+        applyLocationUpdate(order.id, order.performerLat, order.performerLng, order.performerLastSeen ?? new Date().toISOString());
       }
     };
 

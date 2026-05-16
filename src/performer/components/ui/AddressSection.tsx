@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapPin, Edit3, Check, Navigation } from "lucide-react";
 import { usePerformerStore } from "../../store/performerStore";
 
@@ -12,6 +12,12 @@ export function AddressSection() {
     city: profile.city,
     workRadius: profile.workRadius,
   });
+
+  useEffect(() => {
+    if (!editing) {
+      setForm({ address: profile.address, city: profile.city, workRadius: profile.workRadius });
+    }
+  }, [profile.address, profile.city, profile.workRadius]);
 
   const handleSave = () => {
     updateProfile(form);
