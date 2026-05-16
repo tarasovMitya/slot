@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2 } from "lucide-react";
 
-interface SuggestResult {
-  title: { text: string };
-  subtitle?: { text: string };
+interface NominatimResult {
+  display_name: string;
+  place_id: number;
 }
 
 interface AddressSuggestProps {
@@ -13,8 +13,6 @@ interface AddressSuggestProps {
   inputClassName?: string;
   error?: boolean;
 }
-
-const API_KEY = (import.meta as any).env?.VITE_YMAPS_KEY ?? "";
 
 export function AddressSuggest({
   value,
@@ -56,31 +54,29 @@ export function AddressSuggest({
       abortRef.current = controller;
 
       try {
-        const url = new URL("https://suggest-maps.yandex.ru/v1/suggest");
-        url.searchParams.set("apikey", API_KEY);
-        url.searchParams.set("text", query);
-        url.searchParams.set("lang", "ru_RU");
-        url.searchParams.set("types", "geo");
-        url.searchParams.set("results", "6");
-        url.searchParams.set("highlight", "0");
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "json");
+        url.searchParams.set("q", query);
+        url.searchParams.set("limit", "6");
+        url.searchParams.set("accept-language", "ru");
+        url.searchParams.set("countrycodes", "ru");
+        url.searchParams.set("addressdetails", "0");
 
-        const res = await fetch(url.toString(), { signal: controller.signal });
-        const data = await res.json() as { results?: SuggestResult[] };
+        const res = await fetch(url.toString(), {
+          signal: controller.signal,
+          headers: { "Accept-Language": "ru" },
+        });
+        const data = await res.json() as NominatimResult[];
 
-        const names = (data.results ?? []).map((r) => {
-          const title = r.title?.text ?? "";
-          const sub = r.subtitle?.text ? `, ${r.subtitle.text}` : "";
-          return `${title}${sub}`;
-        }).filter(Boolean);
-
+        const names = data.map((r) => r.display_name).filter(Boolean);
         setSuggestions(names);
         setOpen(names.length > 0);
       } catch {
-        // aborted or network error — ignore
+        // aborted or network error
       } finally {
         setLoading(false);
       }
-    }, 320);
+    }, 400);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
