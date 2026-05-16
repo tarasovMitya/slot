@@ -54,13 +54,6 @@ function ProfileSkeleton() {
 export function PerformerProfilePage() {
   const { profile, isHydrated, updateProfile, bankCards, removeBankCard, setDefaultCard } = usePerformerStore();
   const [timedOut, setTimedOut] = useState(false);
-  useEffect(() => {
-    if (isHydrated) return;
-    const t = setTimeout(() => setTimedOut(true), 6000);
-    return () => clearTimeout(t);
-  }, [isHydrated]);
-
-  if (!isHydrated && !timedOut) return <ProfileSkeleton />;
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     name: profile.name,
@@ -70,10 +63,18 @@ export function PerformerProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (isHydrated) return;
+    const t = setTimeout(() => setTimedOut(true), 6000);
+    return () => clearTimeout(t);
+  }, [isHydrated]);
+
+  useEffect(() => {
     if (!editing) {
       setForm({ name: profile.name, phone: profile.phone, telegram: profile.telegram });
     }
   }, [profile.name, profile.phone, profile.telegram]);
+
+  if (!isHydrated && !timedOut) return <ProfileSkeleton />;
 
   const handleSave = () => {
     updateProfile(form);
