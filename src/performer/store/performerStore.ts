@@ -112,18 +112,13 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   isHydrated: false,
 
   hydratePerformer: async (userId) => {
-    let profile = null, balanceData = null, sharedActiveOrders: Awaited<ReturnType<typeof dbLoadPerformerActiveOrders>> = [], sharedCompletedOrders: Awaited<ReturnType<typeof dbLoadPerformerCompletedOrders>> = [];
     try {
-      [profile, balanceData, sharedActiveOrders, sharedCompletedOrders] = await Promise.all([
-        dbLoadPerformerProfile(userId),
-        dbLoadPerformerBalance(userId),
-        dbLoadPerformerActiveOrders(userId),
-        dbLoadPerformerCompletedOrders(userId),
-      ]);
-    } catch {
-      set({ isHydrated: true });
-      return;
-    }
+    const [profile, balanceData, sharedActiveOrders, sharedCompletedOrders] = await Promise.all([
+      dbLoadPerformerProfile(userId),
+      dbLoadPerformerBalance(userId),
+      dbLoadPerformerActiveOrders(userId),
+      dbLoadPerformerCompletedOrders(userId),
+    ]);
 
     const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => {
       const isWaiting = o.status === "waiting_client_confirmation";
@@ -207,6 +202,9 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     }
     if (balanceData) {
       set({ balance: balanceData.balance, pendingBalance: balanceData.pendingBalance });
+    }
+    } catch {
+      set({ isHydrated: true });
     }
   },
 
