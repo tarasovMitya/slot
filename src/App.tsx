@@ -28,6 +28,16 @@ import { PerformerNotificationsPage } from "./performer/pages/NotificationsPage"
 import { PerformerOnboarding } from "./performer/onboarding/PerformerOnboarding";
 import { PerformerAuthPage } from "./performer/pages/PerformerAuthPage";
 import { PerformerGuard } from "./performer/components/PerformerGuard";
+import { AdminGuard } from "./admin/components/AdminGuard";
+import { AdminLayout } from "./admin/components/layout/AdminLayout";
+import { AdminOverviewPage } from "./admin/pages/OverviewPage";
+import { AdminOrdersPage } from "./admin/pages/OrdersPage";
+import { AdminPerformersPage } from "./admin/pages/PerformersPage";
+import { AdminFinancePage } from "./admin/pages/FinancePage";
+import { AdminDisputesPage } from "./admin/pages/DisputesPage";
+import { AdminVerificationPage } from "./admin/pages/VerificationPage";
+import { AdminAnalyticsPage } from "./admin/pages/AnalyticsPage";
+import { AdminSettingsPage } from "./admin/pages/SettingsPage";
 
 function App() {
   const { initialize } = useAuthStore();
@@ -84,6 +94,19 @@ function App() {
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="profile" element={<PerformerProfilePage />} />
             <Route path="notifications" element={<PerformerNotificationsPage />} />
+          </Route>
+        </Route>
+        {/* Admin panel — requires admin role */}
+        <Route element={<AdminGuard />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminOverviewPage />} />
+            <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="performers" element={<AdminPerformersPage />} />
+            <Route path="finance" element={<AdminFinancePage />} />
+            <Route path="disputes" element={<AdminDisputesPage />} />
+            <Route path="verification" element={<AdminVerificationPage />} />
+            <Route path="analytics" element={<AdminAnalyticsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
         </Route>
       </Routes>
