@@ -405,12 +405,8 @@ export async function dbRequestOrderCompletion(orderId: string, comment: string)
 export async function dbConfirmOrderCompletion(orderId: string): Promise<void> {
   const now = new Date().toISOString();
   await supabase.from("shared_orders")
-    .update({ status: "completed", updated_at: now })
+    .update({ status: "completed", client_confirmed_at: now, updated_at: now })
     .eq("id", orderId);
-  await supabase.from("shared_orders")
-    .update({ client_confirmed_at: now })
-    .eq("id", orderId)
-    .then(() => {}, () => {});
   await dbUpdateOrder(orderId, { status: "completed", client_confirmed_at: now });
 }
 

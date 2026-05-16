@@ -178,15 +178,18 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     }));
 
     const restoredEarnings: EarningsRecord[] = sharedCompletedOrders
-      .filter((o) => o.status === "completed" && o.clientConfirmedAt)
-      .map((o) => ({
-        id: `e-${o.id}`,
-        orderId: o.id,
-        serviceName: o.serviceName,
-        amount: o.priceTotal,
-        date: new Date(o.clientConfirmedAt!).toISOString().split("T")[0],
-        time: new Date(o.clientConfirmedAt!).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
-      }));
+      .filter((o) => o.status === "completed")
+      .map((o) => {
+        const ts = o.clientConfirmedAt || o.createdAt;
+        return {
+          id: `e-${o.id}`,
+          orderId: o.id,
+          serviceName: o.serviceName,
+          amount: o.priceTotal,
+          date: new Date(ts).toISOString().split("T")[0],
+          time: new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
+        };
+      });
 
     if (profile) {
       set((s) => ({
