@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Edit3, Check, Navigation } from "lucide-react";
 import { usePerformerStore } from "../../store/performerStore";
+import { AddressSuggest } from "../../../components/ui/AddressSuggest";
 
 const RADIUS_OPTIONS = [5, 10, 15, 20, 30];
 
@@ -45,10 +46,10 @@ export function AddressSection() {
         <div>
           <p className="text-xs text-gray-400 mb-1">Улица и дом</p>
           {editing ? (
-            <input
+            <AddressSuggest
               value={form.address}
-              onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
-              className="w-full text-sm font-medium text-gray-900 bg-gray-50 rounded-xl px-3 py-2 outline-none border border-gray-200 focus:border-gray-400 transition-colors"
+              onChange={(val) => setForm((p) => ({ ...p, address: val }))}
+              inputClassName="w-full text-sm font-medium text-gray-900 bg-gray-50 rounded-xl px-3 py-2 outline-none border border-gray-200 focus:border-gray-400 transition-colors pr-8"
             />
           ) : (
             <p className="text-sm font-medium text-gray-900">{profile.address}</p>

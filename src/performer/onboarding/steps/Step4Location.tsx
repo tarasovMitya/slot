@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Navigation, Loader2 } from "lucide-react";
 import { useOnboardingStore } from "../store/onboardingStore";
 import { NavigationButtons } from "../components/NavigationButtons";
+import { AddressSuggest } from "../../../components/ui/AddressSuggest";
 
 interface FormData {
   city: string;
@@ -15,9 +16,10 @@ export function Step4Location() {
   const { city, district, address, setField, goNext, goBack } = useOnboardingStore();
   const [locating, setLocating] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: { city, district, address },
   });
+  const addressValue = watch("address");
 
   const onSubmit = (data: FormData) => {
     setField("city", data.city);
@@ -97,12 +99,18 @@ export function Step4Location() {
           error={errors.district?.message}
           {...register("district", { required: "Введите район" })}
         />
-        <Field
-          label="Домашний адрес"
-          placeholder="ул. Ленина, 12"
-          error={errors.address?.message}
-          {...register("address", { required: "Введите адрес" })}
-        />
+        <div>
+          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+            Домашний адрес
+          </label>
+          <AddressSuggest
+            value={addressValue}
+            onChange={(val) => setValue("address", val, { shouldValidate: true })}
+            placeholder="ул. Ленина, 12"
+            error={!!errors.address}
+          />
+          {errors.address && <p className="text-xs text-red-500 mt-1.5">{errors.address.message}</p>}
+        </div>
 
         <NavigationButtons onBack={goBack} onNext={handleSubmit(onSubmit)} />
       </form>
