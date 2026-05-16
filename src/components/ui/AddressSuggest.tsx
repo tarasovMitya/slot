@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2 } from "lucide-react";
 
-interface NominatimResult {
-  display_name: string;
-  lat: string;
-  lon: string;
+const DADATA_KEY = import.meta.env.VITE_DADATA_KEY as string;
+
+interface DadataSuggestion {
+  value: string;
 }
 
 interface AddressSuggestProps {
@@ -13,19 +13,6 @@ interface AddressSuggestProps {
   placeholder?: string;
   inputClassName?: string;
   error?: boolean;
-}
-
-/** Trim verbose suffix after "Москва" */
-function trimAddress(display: string): string {
-  const parts = display.split(", ");
-  const idx = parts.findIndex((p) => p === "Москва");
-  return idx !== -1 ? parts.slice(0, idx + 1).join(", ") : parts.slice(0, 5).join(", ");
-}
-
-/** Strip trailing house-number-like token so Nominatim can match the street */
-function stripHouseNumber(query: string): string {
-  // Remove trailing patterns: "3кА", "12б", "3к1", "3к", bare "12", etc.
-  return query.replace(/[\s,]+\d+[а-яёА-ЯЁa-zA-Z\d]*\s*$/, "").trim();
 }
 
 export function AddressSuggest({
@@ -68,34 +55,34 @@ export function AddressSuggest({
       abortRef.current = controller;
 
       try {
-        // Strip trailing house number so Nominatim can match at street level
-        const searchQuery = stripHouseNumber(query) || query;
-        // Append "Москва" if not already present
-        const q = /москва/i.test(searchQuery) ? searchQuery : `${searchQuery}, Москва`;
+        const res = await fetch(
+          "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+          {
+            method: "POST",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "Authorization": `Token ${DADATA_KEY}`,
+            },
+            body: JSON.stringify({
+              query,
+              count: 7,
+              locations: [{ city: "Москва" }],
+            }),
+          }
+        );
 
-        const url = new URL("https://nominatim.openstreetmap.org/search");
-        url.searchParams.set("format", "json");
-        url.searchParams.set("q", q);
-        url.searchParams.set("limit", "7");
-        url.searchParams.set("accept-language", "ru");
-        url.searchParams.set("countrycodes", "ru");
-        url.searchParams.set("addressdetails", "0");
-
-        const res = await fetch(url.toString(), { signal: controller.signal });
-        const data = await res.json() as NominatimResult[];
-
-        const names = data.map((r) => trimAddress(r.display_name)).filter(Boolean);
-
-        // Deduplicate
-        const unique = [...new Set(names)];
-        setSuggestions(unique);
-        setOpen(unique.length > 0);
+        const data = await res.json() as { suggestions: DadataSuggestion[] };
+        const names = data.suggestions.map((s) => s.value).filter(Boolean);
+        setSuggestions(names);
+        setOpen(names.length > 0);
       } catch {
         // aborted or network error
       } finally {
         setLoading(false);
       }
-    }, 400);
+    }, 300);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
