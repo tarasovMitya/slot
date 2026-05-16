@@ -22,6 +22,12 @@ function trimAddress(display: string): string {
   return idx !== -1 ? parts.slice(0, idx + 1).join(", ") : parts.slice(0, 5).join(", ");
 }
 
+/** Strip trailing house-number-like token so Nominatim can match the street */
+function stripHouseNumber(query: string): string {
+  // Remove trailing patterns: "3кА", "12б", "3к1", "3к", bare "12", etc.
+  return query.replace(/[\s,]+\d+[а-яёА-ЯЁa-zA-Z\d]*\s*$/, "").trim();
+}
+
 export function AddressSuggest({
   value,
   onChange,
@@ -62,8 +68,10 @@ export function AddressSuggest({
       abortRef.current = controller;
 
       try {
+        // Strip trailing house number so Nominatim can match at street level
+        const searchQuery = stripHouseNumber(query) || query;
         // Append "Москва" if not already present
-        const q = /москва/i.test(query) ? query : `${query}, Москва`;
+        const q = /москва/i.test(searchQuery) ? searchQuery : `${searchQuery}, Москва`;
 
         const url = new URL("https://nominatim.openstreetmap.org/search");
         url.searchParams.set("format", "json");
