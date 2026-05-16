@@ -4,16 +4,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
 import { AddressCard } from "../components/cards/AddressCard";
 import { EmptyState } from "../components/ui/EmptyState";
+import { AddressSuggest } from "../../components/ui/AddressSuggest";
 
 export function SavedAddressesPage() {
   const { addresses, setDefaultAddress, deleteAddress, addAddress } = useDashboardStore();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ label: "", street: "", city: "Москва" });
+  const [streetValidated, setStreetValidated] = useState(false);
 
   const handleAdd = () => {
-    if (!form.street) return;
+    if (!form.street || !streetValidated) return;
     addAddress({ ...form, isDefault: addresses.length === 0 });
     setForm({ label: "", street: "", city: "Москва" });
+    setStreetValidated(false);
     setShowForm(false);
   };
 
@@ -47,11 +50,14 @@ export function SavedAddressesPage() {
                 onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
                 className="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
               />
-              <input
-                placeholder="Улица, дом, квартира"
+              <AddressSuggest
                 value={form.street}
-                onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
+                onChange={(val, validated) => {
+                  setForm((f) => ({ ...f, street: val }));
+                  setStreetValidated(validated);
+                }}
+                placeholder="Улица, дом, квартира"
+                inputClassName="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors pr-10"
               />
               <input
                 placeholder="Город"
@@ -68,7 +74,7 @@ export function SavedAddressesPage() {
                 </button>
                 <button
                   onClick={handleAdd}
-                  disabled={!form.street}
+                  disabled={!form.street || !streetValidated}
                   className="flex-1 py-3 rounded-xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all"
                 >
                   Сохранить
