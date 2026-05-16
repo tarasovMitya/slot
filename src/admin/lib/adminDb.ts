@@ -132,7 +132,7 @@ export async function adminCancelOrder(orderId: string): Promise<void> {
 }
 
 export async function adminGetUserRole(userId: string): Promise<string | null> {
-  const { data } = await supabase.from("profiles").select("role").eq("id", userId).single();
+  const { data } = await supabase.from("profiles").select("role").eq("user_id", userId).single();
   return (data?.role as string) ?? null;
 }
 
