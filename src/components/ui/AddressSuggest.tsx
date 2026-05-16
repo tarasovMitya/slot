@@ -3,7 +3,8 @@ import { MapPin, X, Loader2 } from "lucide-react";
 
 interface NominatimResult {
   display_name: string;
-  place_id: number;
+  lat: string;
+  lon: string;
 }
 
 interface AddressSuggestProps {
@@ -12,6 +13,13 @@ interface AddressSuggestProps {
   placeholder?: string;
   inputClassName?: string;
   error?: boolean;
+}
+
+/** Trim verbose suffix after "Москва" */
+function trimAddress(display: string): string {
+  const parts = display.split(", ");
+  const idx = parts.findIndex((p) => p === "Москва");
+  return idx !== -1 ? parts.slice(0, idx + 1).join(", ") : parts.slice(0, 5).join(", ");
 }
 
 export function AddressSuggest({
@@ -54,33 +62,26 @@ export function AddressSuggest({
       abortRef.current = controller;
 
       try {
+        // Append "Москва" if not already present
+        const q = /москва/i.test(query) ? query : `${query}, Москва`;
+
         const url = new URL("https://nominatim.openstreetmap.org/search");
         url.searchParams.set("format", "json");
-        url.searchParams.set("q", `${query}, Москва`);
-        url.searchParams.set("limit", "6");
+        url.searchParams.set("q", q);
+        url.searchParams.set("limit", "7");
         url.searchParams.set("accept-language", "ru");
         url.searchParams.set("countrycodes", "ru");
         url.searchParams.set("addressdetails", "0");
-        // Bounding box for Moscow
-        url.searchParams.set("viewbox", "37.29,55.96,37.97,55.49");
-        url.searchParams.set("bounded", "1");
 
-        const res = await fetch(url.toString(), {
-          signal: controller.signal,
-          headers: { "Accept-Language": "ru" },
-        });
+        const res = await fetch(url.toString(), { signal: controller.signal });
         const data = await res.json() as NominatimResult[];
 
-        const names = data
-          .map((r) => {
-            // Strip verbose suffix after "Москва" — keep only street + district + city
-            const parts = r.display_name.split(", ");
-            const moscowIdx = parts.findIndex((p) => p === "Москва");
-            return moscowIdx !== -1 ? parts.slice(0, moscowIdx + 1).join(", ") : parts.slice(0, 4).join(", ");
-          })
-          .filter(Boolean);
-        setSuggestions(names);
-        setOpen(names.length > 0);
+        const names = data.map((r) => trimAddress(r.display_name)).filter(Boolean);
+
+        // Deduplicate
+        const unique = [...new Set(names)];
+        setSuggestions(unique);
+        setOpen(unique.length > 0);
       } catch {
         // aborted or network error
       } finally {

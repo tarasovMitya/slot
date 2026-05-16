@@ -5,6 +5,7 @@ import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertT
 import { usePerformerStore } from "../store/performerStore";
 import { PerformerStatusBadge } from "../components/ui/StatusBadge";
 import { CompletionModal } from "../components/CompletionModal";
+import { OrderLocationMap } from "../components/OrderLocationMap";
 import { formatPrice } from "../../utils/priceCalculator";
 import type { PerformerOrderStatus } from "../types";
 
@@ -105,6 +106,11 @@ export function PerformerOrderDetailsPage() {
           <div className="border border-gray-100 rounded-2xl p-4 flex flex-col gap-3">
             <Row icon={<Clock size={14} className="text-gray-400" />} label="Дата и время" value={`${date} · ${order.scheduledTime}`} />
             <Row icon={<MapPin size={14} className="text-gray-400" />} label="Адрес" value={order.address} />
+          </div>
+
+          <OrderLocationMap address={order.address} />
+
+          <div className="border border-gray-100 rounded-2xl p-4 flex flex-col gap-3">
             {order.distance && (
               <Row icon={<Navigation size={14} className="text-gray-400" />} label="Расстояние" value={`${order.distance} от вас`} />
             )}
