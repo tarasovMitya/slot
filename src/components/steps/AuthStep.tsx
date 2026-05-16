@@ -61,7 +61,6 @@ export function AuthStep() {
     defaultAddr ? defaultAddr.id : addresses.length === 0 ? "new" : null
   );
   const [newAddressValue, setNewAddressValue] = useState("");
-  const [newAddressValidated, setNewAddressValidated] = useState(false);
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const [addressError, setAddressError] = useState("");
   const [locating, setLocating] = useState(false);
@@ -84,7 +83,6 @@ export function AuthStep() {
           const house = addr.house_number || "";
           const streetPart = house ? `${street}, ${house}` : street;
           setNewAddressValue(city ? `${streetPart}, ${city}` : streetPart);
-          setNewAddressValidated(true);
           setAddressError("");
         } catch {
           // leave field as-is if reverse geocode fails
@@ -181,10 +179,6 @@ export function AuthStep() {
       return;
     }
 
-    if (selectedAddressId === "new" && !newAddressValidated) {
-      setAddressError("Выберите адрес из подсказок Яндекса");
-      return;
-    }
 
     setLoading(true);
 
@@ -471,9 +465,8 @@ export function AuthStep() {
                     </button>
                     <AddressSuggest
                       value={newAddressValue}
-                      onChange={(val, validated) => {
+                      onChange={(val) => {
                         setNewAddressValue(val);
-                        setNewAddressValidated(validated);
                         if (val) setAddressError("");
                       }}
                       error={!!addressError}

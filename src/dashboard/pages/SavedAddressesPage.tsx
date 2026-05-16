@@ -10,13 +10,10 @@ export function SavedAddressesPage() {
   const { addresses, setDefaultAddress, deleteAddress, addAddress } = useDashboardStore();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ label: "", street: "", city: "Москва" });
-  const [streetValidated, setStreetValidated] = useState(false);
-
   const handleAdd = () => {
-    if (!form.street || !streetValidated) return;
+    if (!form.street) return;
     addAddress({ ...form, isDefault: addresses.length === 0 });
     setForm({ label: "", street: "", city: "Москва" });
-    setStreetValidated(false);
     setShowForm(false);
   };
 
@@ -52,9 +49,8 @@ export function SavedAddressesPage() {
               />
               <AddressSuggest
                 value={form.street}
-                onChange={(val, validated) => {
+                onChange={(val) => {
                   setForm((f) => ({ ...f, street: val }));
-                  setStreetValidated(validated);
                 }}
                 placeholder="Улица, дом, квартира"
                 inputClassName="w-full px-4 py-3 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors pr-10"
@@ -74,7 +70,7 @@ export function SavedAddressesPage() {
                 </button>
                 <button
                   onClick={handleAdd}
-                  disabled={!form.street || !streetValidated}
+                  disabled={!form.street}
                   className="flex-1 py-3 rounded-xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all"
                 >
                   Сохранить
