@@ -71,6 +71,18 @@ export interface AdminDispute {
   createdAt: string;
 }
 
+export interface AdminClient {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  role: string;
+  createdAt?: string;
+  ordersCount?: number;
+}
+
 export type OrderStatusFilter =
   | "all"
   | "pending_payment"

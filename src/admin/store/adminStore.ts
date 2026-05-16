@@ -1,10 +1,11 @@
 import { create } from "zustand";
-import type { AdminRole, AdminStats, AdminOrder, AdminPerformer, AdminDispute } from "../types";
+import type { AdminRole, AdminStats, AdminOrder, AdminPerformer, AdminDispute, AdminClient } from "../types";
 import {
   adminLoadStats,
   adminLoadOrders,
   adminLoadPerformers,
   adminLoadDisputes,
+  adminLoadClients,
   adminUpdateOrderStatus,
   adminCancelOrder,
   adminGetUserRole,
@@ -20,17 +21,20 @@ interface AdminState {
   orders: AdminOrder[];
   performers: AdminPerformer[];
   disputes: AdminDispute[];
+  clients: AdminClient[];
 
   isLoadingStats: boolean;
   isLoadingOrders: boolean;
   isLoadingPerformers: boolean;
   isLoadingDisputes: boolean;
+  isLoadingClients: boolean;
 
   loadRole: (userId: string) => Promise<void>;
   loadStats: () => Promise<void>;
   loadOrders: (statusFilter?: string) => Promise<void>;
   loadPerformers: () => Promise<void>;
   loadDisputes: () => Promise<void>;
+  loadClients: () => Promise<void>;
 
   updateOrderStatus: (orderId: string, status: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
@@ -45,10 +49,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   orders: [],
   performers: [],
   disputes: [],
+  clients: [],
   isLoadingStats: false,
   isLoadingOrders: false,
   isLoadingPerformers: false,
   isLoadingDisputes: false,
+  isLoadingClients: false,
 
   loadRole: async (userId) => {
     set({ isLoadingRole: true });
@@ -78,6 +84,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     set({ isLoadingDisputes: true });
     const disputes = await adminLoadDisputes();
     set({ disputes, isLoadingDisputes: false });
+  },
+
+  loadClients: async () => {
+    set({ isLoadingClients: true });
+    const clients = await adminLoadClients();
+    set({ clients, isLoadingClients: false });
   },
 
   updateOrderStatus: async (orderId, status) => {

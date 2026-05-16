@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import type { AdminStats, AdminOrder, AdminPerformer, AdminDispute } from "../types";
+import type { AdminStats, AdminOrder, AdminPerformer, AdminDispute, AdminClient } from "../types";
 
 export async function adminLoadStats(): Promise<AdminStats> {
   const today = new Date().toISOString().split("T")[0];
@@ -134,6 +134,27 @@ export async function adminCancelOrder(orderId: string): Promise<void> {
 export async function adminGetUserRole(userId: string): Promise<string | null> {
   const { data } = await supabase.from("profiles").select("role").eq("user_id", userId).single();
   return (data?.role as string) ?? null;
+}
+
+export async function adminLoadClients(): Promise<AdminClient[]> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("role", "client")
+    .order("created_at", { ascending: false });
+
+  if (!data) return [];
+
+  return data.map((r) => ({
+    id: r.id as string,
+    userId: (r.user_id as string) ?? r.id,
+    name: (r.name as string) ?? "—",
+    email: (r.email as string) ?? "—",
+    phone: (r.phone as string) ?? "—",
+    address: (r.address as string) ?? "—",
+    role: (r.role as string) ?? "client",
+    createdAt: (r.created_at as string) ?? undefined,
+  }));
 }
 
 export async function adminAdjustPerformerBalance(performerId: string, delta: number): Promise<void> {

@@ -38,6 +38,7 @@ import { AdminDisputesPage } from "./admin/pages/DisputesPage";
 import { AdminVerificationPage } from "./admin/pages/VerificationPage";
 import { AdminAnalyticsPage } from "./admin/pages/AnalyticsPage";
 import { AdminSettingsPage } from "./admin/pages/SettingsPage";
+import { AdminClientsPage } from "./admin/pages/ClientsPage";
 
 function App() {
   const { initialize } = useAuthStore();
@@ -101,6 +102,7 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminOverviewPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="clients" element={<AdminClientsPage />} />
             <Route path="performers" element={<AdminPerformersPage />} />
             <Route path="finance" element={<AdminFinancePage />} />
             <Route path="disputes" element={<AdminDisputesPage />} />

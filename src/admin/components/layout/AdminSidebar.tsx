@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, Users, DollarSign, AlertTriangle, ShieldCheck, BarChart2, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Users, UserCircle, DollarSign, AlertTriangle, ShieldCheck, BarChart2, Settings, LogOut } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { useAdminStore } from "../../store/adminStore";
 import { ROLE_LABELS } from "../../types";
@@ -7,6 +7,7 @@ import { ROLE_LABELS } from "../../types";
 const nav = [
   { to: "/admin", label: "Обзор", icon: LayoutDashboard, end: true },
   { to: "/admin/orders", label: "Заказы", icon: ShoppingBag },
+  { to: "/admin/clients", label: "Клиенты", icon: UserCircle },
   { to: "/admin/performers", label: "Исполнители", icon: Users },
   { to: "/admin/finance", label: "Финансы", icon: DollarSign },
   { to: "/admin/disputes", label: "Споры", icon: AlertTriangle },
