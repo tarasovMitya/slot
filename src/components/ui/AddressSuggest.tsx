@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2 } from "lucide-react";
 
-const DADATA_KEY = import.meta.env.VITE_DADATA_KEY as string;
+const w = window as unknown as { __env__?: { VITE_DADATA_KEY?: string } };
+const DADATA_KEY = w.__env__?.VITE_DADATA_KEY || (import.meta.env.VITE_DADATA_KEY as string) || "";
 
 interface DadataSuggestion {
   value: string;
