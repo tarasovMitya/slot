@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Check, Upload, X, Camera, FileText, Briefcase, Image, CreditCard, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Upload, X, Camera, FileText, Briefcase, CreditCard, ShieldCheck } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { usePerformerStore } from "../store/performerStore";
@@ -17,7 +17,6 @@ interface FormState {
   passportFile: File | null; selfieFile: File | null;
   specializations: string[]; experienceYears: string;
   experienceDescription: string; hasTools: boolean; worksWithTeam: boolean;
-  workPhotos: File[];
   paymentName: string; paymentCard: string; paymentBank: string;
   agreeRules: boolean; agreeData: boolean; agreeAccuracy: boolean;
 }
@@ -26,18 +25,17 @@ const EMPTY: FormState = {
   firstName: "", lastName: "", birthDate: "", phone: "", telegram: "", city: "",
   passportFile: null, selfieFile: null,
   specializations: [], experienceYears: "", experienceDescription: "",
-  hasTools: false, worksWithTeam: false, workPhotos: [],
+  hasTools: false, worksWithTeam: false,
   paymentName: "", paymentCard: "", paymentBank: "",
   agreeRules: false, agreeData: false, agreeAccuracy: false,
 };
 
 const STEPS = [
-  { label: "Личные данные",       icon: FileText },
-  { label: "Документы",           icon: Camera },
-  { label: "Опыт работы",         icon: Briefcase },
-  { label: "Фото работ",          icon: Image },
-  { label: "Платёжные данные",    icon: CreditCard },
-  { label: "Соглашения",          icon: ShieldCheck },
+  { label: "Личные данные",    icon: FileText },
+  { label: "Документы",        icon: Camera },
+  { label: "Опыт работы",      icon: Briefcase },
+  { label: "Платёжные данные", icon: CreditCard },
+  { label: "Соглашения",       icon: ShieldCheck },
 ];
 
 async function uploadFile(userId: string, bucket: string, name: string, file: File): Promise<string | null> {
@@ -87,6 +85,7 @@ export function VerificationForm() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { setVerificationStatus } = usePerformerStore();
   const navigate = useNavigate();
@@ -108,21 +107,16 @@ export function VerificationForm() {
       if (form.specializations.length === 0) return "Выберите хотя бы одну специализацию";
     }
     if (step === 3) {
-      if (form.workPhotos.length < 3) return "Загрузите минимум 3 фото работ";
-    }
-    if (step === 4) {
       if (!form.paymentName.trim()) return "Введите ФИО получателя";
       if (!form.paymentCard.trim()) return "Введите номер карты";
     }
-    if (step === 5) {
+    if (step === 4) {
       if (!form.agreeRules)    return "Необходимо согласие с правилами";
       if (!form.agreeData)     return "Необходимо согласие на обработку данных";
       if (!form.agreeAccuracy) return "Подтвердите достоверность данных";
     }
     return null;
   }
-
-  const [error, setError] = useState<string | null>(null);
 
   function goNext() {
     const err = validateStep();
@@ -140,7 +134,6 @@ export function VerificationForm() {
 
     const userId = user.id;
 
-    // Upload documents
     const passportUrl = form.passportFile
       ? await uploadFile(userId, "verification-documents", "passport", form.passportFile)
       : null;
@@ -148,14 +141,6 @@ export function VerificationForm() {
       ? await uploadFile(userId, "verification-documents", "selfie", form.selfieFile)
       : null;
 
-    // Upload work photos
-    const workUrls: string[] = [];
-    for (let i = 0; i < form.workPhotos.length; i++) {
-      const url = await uploadFile(userId, "work-photos", `work_${i}`, form.workPhotos[i]);
-      if (url) workUrls.push(url);
-    }
-
-    // Save verification request
     await supabase.from("verification_requests").upsert({
       performer_id: userId,
       first_name: form.firstName,
@@ -171,14 +156,13 @@ export function VerificationForm() {
       experience_description: form.experienceDescription,
       has_tools: form.hasTools,
       works_with_team: form.worksWithTeam,
-      work_photo_urls: workUrls,
+      work_photo_urls: [],
       payment_name: form.paymentName,
       payment_card: form.paymentCard,
       payment_bank: form.paymentBank,
       submitted_at: new Date().toISOString(),
     }, { onConflict: "performer_id" });
 
-    // Update performer_profiles status
     await supabase.from("performer_profiles").update({
       verification_status: "pending",
       verification_submitted_at: new Date().toISOString(),
@@ -212,12 +196,10 @@ export function VerificationForm() {
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6 pb-16">
-      {/* Header */}
       <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate(-1)} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 mb-6">
         <ChevronLeft size={16} /> Назад
       </button>
 
-      {/* Progress */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{STEPS[step].label}</p>
@@ -230,7 +212,6 @@ export function VerificationForm() {
         </div>
       </div>
 
-      {/* Step content */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-4">
         {step === 0 && (
           <div className="space-y-4">
@@ -303,36 +284,6 @@ export function VerificationForm() {
 
         {step === 3 && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">Загрузите минимум 3 фото выполненных работ</p>
-            <div className="grid grid-cols-3 gap-2">
-              {form.workPhotos.map((f, i) => (
-                <div key={i} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                  <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" alt="" />
-                  <button
-                    onClick={() => set("workPhotos", form.workPhotos.filter((_, j) => j !== i))}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center"
-                  >
-                    <X size={10} />
-                  </button>
-                </div>
-              ))}
-              {form.workPhotos.length < 10 && (
-                <label className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-blue-400 transition-colors">
-                  <Upload size={18} className="text-gray-400" />
-                  <span className="text-xs text-gray-400">Добавить</span>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                    const files = Array.from(e.target.files ?? []);
-                    set("workPhotos", [...form.workPhotos, ...files].slice(0, 10));
-                  }} />
-                </label>
-              )}
-            </div>
-            <p className="text-xs text-gray-400">{form.workPhotos.length} / 10 фото · минимум 3</p>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-4">
             <p className="text-sm text-gray-500">Данные для получения выплат</p>
             <Field label="ФИО получателя *" value={form.paymentName} onChange={v => set("paymentName", v)} />
             <Field label="Номер карты *" value={form.paymentCard} onChange={v => set("paymentCard", v)} placeholder="0000 0000 0000 0000" />
@@ -340,7 +291,7 @@ export function VerificationForm() {
           </div>
         )}
 
-        {step === 5 && (
+        {step === 4 && (
           <div className="space-y-4">
             <p className="text-sm text-gray-500 mb-2">Для завершения верификации необходимо подтвердить соглашения</p>
             <Checkbox

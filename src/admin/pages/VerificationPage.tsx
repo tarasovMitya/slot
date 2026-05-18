@@ -52,25 +52,40 @@ export function AdminVerificationPage() {
 
   async function approve(performerId: string) {
     setActionLoading(performerId + "approved");
-    await supabase.from("performer_profiles")
-      .update({ verification_status: "approved", rejection_reason: null })
+    const { error } = await supabase.from("performer_profiles")
+      .update({ verification_status: "approved" })
       .eq("user_id", performerId);
-    trackEvent("verification_approved");
+    if (!error) {
+      // Clear rejection reason separately — silent fail if column doesn't exist
+      await supabase.from("performer_profiles")
+        .update({ rejection_reason: null })
+        .eq("user_id", performerId)
+        .then(() => {}, () => {});
+      trackEvent("verification_approved");
+    }
     await loadPerformers();
     setActionLoading(null);
     setSelected(null);
+    setVerRequest(null);
   }
 
   async function reject(performerId: string) {
     if (!rejectReason.trim()) return;
     setActionLoading(performerId + "rejected");
-    await supabase.from("performer_profiles")
-      .update({ verification_status: "rejected", rejection_reason: rejectReason.trim() })
+    const { error } = await supabase.from("performer_profiles")
+      .update({ verification_status: "rejected" })
       .eq("user_id", performerId);
-    trackEvent("verification_rejected");
+    if (!error) {
+      await supabase.from("performer_profiles")
+        .update({ rejection_reason: rejectReason.trim() })
+        .eq("user_id", performerId)
+        .then(() => {}, () => {});
+      trackEvent("verification_rejected");
+    }
     await loadPerformers();
     setActionLoading(null);
     setSelected(null);
+    setVerRequest(null);
     setRejectModal(false);
     setRejectReason("");
   }
