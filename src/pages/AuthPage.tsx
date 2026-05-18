@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../store/authStore";
+import { trackEvent } from "../lib/analytics";
 
 type SubStep = "email" | "otp";
 
@@ -52,6 +53,7 @@ export function AuthPage() {
   const sendOtp = async (e: string) => {
     setLoading(true);
     setError("");
+    trackEvent("login_started", { method: "otp" });
     const { error: err } = await supabase.auth.signInWithOtp({
       email: e,
       options: {
@@ -66,12 +68,14 @@ export function AuthPage() {
       const isEmailError = err.message.toLowerCase().includes("sending confirmation") ||
         err.message.toLowerCase().includes("sending email") ||
         err.message.toLowerCase().includes("email");
+      trackEvent("login_failed", { reason: err.message });
       setError(isRateLimit
         ? "Слишком много попыток. Подождите минуту и попробуйте снова."
         : isEmailError
           ? "Не удалось отправить письмо. Проверьте адрес или попробуйте позже."
           : err.message);
     } else {
+      trackEvent("magic_link_sent");
       setEmail(e);
       setSubStep("otp");
       startCooldown(60);
@@ -92,8 +96,11 @@ export function AuthPage() {
       type: "email",
     });
     if (err) {
+      trackEvent("login_failed", { reason: "invalid_otp" }, { errorMessage: err.message });
       setError("Неверный код. Попробуй ещё раз");
       setLoading(false);
+    } else {
+      trackEvent("login_success", { method: "otp" });
     }
     // On success, onAuthStateChange fires → authStore updates → useEffect redirects
   };

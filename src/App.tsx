@@ -40,6 +40,14 @@ import { AdminVerificationPage } from "./admin/pages/VerificationPage";
 import { AdminAnalyticsPage } from "./admin/pages/AnalyticsPage";
 import { AdminSettingsPage } from "./admin/pages/SettingsPage";
 import { AdminClientsPage } from "./admin/pages/ClientsPage";
+import { AdminEventLogsPage } from "./admin/pages/EventLogsPage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { usePageTracking } from "./hooks/usePageTracking";
+
+function PageTracker() {
+  usePageTracking();
+  return null;
+}
 
 function App() {
   const { initialize } = useAuthStore();
@@ -51,7 +59,9 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <PageTracker />
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
@@ -112,10 +122,12 @@ function App() {
             <Route path="verification" element={<AdminVerificationPage />} />
             <Route path="analytics" element={<AdminAnalyticsPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
+            <Route path="events" element={<AdminEventLogsPage />} />
           </Route>
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 
 interface AuthState {
   user: User | null;
@@ -19,6 +20,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initialize: () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) trackEvent("auth_session_restored", { userId: session.user.id });
       set({
         session,
         user: session?.user ?? null,
@@ -38,6 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
+    trackEvent("logout");
     await supabase.auth.signOut();
     set({ user: null, session: null, isAuthenticated: false });
     // Reset hydration flags so next login reloads data from DB

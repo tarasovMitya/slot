@@ -11,6 +11,7 @@ import type {
 import { calculatePrice } from "../utils/priceCalculator";
 import { categories } from "../data/services";
 import { usePlatformSettingsStore } from "./platformSettingsStore";
+import { trackEvent } from "../lib/analytics";
 
 interface CalculatorState {
   step: Step;
@@ -106,10 +107,13 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
   setSkipAuth: (v) => set({ skipAuth: v }),
 
-  selectCategory: (category) =>
-    set({ selectedCategory: category, selectedService: null, fieldValues: {} }),
+  selectCategory: (category) => {
+    trackEvent("category_selected", { categoryId: category.id, categoryName: category.name });
+    set({ selectedCategory: category, selectedService: null, fieldValues: {} });
+  },
 
   selectService: (service) => {
+    trackEvent("service_selected", { serviceId: service.id, serviceName: service.name, basePrice: service.basePrice });
     const defaults: FieldValues = {};
     for (const field of service.fields) {
       if (field.defaultValue !== undefined) {
@@ -134,6 +138,12 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
     const travelCost = usePlatformSettingsStore.getState().settings.travel_base_cost;
     const breakdown = calculatePrice(selectedService, fieldValues, travelCost);
+    trackEvent("cart_item_added", {
+      serviceId: selectedService.id,
+      serviceName: selectedService.name,
+      categoryId: selectedCategory.id,
+      priceTotal: breakdown.total,
+    });
     const cartItem: CartItem = {
       id: editingCartItemId ?? crypto.randomUUID(),
       categoryId: selectedCategory.id,
@@ -178,7 +188,11 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   clearCurrentService: () =>
     set({ selectedCategory: null, selectedService: null, fieldValues: {} }),
 
-  reset: () =>
+  reset: () => {
+    const { step } = get();
+    if (step !== "success" && step !== "category") {
+      trackEvent("flow_abandoned", { abandonedAt: step });
+    }
     set({
       step: "category",
       selectedCategory: null,
@@ -190,5 +204,6 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
       skipAuth: false,
       cart: [],
       editingCartItemId: null,
-    }),
+    });
+  },
 }));

@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { trackEvent, trackError } from "./analytics";
 import type { UserProfile, Address, Order, PriceItem } from "../dashboard/types";
 import type { PerformerProfile } from "../performer/types";
 import type { SharedOrder, SharedOrderStatus, PerformerInfo } from "../store/sharedOrdersStore";
@@ -273,6 +274,7 @@ function rowToSharedOrder(r: Record<string, unknown>): SharedOrder {
 }
 
 export async function dbCreateSharedOrder(order: SharedOrder): Promise<void> {
+  trackEvent("order_created", { orderId: order.id, serviceName: order.serviceName, priceTotal: order.priceTotal });
   await supabase.from("shared_orders").insert({
     id: order.id,
     status: order.status,
@@ -320,7 +322,14 @@ export async function dbAcceptSharedOrder(orderId: string, performer: PerformerI
     .eq("id", orderId)
     .eq("status", "searching_performer")
     .select("id");
-  return !error && Array.isArray(data) && data.length > 0;
+  const success = !error && Array.isArray(data) && data.length > 0;
+  if (success) {
+    trackEvent("performer_assigned", { orderId, performerId: performer.id });
+  } else {
+    if (error) trackError(new Error(error.message), { component: "dbAcceptSharedOrder", severity: "high" });
+    else trackEvent("performer_rejected", { orderId, reason: "race_condition" });
+  }
+  return success;
 }
 
 /** Subscribe to new shared orders appearing in DB. Returns an unsubscribe function. */
@@ -378,6 +387,7 @@ export async function dbGetSharedOrder(orderId: string): Promise<SharedOrder | n
 }
 
 export async function dbCancelSharedOrder(orderId: string): Promise<void> {
+  trackEvent("order_cancelled", { orderId });
   await supabase
     .from("shared_orders")
     .update({ status: "cancelled", updated_at: new Date().toISOString() })
@@ -408,6 +418,7 @@ export async function dbConfirmOrderCompletion(orderId: string): Promise<void> {
     .update({ status: "completed", client_confirmed_at: now, updated_at: now })
     .eq("id", orderId);
   await dbUpdateOrder(orderId, { status: "completed", client_confirmed_at: now });
+  trackEvent("client_confirmed_completion", { orderId });
 }
 
 export async function dbUpdateSharedOrderStatus(orderId: string, status: string): Promise<void> {
@@ -560,6 +571,7 @@ export async function dbSubscribeNotifications(
 }
 
 export async function dbOpenDispute(orderId: string, comment: string): Promise<void> {
+  trackEvent("dispute_opened", { orderId });
   const now = new Date().toISOString();
   await supabase.from("shared_orders")
     .update({ status: "dispute_opened", updated_at: now })
