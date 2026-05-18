@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle } from "lucide-react";
+import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle, MessageCircle } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { useAuthStore } from "../../store/authStore";
+import { useChatStore } from "../../store/chatStore";
+import { ChatDrawer } from "../../chat/components/ChatDrawer";
 import { PerformerStatusBadge } from "../components/ui/StatusBadge";
 import { CompletionModal } from "../components/CompletionModal";
 import { OrderLocationMap } from "../components/OrderLocationMap";
@@ -19,6 +22,8 @@ export function PerformerOrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { activeOrders, completedOrders, updateOrderStatus, submitCompletion, startLocationTracking, stopLocationTracking } = usePerformerStore();
+  const { user } = useAuthStore();
+  const { openChatForOrder } = useChatStore();
   const [showModal, setShowModal] = useState(false);
   const [showGeoSheet, setShowGeoSheet] = useState(false);
   const [geoBlocked, setGeoBlocked] = useState(false);
@@ -127,13 +132,24 @@ export function PerformerOrderDetailsPage() {
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{order.client.name}</p>
               </div>
-              <a
-                href={`tel:${order.client.phone}`}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95"
-              >
-                <Phone size={14} />
-                Позвонить
-              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() =>
+                    openChatForOrder(order.id, "client_performer", null, user?.id ?? null)
+                  }
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all active:scale-95"
+                >
+                  <MessageCircle size={14} />
+                  Чат
+                </button>
+                <a
+                  href={`tel:${order.client.phone}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95"
+                >
+                  <Phone size={14} />
+                  Позвонить
+                </a>
+              </div>
             </div>
           </div>
 
@@ -230,6 +246,12 @@ export function PerformerOrderDetailsPage() {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onSubmit={handleCompletionSubmit}
+      />
+
+      <ChatDrawer
+        clientName={order.client.name}
+        performerName="Вы"
+        title="Чат с клиентом"
       />
 
       {/* Geolocation permission sheet */}

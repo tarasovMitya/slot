@@ -25,6 +25,8 @@ export type EventName =
   // Verification
   | "verification_started" | "verification_submitted"
   | "verification_approved" | "verification_rejected"
+  // Chat
+  | "message_sent" | "chat_escalated"
   // Errors
   | "api_error" | "react_error" | "auth_error" | "db_error"
   | "realtime_error" | "network_error"

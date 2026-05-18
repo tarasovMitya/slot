@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, Users, UserCircle, DollarSign, AlertTriangle, ShieldCheck, BarChart2, Settings, LogOut, Activity } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Users, UserCircle, DollarSign, AlertTriangle, ShieldCheck, BarChart2, Settings, LogOut, Activity, MessageSquare } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { useAdminStore } from "../../store/adminStore";
 import { ROLE_LABELS } from "../../types";
@@ -12,6 +12,7 @@ const nav = [
   { to: "/admin/finance", label: "Финансы", icon: DollarSign },
   { to: "/admin/disputes", label: "Споры", icon: AlertTriangle },
   { to: "/admin/verification", label: "Верификация", icon: ShieldCheck },
+  { to: "/admin/chats", label: "Чаты", icon: MessageSquare },
   { to: "/admin/analytics", label: "Аналитика", icon: BarChart2 },
   { to: "/admin/settings", label: "Настройки", icon: Settings },
   { to: "/admin/events", label: "Логи", icon: Activity },

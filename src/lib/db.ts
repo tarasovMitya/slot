@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { trackEvent, trackError } from "./analytics";
+import { dbAutoCreateOrderChat } from "./chatDb";
 import type { UserProfile, Address, Order, PriceItem } from "../dashboard/types";
 import type { PerformerProfile } from "../performer/types";
 import type { SharedOrder, SharedOrderStatus, PerformerInfo } from "../store/sharedOrdersStore";
@@ -325,6 +326,7 @@ export async function dbAcceptSharedOrder(orderId: string, performer: PerformerI
   const success = !error && Array.isArray(data) && data.length > 0;
   if (success) {
     trackEvent("performer_assigned", { orderId, performerId: performer.id });
+    dbAutoCreateOrderChat(orderId, performer.id);
   } else {
     if (error) trackError(new Error(error.message), { component: "dbAcceptSharedOrder", severity: "high" });
     else trackEvent("performer_rejected", { orderId, reason: "race_condition" });

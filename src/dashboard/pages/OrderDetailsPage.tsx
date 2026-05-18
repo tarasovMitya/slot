@@ -4,6 +4,9 @@ import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle } from "luci
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
+import { useAuthStore } from "../../store/authStore";
+import { useChatStore } from "../../store/chatStore";
+import { ChatDrawer } from "../../chat/components/ChatDrawer";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { Timeline } from "../components/ui/Timeline";
 import { PerformerCard } from "../components/ui/PerformerCard";
@@ -11,6 +14,14 @@ import { CompletionConfirmBlock } from "../components/CompletionConfirmBlock";
 import { DisputeModal } from "../components/DisputeModal";
 import { RatingModal } from "../components/RatingModal";
 import { formatPrice } from "../../utils/priceCalculator";
+
+const CHAT_VISIBLE_STATUSES = new Set([
+  "performer_assigned",
+  "on_the_way",
+  "in_progress",
+  "waiting_client_confirmation",
+  "dispute_opened",
+]);
 
 const CANCELLABLE_STATUSES = new Set([
   "pending_payment",
@@ -25,6 +36,8 @@ export function OrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { orders, confirmOrderCompletion, submitClientRating, openDispute, resumePayment, cancelOrder } = useDashboardStore();
+  const { user } = useAuthStore();
+  const { openChatForOrder } = useChatStore();
   const order = orders.find((o) => o.id === id);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -203,6 +216,24 @@ export function OrderDetailsPage() {
           </AnimatePresence>
         )}
 
+        {/* Chat with performer */}
+        {CHAT_VISIBLE_STATUSES.has(order.status) && order.performer && (
+          <button
+            onClick={() =>
+              openChatForOrder(
+                order.id,
+                "client_performer",
+                user?.id ?? null,
+                order.performer!.id
+              )
+            }
+            className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+          >
+            <MessageCircle size={16} />
+            Чат с исполнителем
+          </button>
+        )}
+
         <Link
           to="/dashboard/support"
           className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
@@ -211,6 +242,13 @@ export function OrderDetailsPage() {
           Связаться с поддержкой
         </Link>
       </div>
+
+      <ChatDrawer
+        clientName="Вы"
+        performerName={order.performer?.name ?? "Исполнитель"}
+        title="Чат с исполнителем"
+      />
+
       <DisputeModal
         isOpen={showDisputeModal}
         onClose={() => setShowDisputeModal(false)}
