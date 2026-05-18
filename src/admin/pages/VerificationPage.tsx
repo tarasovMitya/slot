@@ -32,6 +32,18 @@ export function AdminVerificationPage() {
   const rejected = performers.filter((p) => p.verificationStatus === "rejected");
   const notStarted = performers.filter((p) => !["pending", "approved", "rejected"].includes(p.verificationStatus));
 
+  async function signedUrl(storedUrl: string | null, bucket: string): Promise<string | null> {
+    if (!storedUrl) return null;
+    try {
+      const marker = `/object/public/${bucket}/`;
+      const idx = storedUrl.indexOf(marker);
+      if (idx === -1) return storedUrl;
+      const path = decodeURIComponent(storedUrl.slice(idx + marker.length));
+      const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+      return data?.signedUrl ?? storedUrl;
+    } catch { return storedUrl; }
+  }
+
   async function loadRequest(performerId: string) {
     setLoadingRequest(true);
     setVerRequest(null);
@@ -40,7 +52,26 @@ export function AdminVerificationPage() {
       .select("*")
       .eq("performer_id", performerId)
       .single();
-    setVerRequest(data as VerificationRequest ?? null);
+
+    if (!data) { setLoadingRequest(false); return; }
+
+    const row = data as VerificationRequest;
+
+    const [passportSigned, selfieSigned] = await Promise.all([
+      signedUrl(row.passport_url, "verification-documents"),
+      signedUrl(row.selfie_url, "verification-documents"),
+    ]);
+
+    const workPhotosSigned = await Promise.all(
+      (row.work_photo_urls ?? []).map((u) => signedUrl(u, "work-photos"))
+    );
+
+    setVerRequest({
+      ...row,
+      passport_url: passportSigned,
+      selfie_url: selfieSigned,
+      work_photo_urls: workPhotosSigned.filter(Boolean) as string[],
+    });
     setLoadingRequest(false);
   }
 

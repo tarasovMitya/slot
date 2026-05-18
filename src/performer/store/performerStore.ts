@@ -27,9 +27,10 @@ import {
   dbUpdatePerformerLocation,
 } from "../../lib/db";
 
-// Module-level watch ID — doesn't need to be reactive state
+// Module-level watch IDs — don't need to be reactive state
 let _locationWatchId: number | null = null;
 let _locationLastSent = 0;
+let _verStatusUnsub: (() => void) | null = null;
 
 interface PerformerState {
   profile: PerformerProfile;
@@ -218,6 +219,25 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     if (balanceData) {
       set({ balance: balanceData.balance, pendingBalance: balanceData.pendingBalance });
     }
+
+    // Realtime: react to admin approval/rejection without page reload
+    if (_verStatusUnsub) _verStatusUnsub();
+    const verChannel = supabase
+      .channel(`ver_status_${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "performer_profiles", filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const row = payload.new as Record<string, unknown>;
+          set({
+            verificationStatus: (row.verification_status as string) ?? "not_started",
+            rejectionReason: (row.rejection_reason as string) ?? null,
+          });
+        }
+      )
+      .subscribe();
+    _verStatusUnsub = () => { supabase.removeChannel(verChannel); };
+
     } catch {
       set({ isHydrated: true });
     }
