@@ -10,6 +10,7 @@ import type {
 } from "../types/calculator";
 import { calculatePrice } from "../utils/priceCalculator";
 import { categories } from "../data/services";
+import { usePlatformSettingsStore } from "./platformSettingsStore";
 
 interface CalculatorState {
   step: Step;
@@ -131,7 +132,8 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     const { selectedCategory, selectedService, fieldValues, editingCartItemId } = get();
     if (!selectedService || !selectedCategory) return;
 
-    const breakdown = calculatePrice(selectedService, fieldValues);
+    const travelCost = usePlatformSettingsStore.getState().settings.travel_base_cost;
+    const breakdown = calculatePrice(selectedService, fieldValues, travelCost);
     const cartItem: CartItem = {
       id: editingCartItemId ?? crypto.randomUUID(),
       categoryId: selectedCategory.id,

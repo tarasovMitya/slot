@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthPage } from "./pages/AuthPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { useAuthStore } from "./store/authStore";
+import { usePlatformSettingsStore } from "./store/platformSettingsStore";
 import { DashboardLayout } from "./dashboard/components/layout/DashboardLayout";
 import { DashboardPage } from "./dashboard/pages/DashboardPage";
 import { ActiveOrdersPage } from "./dashboard/pages/ActiveOrdersPage";
@@ -42,9 +43,11 @@ import { AdminClientsPage } from "./admin/pages/ClientsPage";
 
 function App() {
   const { initialize } = useAuthStore();
+  const loadSettings = usePlatformSettingsStore((s) => s.load);
 
   useEffect(() => {
     initialize();
+    loadSettings();
   }, []);
 
   return (

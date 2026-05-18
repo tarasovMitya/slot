@@ -2,7 +2,8 @@ import type { Service, FieldValues, PriceBreakdown } from "../types/calculator";
 
 export function calculatePrice(
   service: Service | null,
-  fieldValues: FieldValues
+  fieldValues: FieldValues,
+  travelCost?: number
 ): PriceBreakdown {
   if (!service) return { items: [], total: 0 };
 
@@ -53,6 +54,11 @@ export function calculatePrice(
         total += field.price * count;
       }
     }
+  }
+
+  if (travelCost && travelCost > 0) {
+    items.push({ label: "Выезд исполнителя", amount: travelCost });
+    total += travelCost;
   }
 
   return { items, total };
