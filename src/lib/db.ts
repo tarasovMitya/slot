@@ -244,13 +244,7 @@ export async function dbUpdatePerformerBalance(
     p_reason: reason,
     p_order_id: orderId ?? null,
   });
-  // Fallback to direct update if RPC fails (e.g. function not yet deployed)
-  if (error) {
-    await supabase
-      .from("performer_profiles")
-      .update({ balance, pending_balance: pendingBalance, updated_at: new Date().toISOString() })
-      .eq("user_id", userId);
-  }
+  if (error) console.error("[dbUpdatePerformerBalance]", error.message);
 }
 
 // ─── Shared Orders (cross-session order board) ────────────────────────────────
@@ -493,16 +487,10 @@ export async function dbCreateReview(
     .then(() => {}, () => {});
   await dbUpdateOrder(orderId, { client_rating: rating, client_review: comment });
 
-  // Recalculate performer's average rating from all reviews
-  const { data: allReviews } = await supabase
-    .from("reviews")
-    .select("rating")
-    .eq("performer_id", performerId);
-  if (allReviews && allReviews.length > 0) {
-    const avg = allReviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / allReviews.length;
-    const rounded = Math.round(avg * 10) / 10;
-    await supabase.from("performer_profiles").update({ rating: rounded }).eq("user_id", performerId);
-  }
+  // Recalculate performer's average rating via SECURITY DEFINER RPC
+  // (direct update is blocked by RLS — client session ≠ performer's user_id)
+  await supabase.rpc("rpc_recalculate_performer_rating", { p_performer_id: performerId })
+    .then(() => {}, () => {});
 
   return true;
 }
