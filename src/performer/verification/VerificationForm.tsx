@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { usePerformerStore } from "../store/performerStore";
 import { trackEvent } from "../../lib/analytics";
+import { sanitizeField, sanitizeText } from "../../lib/sanitize";
 
 const SPECIALIZATIONS = [
   "Уборка квартир", "Уборка офисов", "Химчистка мебели",
@@ -143,23 +144,23 @@ export function VerificationForm() {
 
     await supabase.from("verification_requests").upsert({
       performer_id: userId,
-      first_name: form.firstName,
-      last_name: form.lastName,
+      first_name: sanitizeField(form.firstName),
+      last_name: sanitizeField(form.lastName),
       birth_date: form.birthDate,
-      phone: form.phone,
-      telegram: form.telegram,
-      city: form.city,
+      phone: sanitizeField(form.phone),
+      telegram: sanitizeField(form.telegram),
+      city: sanitizeField(form.city),
       passport_url: passportUrl,
       selfie_url: selfieUrl,
       specializations: form.specializations,
       experience_years: form.experienceYears ? parseInt(form.experienceYears) : null,
-      experience_description: form.experienceDescription,
+      experience_description: sanitizeText(form.experienceDescription, 1000),
       has_tools: form.hasTools,
       works_with_team: form.worksWithTeam,
       work_photo_urls: [],
-      payment_name: form.paymentName,
-      payment_card: form.paymentCard,
-      payment_bank: form.paymentBank,
+      payment_name: sanitizeField(form.paymentName),
+      payment_card: sanitizeField(form.paymentCard),
+      payment_bank: sanitizeField(form.paymentBank),
       submitted_at: new Date().toISOString(),
     }, { onConflict: "performer_id" });
 

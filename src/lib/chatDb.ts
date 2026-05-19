@@ -55,6 +55,7 @@
 
 import { supabase } from "./supabase";
 import type { Chat, Message, ChatType, ChatWithMeta } from "../chat/types";
+import { sanitizeMessage } from "./sanitize";
 
 function rowToChat(r: Record<string, unknown>): Chat {
   return {
@@ -145,7 +146,7 @@ export async function dbSendMessage(
 ): Promise<boolean> {
   const { error } = await supabase
     .from("messages")
-    .insert({ id: msgId, chat_id: chatId, sender_id: senderId, body, is_system: false });
+    .insert({ id: msgId, chat_id: chatId, sender_id: senderId, body: sanitizeMessage(body), is_system: false });
   return !error;
 }
 
