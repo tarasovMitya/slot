@@ -34,7 +34,7 @@ export function ChatDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-40"
+            className="fixed inset-0 bg-black/40 z-50"
             onClick={closeChat}
           />
 
@@ -44,7 +44,8 @@ export function ChatDrawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col"
+            className="fixed right-0 top-0 bottom-0 z-[60] w-full max-w-md bg-white shadow-2xl flex flex-col"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 shrink-0">
@@ -64,7 +65,7 @@ export function ChatDrawer({
             </div>
 
             {/* Chat */}
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-hidden">
               {activeChat && user ? (
                 <ChatWindow
                   chat={activeChat}
