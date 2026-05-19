@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import type { Chat, Message } from "../types";
+import { sanitizeMessage } from "../../lib/sanitize";
 
 interface ChatWindowProps {
   chat: Chat;
@@ -46,7 +47,7 @@ export function ChatWindow({
   }, [messages.length]);
 
   const handleSend = () => {
-    const trimmed = input.trim();
+    const trimmed = sanitizeMessage(input.trim());
     if (!trimmed || isSending) return;
     onSend(trimmed);
     setInput("");

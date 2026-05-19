@@ -229,11 +229,28 @@ export async function dbLoadPerformerBalance(userId: string): Promise<{ balance:
   return { balance: data.balance, pendingBalance: data.pending_balance };
 }
 
-export async function dbUpdatePerformerBalance(userId: string, balance: number, pendingBalance: number): Promise<void> {
-  await supabase
-    .from("performer_profiles")
-    .update({ balance, pending_balance: pendingBalance, updated_at: new Date().toISOString() })
-    .eq("user_id", userId);
+export async function dbUpdatePerformerBalance(
+  userId: string,
+  balance: number,
+  pendingBalance: number,
+  reason = "order",
+  orderId?: string
+): Promise<void> {
+  // Use SECURITY DEFINER RPC so every balance change is logged in balance_ledger
+  const { error } = await supabase.rpc("rpc_update_performer_balance", {
+    p_performer_id: userId,
+    p_balance: balance,
+    p_pending: pendingBalance,
+    p_reason: reason,
+    p_order_id: orderId ?? null,
+  });
+  // Fallback to direct update if RPC fails (e.g. function not yet deployed)
+  if (error) {
+    await supabase
+      .from("performer_profiles")
+      .update({ balance, pending_balance: pendingBalance, updated_at: new Date().toISOString() })
+      .eq("user_id", userId);
+  }
 }
 
 // ─── Shared Orders (cross-session order board) ────────────────────────────────
