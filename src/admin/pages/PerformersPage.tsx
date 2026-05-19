@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Star, CheckCircle, Wifi, WifiOff } from "lucide-react";
+import { Star, Wifi, WifiOff } from "lucide-react";
 import { useAdminStore } from "../store/adminStore";
+import { supabase } from "../../lib/supabase";
 import { formatPrice } from "../../utils/priceCalculator";
 import type { AdminPerformer } from "../types";
 
@@ -16,7 +17,7 @@ const VERIFICATION_LABELS: Record<string, string> = {
 };
 
 export function AdminPerformersPage() {
-  const { performers, isLoadingPerformers, loadPerformers, adjustBalance, approvePayout } = useAdminStore();
+  const { performers, isLoadingPerformers, loadPerformers } = useAdminStore();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<AdminPerformer | null>(null);
   const [balanceDelta, setBalanceDelta] = useState("");
@@ -35,20 +36,18 @@ export function AdminPerformersPage() {
     const delta = parseFloat(balanceDelta);
     if (isNaN(delta)) return;
     setActionLoading(true);
-    await adjustBalance(selected.id, delta);
+    const newBalance = selected.balance + delta;
+    await supabase.rpc("rpc_update_performer_balance", {
+      p_performer_id: selected.id,
+      p_balance: newBalance,
+      p_pending: selected.pendingBalance,
+      p_reason: "admin_adjustment",
+      p_order_id: null,
+    });
     setBalanceDelta("");
     setActionLoading(false);
     await loadPerformers();
-    setSelected((p) => performers.find((x) => x.id === p?.id) ?? null);
-  }
-
-  async function handleApprovePayout() {
-    if (!selected) return;
-    setActionLoading(true);
-    await approvePayout(selected.id);
-    setActionLoading(false);
-    await loadPerformers();
-    setSelected((p) => performers.find((x) => x.id === p?.id) ?? null);
+    setSelected((prev) => performers.find((x) => x.id === prev?.id) ?? null);
   }
 
   return (
@@ -195,16 +194,10 @@ export function AdminPerformersPage() {
               </div>
             </div>
 
-            {/* Payout */}
             {selected.pendingBalance > 0 && (
-              <button
-                disabled={actionLoading}
-                onClick={handleApprovePayout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50"
-              >
-                <CheckCircle size={15} />
-                {actionLoading ? "Обработка..." : `Выплатить ${formatPrice(selected.pendingBalance)}`}
-              </button>
+              <p className="text-xs text-orange-600 bg-orange-50 rounded-lg px-3 py-2">
+                К выплате {formatPrice(selected.pendingBalance)} — управляйте через раздел «Финансы»
+              </p>
             )}
           </div>
         )}
