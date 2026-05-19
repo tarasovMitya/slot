@@ -39,15 +39,26 @@ const STEPS = [
   { label: "Соглашения",       icon: ShieldCheck },
 ];
 
-async function uploadFile(userId: string, bucket: string, name: string, file: File): Promise<string | null> {
+const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
+  "image/heic": "heic", "application/pdf": "pdf",
+};
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+async function uploadFile(
+  userId: string, bucket: string, name: string, file: File
+): Promise<{ url: string | null; error?: string }> {
+  const ext = MIME_TO_EXT[file.type];
+  if (!ext) return { url: null, error: "Недопустимый формат файла" };
+  if (file.size > MAX_FILE_BYTES) return { url: null, error: "Файл не должен превышать 10 МБ" };
+
   try {
-    const ext = file.name.split(".").pop() ?? "jpg";
     const path = `${userId}/${name}.${ext}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-    if (error) return null;
+    if (error) return { url: null, error: "Ошибка загрузки файла" };
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    return data.publicUrl;
-  } catch { return null; }
+    return { url: data.publicUrl };
+  } catch { return { url: null, error: "Ошибка загрузки файла" }; }
 }
 
 function FileDropZone({ label, file, onChange, accept = "image/*" }: {
@@ -135,12 +146,19 @@ export function VerificationForm() {
 
     const userId = user.id;
 
-    const passportUrl = form.passportFile
-      ? await uploadFile(userId, "verification-documents", "passport", form.passportFile)
-      : null;
-    const selfieUrl = form.selfieFile
-      ? await uploadFile(userId, "verification-documents", "selfie", form.selfieFile)
-      : null;
+    let passportUrl: string | null = null;
+    let selfieUrl: string | null = null;
+
+    if (form.passportFile) {
+      const res = await uploadFile(userId, "verification-documents", "passport", form.passportFile);
+      if (res.error) { setError(res.error); setSubmitting(false); return; }
+      passportUrl = res.url;
+    }
+    if (form.selfieFile) {
+      const res = await uploadFile(userId, "verification-documents", "selfie", form.selfieFile);
+      if (res.error) { setError(res.error); setSubmitting(false); return; }
+      selfieUrl = res.url;
+    }
 
     await supabase.from("verification_requests").upsert({
       performer_id: userId,
