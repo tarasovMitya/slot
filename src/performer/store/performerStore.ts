@@ -26,6 +26,7 @@ import {
   dbUpdateSharedOrderStatus,
   dbUpdatePerformerLocation,
 } from "../../lib/db";
+import { dbSendPushToUsers } from "../../lib/pushDb";
 
 // Module-level watch IDs — don't need to be reactive state
 let _locationWatchId: number | null = null;
@@ -438,6 +439,25 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
 
       return { activeOrders: s.activeOrders.map((o) => (o.id === orderId ? updatedOrder : o)) };
     });
+
+    // Push to client
+    const pushMap: Partial<Record<string, { title: string; body: string }>> = {
+      on_the_way: { title: "Исполнитель в пути", body: "Исполнитель едет к вам" },
+      in_progress: { title: "Работа началась", body: "Исполнитель приступил к выполнению заказа" },
+      waiting_client_confirmation: { title: "Требуется подтверждение", body: "Исполнитель завершил работу — подтвердите выполнение" },
+    };
+    const pushPayload = pushMap[status];
+    if (pushPayload) {
+      supabase.from("shared_orders").select("client_email").eq("id", orderId).single()
+        .then(({ data: o }) => {
+          if (o?.client_email) {
+            dbSendPushToUsers(
+              { emails: [o.client_email as string] },
+              { ...pushPayload, url: `/dashboard/orders/${orderId}` }
+            );
+          }
+        });
+    }
   },
 
   markNotificationRead: (id) =>

@@ -85,6 +85,7 @@ export async function dbGetOrCreateChat(
   clientId: string | null,
   performerId: string | null
 ): Promise<Chat | null> {
+  // Try select first — avoids overwriting existing client_id/performer_id
   const { data: existing } = await supabase
     .from("chats")
     .select("*")
@@ -94,14 +95,24 @@ export async function dbGetOrCreateChat(
 
   if (existing) return rowToChat(existing as Record<string, unknown>);
 
-  const { data, error } = await supabase
+  // Insert (may fail if race condition created it between our select and insert)
+  const { data: inserted } = await supabase
     .from("chats")
     .insert({ order_id: orderId, type, client_id: clientId, performer_id: performerId })
     .select()
-    .single();
+    .maybeSingle();
 
-  if (error || !data) return null;
-  return rowToChat(data as Record<string, unknown>);
+  if (inserted) return rowToChat(inserted as Record<string, unknown>);
+
+  // Race condition — try select again
+  const { data: retry } = await supabase
+    .from("chats")
+    .select("*")
+    .eq("order_id", orderId)
+    .eq("type", type)
+    .maybeSingle();
+
+  return retry ? rowToChat(retry as Record<string, unknown>) : null;
 }
 
 export async function dbGetChatForOrder(orderId: string, type: ChatType): Promise<Chat | null> {
@@ -128,16 +139,14 @@ export async function dbLoadMessages(chatId: string, limit = 80): Promise<Messag
 
 export async function dbSendMessage(
   chatId: string,
+  msgId: string,
   senderId: string,
   body: string
-): Promise<Message | null> {
-  const { data, error } = await supabase
+): Promise<boolean> {
+  const { error } = await supabase
     .from("messages")
-    .insert({ chat_id: chatId, sender_id: senderId, body, is_system: false })
-    .select()
-    .single();
-  if (error || !data) return null;
-  return rowToMessage(data as Record<string, unknown>);
+    .insert({ id: msgId, chat_id: chatId, sender_id: senderId, body, is_system: false });
+  return !error;
 }
 
 export async function dbSendSystemMessage(chatId: string, body: string): Promise<void> {
@@ -235,11 +244,12 @@ export async function dbAutoCreateOrderChat(
 
     const clientId = (profileData?.user_id as string) ?? null;
 
+    // Try insert; if chat already exists (client opened it first), patch performer_id instead
     const { data: chatData } = await supabase
       .from("chats")
       .insert({ order_id: orderId, type: "client_performer", client_id: clientId, performer_id: performerId })
       .select("id")
-      .single();
+      .maybeSingle();
 
     if (chatData?.id) {
       await supabase.from("messages").insert({
@@ -248,6 +258,15 @@ export async function dbAutoCreateOrderChat(
         body: "Исполнитель принял заказ. Чат открыт — можете начать общение.",
         is_system: true,
       }).then(() => {}, () => {});
+    } else {
+      // Chat existed with performer_id = null — backfill it
+      await supabase
+        .from("chats")
+        .update({ performer_id: performerId })
+        .eq("order_id", orderId)
+        .eq("type", "client_performer")
+        .is("performer_id", null)
+        .then(() => {}, () => {});
     }
   } catch {
     // Never crash the accept flow

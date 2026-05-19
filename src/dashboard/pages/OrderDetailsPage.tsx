@@ -111,7 +111,15 @@ export function OrderDetailsPage() {
         {/* Performer */}
         {order.performer && (
           <Section title="Исполнитель">
-            <PerformerCard performer={order.performer} showPhone={order.status !== "completed"} />
+            <PerformerCard
+              performer={order.performer}
+              showPhone={order.status !== "completed"}
+              onChat={
+                CHAT_VISIBLE_STATUSES.has(order.status)
+                  ? () => openChatForOrder(order.id, "client_performer", user?.id ?? null, order.performer!.id)
+                  : undefined
+              }
+            />
           </Section>
         )}
 
@@ -234,13 +242,13 @@ export function OrderDetailsPage() {
           </button>
         )}
 
-        <Link
-          to="/dashboard/support"
+        <button
+          onClick={() => openChatForOrder(order.id, "client_admin", user?.id ?? null, null)}
           className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
         >
           <MessageCircle size={16} />
-          Связаться с поддержкой
-        </Link>
+          Чат с поддержкой
+        </button>
       </div>
 
       <ChatDrawer

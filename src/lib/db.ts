@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import { trackEvent, trackError } from "./analytics";
 import { dbAutoCreateOrderChat } from "./chatDb";
+import { dbSendPushToUsers } from "./pushDb";
 import type { UserProfile, Address, Order, PriceItem } from "../dashboard/types";
 import type { PerformerProfile } from "../performer/types";
 import type { SharedOrder, SharedOrderStatus, PerformerInfo } from "../store/sharedOrdersStore";
@@ -327,6 +328,15 @@ export async function dbAcceptSharedOrder(orderId: string, performer: PerformerI
   if (success) {
     trackEvent("performer_assigned", { orderId, performerId: performer.id });
     dbAutoCreateOrderChat(orderId, performer.id);
+    // Push to client: fetch their email from shared_orders
+    supabase.from("shared_orders").select("client_email").eq("id", orderId).single().then(({ data: o }) => {
+      if (o?.client_email) {
+        dbSendPushToUsers(
+          { emails: [o.client_email] },
+          { title: "Исполнитель найден", body: `${performer.name} принял ваш заказ`, url: `/dashboard/orders/${orderId}` }
+        );
+      }
+    });
   } else {
     if (error) trackError(new Error(error.message), { component: "dbAcceptSharedOrder", severity: "high" });
     else trackEvent("performer_rejected", { orderId, reason: "race_condition" });
@@ -543,7 +553,7 @@ export async function dbMarkNotificationRead(id: string): Promise<void> {
 }
 
 export async function dbMarkAllNotificationsRead(userId: string): Promise<void> {
-  await supabase.from("notifications").update({ read: false }).eq("user_id", userId);
+  await supabase.from("notifications").update({ read: true }).eq("user_id", userId);
 }
 
 export async function dbSubscribeNotifications(

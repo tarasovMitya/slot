@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle } from "lucide-react";
+import { X, MessageCircle, Loader2, AlertCircle } from "lucide-react";
 import { useChatStore } from "../../store/chatStore";
 import { useAuthStore } from "../../store/authStore";
 import { ChatWindow } from "./ChatWindow";
@@ -15,9 +15,15 @@ export function ChatDrawer({
   performerName = "Исполнитель",
   title = "Чат",
 }: ChatDrawerProps) {
-  const { isOpen, activeChat, messages, isLoading, isSending, closeChat, sendMessage } =
+  const { isOpen, activeChat, messages, isLoading, isSending, chatError, closeChat, sendMessage } =
     useChatStore();
   const { user } = useAuthStore();
+
+  const chatTitle =
+    activeChat?.type === "client_performer" ? "Чат с исполнителем"
+    : activeChat?.type === "client_admin" ? "Чат с поддержкой"
+    : activeChat?.type === "performer_admin" ? "Чат с поддержкой"
+    : title;
 
   return (
     <AnimatePresence>
@@ -46,7 +52,7 @@ export function ChatDrawer({
                 <MessageCircle size={15} className="text-gray-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{title}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{chatTitle}</p>
                 <p className="text-xs text-gray-400">Онлайн-чат</p>
               </div>
               <button
@@ -70,9 +76,14 @@ export function ChatDrawer({
                   performerName={performerName}
                   onSend={sendMessage}
                 />
+              ) : chatError ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+                  <AlertCircle size={24} className="text-red-400" />
+                  <p className="text-sm text-gray-500">{chatError}</p>
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-sm text-gray-400">Загрузка чата...</p>
+                  <Loader2 size={24} className="text-gray-300 animate-spin" />
                 </div>
               )}
             </div>

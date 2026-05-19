@@ -45,9 +45,20 @@ import { AdminEventLogsPage } from "./admin/pages/EventLogsPage";
 import { AdminChatsPage } from "./admin/pages/ChatsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { usePageTracking } from "./hooks/usePageTracking";
+import { usePushNotifications } from "./hooks/usePushNotifications";
+import { NotificationToast } from "./components/ui/NotificationToast";
 
 function PageTracker() {
   usePageTracking();
+  return null;
+}
+
+function PushSetup() {
+  const { user } = useAuthStore();
+  const { askOnce } = usePushNotifications();
+  useEffect(() => {
+    if (user) askOnce();
+  }, [user?.id]);
   return null;
 }
 
@@ -64,6 +75,8 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <PageTracker />
+        <PushSetup />
+        <NotificationToast />
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />

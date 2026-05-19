@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Star, Phone } from "lucide-react";
+import { Star, Phone, MessageCircle } from "lucide-react";
 import type { Performer } from "../../types";
 
 interface PerformerCardProps {
   performer: Performer;
   showPhone?: boolean;
+  onChat?: () => void;
 }
 
-export function PerformerCard({ performer, showPhone = false }: PerformerCardProps) {
+export function PerformerCard({ performer, showPhone = false, onChat }: PerformerCardProps) {
   const [imgFailed, setImgFailed] = useState(false);
 
   const displayName = (performer.name || "").trim() || "Исполнитель";
@@ -39,14 +40,24 @@ export function PerformerCard({ performer, showPhone = false }: PerformerCardPro
         </div>
         <p className="text-xs text-gray-400 mt-0.5">{performer.jobsCompleted} выполненных заказов</p>
       </div>
-      {showPhone && (
-        <a
-          href={`tel:${performer.phone}`}
-          className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors shrink-0"
-        >
-          <Phone size={16} className="text-gray-600" />
-        </a>
-      )}
+      <div className="flex items-center gap-2 shrink-0">
+        {onChat && (
+          <button
+            onClick={onChat}
+            className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors"
+          >
+            <MessageCircle size={16} className="text-gray-600" />
+          </button>
+        )}
+        {showPhone && (
+          <a
+            href={`tel:${performer.phone}`}
+            className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors"
+          >
+            <Phone size={16} className="text-gray-600" />
+          </a>
+        )}
+      </div>
     </div>
   );
 }

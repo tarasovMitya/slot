@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star } from "lucide-react";
+import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star, Bell, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useAuthStore } from "../../store/authStore";
 import { supabase } from "../../lib/supabase";
 import { AddressSuggest } from "../../components/ui/AddressSuggest";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
+import { dbGetNotificationPrefs, dbUpdateNotificationPrefs } from "../../lib/pushDb";
 import type { UserProfile } from "../types";
 
 type ProfileFormData = Pick<UserProfile, "name" | "phone" | "email" | "address">;
@@ -218,14 +220,7 @@ export function ProfileSettingsPage() {
         <AddressesSection />
 
         {/* Notifications */}
-        <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Уведомления
-          </p>
-          <Toggle label="Email-уведомления" field="notifyEmail" />
-          <Toggle label="SMS-уведомления" field="notifySms" />
-          <Toggle label="Push-уведомления" field="notifyPush" />
-        </div>
+        <NotificationSettings userId={user?.id ?? null} />
 
         {isEditing && (
           <button
@@ -373,18 +368,97 @@ function AddressesSection() {
   );
 }
 
-function Toggle({ label, field }: { label: string; field: "notifyEmail" | "notifySms" | "notifyPush" }) {
-  const { profile, updateProfile } = useDashboardStore();
+function ToggleRow({ label, description, checked, onChange }: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
-    <label className="flex items-center justify-between cursor-pointer">
-      <span className="text-sm text-gray-700">{label}</span>
-      <input
-        type="checkbox"
-        checked={profile[field]}
-        onChange={(e) => updateProfile({ [field]: e.target.checked })}
-        className="sr-only peer"
-      />
-      <div className="w-10 h-5 bg-gray-200 rounded-full peer-checked:bg-black transition-colors relative after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-5" />
+    <label className="flex items-start justify-between gap-4 cursor-pointer">
+      <div>
+        <p className="text-sm text-gray-800 font-medium">{label}</p>
+        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
+      </div>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
+      <div className="shrink-0 w-10 h-5 bg-gray-200 rounded-full peer-checked:bg-black transition-colors relative after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-5" />
     </label>
+  );
+}
+
+function NotificationSettings({ userId }: { userId: string | null }) {
+  const { isSupported, permission, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
+  const [orderNotifs, setOrderNotifs] = useState(true);
+  const [chatNotifs, setChatNotifs] = useState(true);
+
+  useEffect(() => {
+    if (!userId) return;
+    dbGetNotificationPrefs(userId).then((p) => {
+      setOrderNotifs(p.orderNotifications);
+      setChatNotifs(p.chatNotifications);
+    });
+  }, [userId]);
+
+  const handlePushToggle = async (enabled: boolean) => {
+    if (enabled) await subscribe();
+    else await unsubscribe();
+  };
+
+  const handleOrderToggle = async (v: boolean) => {
+    setOrderNotifs(v);
+    if (userId) await dbUpdateNotificationPrefs(userId, { orderNotifications: v });
+  };
+
+  const handleChatToggle = async (v: boolean) => {
+    setChatNotifs(v);
+    if (userId) await dbUpdateNotificationPrefs(userId, { chatNotifications: v });
+  };
+
+  return (
+    <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Уведомления</p>
+
+      {isSupported ? (
+        <div className="flex flex-col gap-1">
+          <ToggleRow
+            label="Push-уведомления"
+            description={
+              permission === "denied"
+                ? "Доступ запрещён в настройках браузера"
+                : isSubscribed
+                  ? "Уведомления включены"
+                  : "Получайте уведомления даже когда приложение закрыто"
+            }
+            checked={isSubscribed}
+            onChange={handlePushToggle}
+          />
+          {permission === "denied" && (
+            <p className="text-xs text-red-500 mt-1">
+              Разрешите доступ в настройках браузера, чтобы включить push
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <BellOff size={15} />
+          Push-уведомления не поддерживаются в этом браузере
+        </div>
+      )}
+
+      <div className="border-t border-gray-50 pt-3 flex flex-col gap-3">
+        <ToggleRow
+          label="Статусы заказов"
+          description="Исполнитель найден, в пути, работа начата"
+          checked={orderNotifs}
+          onChange={handleOrderToggle}
+        />
+        <ToggleRow
+          label="Сообщения в чате"
+          description="Новые сообщения от исполнителя"
+          checked={chatNotifs}
+          onChange={handleChatToggle}
+        />
+      </div>
+    </div>
   );
 }

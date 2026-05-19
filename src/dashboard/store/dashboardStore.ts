@@ -144,6 +144,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         sharedOrder.status !== "cancelled";
       if (hasPerformerInShared && sharedOrder) {
         const assignedAt = sharedOrder.acceptedAt ?? assignedOrder.assignedAt ?? new Date().toISOString();
+        const assignedTime = new Date(assignedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
         const perfName = (sharedOrder.performerName || "").trim() || "Исполнитель";
         const perfAvatar = (sharedOrder.performerAvatar || "").trim() || perfName.slice(0, 2).toUpperCase();
         orders = orders.map((o) =>
@@ -161,6 +162,9 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
                   jobsCompleted: sharedOrder.performerJobsCompleted ?? 0,
                   telegram: sharedOrder.performerTelegram ?? undefined,
                 },
+                timeline: o.timeline.map((t, i) =>
+                  i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+                ),
               }
             : o
         );

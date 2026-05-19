@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle, MessageCircle } from "lucide-react";
+import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle, MessageCircle, Loader2 } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useAuthStore } from "../../store/authStore";
 import { useChatStore } from "../../store/chatStore";
@@ -21,7 +21,7 @@ const statusFlow: { from: PerformerOrderStatus; to: PerformerOrderStatus; label:
 export function PerformerOrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeOrders, completedOrders, updateOrderStatus, submitCompletion, startLocationTracking, stopLocationTracking } = usePerformerStore();
+  const { activeOrders, completedOrders, isHydrated, updateOrderStatus, submitCompletion, startLocationTracking, stopLocationTracking } = usePerformerStore();
   const { user } = useAuthStore();
   const { openChatForOrder } = useChatStore();
   const [showModal, setShowModal] = useState(false);
@@ -35,8 +35,11 @@ export function PerformerOrderDetailsPage() {
 
   if (!order) {
     return (
-      <div className="max-w-2xl mx-auto px-4 pt-8">
-        <p className="text-gray-400">Заказ не найден</p>
+      <div className="flex items-center justify-center py-20">
+        {!isHydrated
+          ? <Loader2 size={24} className="text-gray-300 animate-spin" />
+          : <p className="text-gray-400">Заказ не найден</p>
+        }
       </div>
     );
   }

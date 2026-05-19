@@ -9,6 +9,7 @@ import {
 } from "../lib/chatDb";
 import { useAuthStore } from "./authStore";
 import { trackEvent } from "../lib/analytics";
+import { dbSendPushToUsers } from "../lib/pushDb";
 import type { Chat, Message, ChatType } from "../chat/types";
 
 interface ChatState {
@@ -17,6 +18,7 @@ interface ChatState {
   isOpen: boolean;
   isLoading: boolean;
   isSending: boolean;
+  chatError: string | null;
   unreadByOrder: Record<string, number>;
   _unsubscribe: (() => void) | null;
 
@@ -38,6 +40,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isOpen: false,
   isLoading: false,
   isSending: false,
+  chatError: null,
   unreadByOrder: {},
   _unsubscribe: null,
 
@@ -45,11 +48,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const prev = get()._unsubscribe;
     if (prev) prev();
 
-    set({ isOpen: true, isLoading: true, messages: [], _unsubscribe: null });
+    set({ isOpen: true, isLoading: true, chatError: null, messages: [], _unsubscribe: null });
 
     const chat = await dbGetOrCreateChat(orderId, type, clientId, performerId);
     if (!chat) {
-      set({ isLoading: false });
+      set({ isLoading: false, chatError: "Не удалось загрузить чат. Проверьте подключение." });
       return;
     }
 
@@ -58,7 +61,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (userId) await dbMarkChatRead(chat.id, userId);
 
     const unsub = dbSubscribeMessages(chat.id, (msg) => {
-      set((s) => ({ messages: [...s.messages, msg] }));
+      set((s) => {
+        if (s.messages.some((m) => m.id === msg.id)) return s;
+        return { messages: [...s.messages, msg] };
+      });
       const uid = useAuthStore.getState().user?.id;
       if (uid) dbMarkChatRead(chat.id, uid);
     });
@@ -85,7 +91,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (userId) await dbMarkChatRead(chatId, userId);
 
     const unsub = dbSubscribeMessages(chatId, (msg) => {
-      set((s) => ({ messages: [...s.messages, msg] }));
+      set((s) => {
+        if (s.messages.some((m) => m.id === msg.id)) return s;
+        return { messages: [...s.messages, msg] };
+      });
       const uid = useAuthStore.getState().user?.id;
       if (uid) dbMarkChatRead(chatId, uid);
     });
@@ -96,7 +105,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   closeChat: () => {
     const unsub = get()._unsubscribe;
     if (unsub) unsub();
-    set({ isOpen: false, activeChat: null, messages: [], _unsubscribe: null });
+    set({ isOpen: false, activeChat: null, messages: [], chatError: null, _unsubscribe: null });
   },
 
   sendMessage: async (body) => {
@@ -104,9 +113,39 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const userId = useAuthStore.getState().user?.id;
     if (!activeChat || !userId || !body.trim()) return;
 
-    set({ isSending: true });
-    await dbSendMessage(activeChat.id, userId, body.trim());
-    set({ isSending: false });
+    const msgId = crypto.randomUUID();
+    const optimistic: Message = {
+      id: msgId,
+      chatId: activeChat.id,
+      senderId: userId,
+      body: body.trim(),
+      attachments: [],
+      isSystem: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    set((s) => ({ isSending: true, messages: [...s.messages, optimistic] }));
+
+    const ok = await dbSendMessage(activeChat.id, msgId, userId, body.trim());
+
+    if (!ok) {
+      set((s) => ({
+        isSending: false,
+        messages: s.messages.filter((m) => m.id !== msgId),
+      }));
+    } else {
+      set({ isSending: false });
+      // Realtime fires with same msgId → deduplication in subscription catches it
+
+      // Push to the other participant
+      const recipientId = activeChat.clientId === userId ? activeChat.performerId : activeChat.clientId;
+      if (recipientId) {
+        dbSendPushToUsers(
+          { userIds: [recipientId] },
+          { title: "Новое сообщение", body: body.trim().slice(0, 80), url: "/dashboard/notifications" }
+        );
+      }
+    }
 
     trackEvent("message_sent", { chatId: activeChat.id });
   },
