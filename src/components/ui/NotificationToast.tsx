@@ -4,7 +4,6 @@ import { X, Bell, CheckCircle, User, AlertTriangle, MessageCircle, CreditCard } 
 import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../../dashboard/store/dashboardStore";
 import { usePerformerStore } from "../../performer/store/performerStore";
-import { useAuthStore } from "../../store/authStore";
 
 type ToastNotif = {
   id: string;
@@ -41,7 +40,6 @@ const DURATION = 5000;
 
 export function NotificationToast() {
   const navigate = useNavigate();
-  const { role } = useAuthStore();
   const [toasts, setToasts] = useState<ToastNotif[]>([]);
   const prevClientCount = useRef(0);
   const prevPerformerCount = useRef(0);
@@ -51,7 +49,6 @@ export function NotificationToast() {
 
   // Watch for new client notifications
   useEffect(() => {
-    if (role !== "client") return;
     if (prevClientCount.current === 0) {
       prevClientCount.current = clientNotifs.length;
       return;
@@ -66,11 +63,10 @@ export function NotificationToast() {
       }
     }
     prevClientCount.current = clientNotifs.length;
-  }, [clientNotifs, role]);
+  }, [clientNotifs]);
 
   // Watch for new performer notifications
   useEffect(() => {
-    if (role !== "performer") return;
     if (prevPerformerCount.current === 0) {
       prevPerformerCount.current = performerNotifs.length;
       return;
@@ -85,7 +81,7 @@ export function NotificationToast() {
       }
     }
     prevPerformerCount.current = performerNotifs.length;
-  }, [performerNotifs, role]);
+  }, [performerNotifs]);
 
   // Auto-dismiss
   useEffect(() => {

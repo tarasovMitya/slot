@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star, Bell, BellOff } from "lucide-react";
+import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useAuthStore } from "../../store/authStore";
