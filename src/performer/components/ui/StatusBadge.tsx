@@ -12,7 +12,7 @@ const config: Record<PerformerOrderStatus, { label: string; className: string }>
 };
 
 export function PerformerStatusBadge({ status }: { status: PerformerOrderStatus }) {
-  const { label, className } = config[status];
+  const { label, className } = config[status] ?? { label: status, className: "bg-gray-100 text-gray-500" };
   return (
     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${className}`}>
       {label}
