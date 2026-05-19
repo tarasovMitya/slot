@@ -18,16 +18,21 @@ export function PerformerLayout() {
     }
   }, [user?.id]);
 
-  // Load available orders once and keep them live for the dashboard badge
+  // Load available orders and keep them live via Realtime + polling fallback
   useEffect(() => {
-    dbLoadSearchingOrders().then((orders) => orders.forEach(addOrder));
+    const load = () => dbLoadSearchingOrders().then((orders) => orders.forEach(addOrder));
+    load();
+
     const unsubInsert = dbSubscribeSharedOrders((order) => {
       addOrder(order);
       addNotification({ type: "new_order", title: "Новый заказ", body: `${order.serviceName} · ${order.address}`, orderId: order.id });
     });
-    // Also handle UPDATEs so taken orders are removed from the available list
     const unsubUpdate = dbSubscribeSharedOrderUpdates("__all__", updateOrder);
-    return () => { unsubInsert(); unsubUpdate(); };
+
+    // Polling fallback: Realtime INSERT can miss events on unstable connections
+    const poll = setInterval(load, 15_000);
+
+    return () => { unsubInsert(); unsubUpdate(); clearInterval(poll); };
   }, []);
 
   const activeIds = useMemo(() => activeOrders.map((o) => o.id), [activeOrders]);

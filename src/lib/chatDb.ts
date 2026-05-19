@@ -204,12 +204,19 @@ export async function dbGetUnreadCount(chatId: string, userId: string): Promise<
 // ─── Admin: load all chats with order metadata ────────────────────────────────
 
 export async function dbLoadAllChats(): Promise<ChatWithMeta[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("chats")
-    .select("*, shared_orders(service_name, status)")
+    .select("*, shared_orders!chats_order_id_fkey(service_name, status)")
     .order("created_at", { ascending: false });
 
-  if (!data) return [];
+  if (error || !data) {
+    // Fallback: load chats without join
+    const { data: plain } = await supabase
+      .from("chats")
+      .select("*")
+      .order("created_at", { ascending: false });
+    return (plain ?? []).map((r) => rowToChat(r as Record<string, unknown>));
+  }
 
   return data.map((r) => {
     const order = r.shared_orders as Record<string, unknown> | null;
