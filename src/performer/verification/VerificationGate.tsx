@@ -10,33 +10,40 @@ interface VerificationGateProps {
 }
 
 export function VerificationGate({ children }: VerificationGateProps) {
-  const { verificationStatus: storeStatus, rejectionReason: storeReason, setVerificationStatus } = usePerformerStore();
+  const { verificationStatus: storeStatus, rejectionReason: storeReason, isHydrated, setVerificationStatus } = usePerformerStore();
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
   const [status, setStatus] = useState(storeStatus);
   const [reason, setReason] = useState(storeReason);
-  const [checking, setChecking] = useState(true);
+  // If store is already hydrated, skip extra DB round-trip
+  const [checking, setChecking] = useState(!isHydrated);
 
-  // Always read fresh from DB on mount — store may be stale
   useEffect(() => {
-    if (!user?.id) { setChecking(false); return; }
-    supabase
-      .from("performer_profiles")
-      .select("verification_status, rejection_reason")
-      .eq("user_id", user.id)
-      .single()
-      .then(({ data }) => {
-        const s = (data?.verification_status as string) ?? "not_started";
-        const r = (data?.rejection_reason as string) ?? null;
-        setStatus(s);
-        setReason(r);
-        setVerificationStatus(s, r);
-        setChecking(false);
-      }, () => {
-        setChecking(false);
-      });
-  }, [user?.id]);
+    // Store hydrated while we were waiting — use its value
+    if (isHydrated && checking) {
+      setStatus(storeStatus);
+      setReason(storeReason);
+      setChecking(false);
+      return;
+    }
+    // Store not yet hydrated: fetch once from DB
+    if (!isHydrated && user?.id) {
+      supabase
+        .from("performer_profiles")
+        .select("verification_status, rejection_reason")
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data }) => {
+          const s = (data?.verification_status as string) ?? "not_started";
+          const r = (data?.rejection_reason as string) ?? null;
+          setStatus(s);
+          setReason(r);
+          setVerificationStatus(s, r);
+          setChecking(false);
+        }, () => setChecking(false));
+    }
+  }, [isHydrated, user?.id]);
 
   // React to realtime updates from performerStore
   useEffect(() => {
