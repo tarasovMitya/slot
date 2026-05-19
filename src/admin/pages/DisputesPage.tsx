@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, MessageCircle } from "lucide-react";
 import { useAdminStore } from "../store/adminStore";
+import { useChatStore } from "../../store/chatStore";
+import { supabase } from "../../lib/supabase";
+import { ChatDrawer } from "../../chat/components/ChatDrawer";
 import { formatPrice } from "../../utils/priceCalculator";
 
 export function AdminDisputesPage() {
   const { disputes, isLoadingDisputes, loadDisputes, updateOrderStatus } = useAdminStore();
+  const { openChatForOrder } = useChatStore();
   const [selected, setSelected] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => { loadDisputes(); }, []);
 
@@ -18,6 +23,23 @@ export function AdminDisputesPage() {
     await loadDisputes();
     setActionLoading(null);
     setSelected(null);
+  }
+
+  async function openChat(dispute: typeof selectedDispute) {
+    if (!dispute) return;
+    setChatLoading(true);
+    try {
+      // Resolve client user ID by email
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("email", dispute.clientEmail)
+        .maybeSingle();
+      const clientId = (data?.user_id as string) ?? null;
+      await openChatForOrder(dispute.orderId, "client_admin", clientId, null);
+    } finally {
+      setChatLoading(false);
+    }
   }
 
   return (
@@ -120,6 +142,9 @@ export function AdminDisputesPage() {
               <div>
                 <p className="text-xs text-gray-400">Клиент</p>
                 <p className="text-gray-800">{selectedDispute.clientName}</p>
+                {selectedDispute.clientEmail && (
+                  <p className="text-xs text-gray-400 mt-0.5">{selectedDispute.clientEmail}</p>
+                )}
               </div>
               <div>
                 <p className="text-xs text-gray-400">Исполнитель</p>
@@ -149,6 +174,16 @@ export function AdminDisputesPage() {
             )}
 
             <div className="space-y-2 pt-1">
+              {/* Chat with client */}
+              <button
+                disabled={chatLoading}
+                onClick={() => openChat(selectedDispute)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors border border-blue-200 disabled:opacity-50"
+              >
+                <MessageCircle size={14} />
+                {chatLoading ? "Открываем чат..." : "Написать клиенту"}
+              </button>
+
               <button
                 disabled={!!actionLoading}
                 onClick={() => resolve(selectedDispute.orderId, "completed")}
@@ -167,6 +202,11 @@ export function AdminDisputesPage() {
           </div>
         )}
       </div>
+
+      <ChatDrawer
+        clientName={selectedDispute?.clientName ?? "Клиент"}
+        title="Чат с клиентом"
+      />
     </div>
   );
 }

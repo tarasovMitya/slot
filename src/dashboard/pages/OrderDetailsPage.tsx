@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle } from "lucide-react";
+import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle } from "lucide-react";
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
@@ -163,6 +163,26 @@ export function OrderDetailsPage() {
         <Section title="История заказа">
           <Timeline events={order.timeline} />
         </Section>
+
+        {/* Dispute banner */}
+        {order.status === "dispute_opened" && (
+          <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-orange-500 shrink-0" />
+              <span className="text-sm font-semibold text-orange-800">Спор рассматривается</span>
+            </div>
+            <p className="text-sm text-orange-700">
+              Ваше обращение принято. Администратор изучит ситуацию и свяжется с вами в чате.
+            </p>
+            <button
+              onClick={() => openChatForOrder(order.id, "client_admin", user?.id ?? null, null)}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-orange-200 bg-white text-sm font-semibold text-orange-700 hover:bg-orange-100 transition-colors"
+            >
+              <MessageCircle size={14} />
+              Чат с поддержкой
+            </button>
+          </div>
+        )}
 
         {/* Completion confirm block */}
         {order.status === "waiting_client_confirmation" && (

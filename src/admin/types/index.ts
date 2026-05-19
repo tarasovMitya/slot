@@ -63,6 +63,7 @@ export interface AdminDispute {
   id: string;
   orderId: string;
   clientName: string;
+  clientEmail: string;
   performerName: string;
   serviceName: string;
   priceTotal: number;

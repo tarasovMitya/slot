@@ -114,6 +114,7 @@ export async function adminLoadDisputes(): Promise<AdminDispute[]> {
     id: r.id as string,
     orderId: r.id as string,
     clientName: (r.client_name as string) ?? "—",
+    clientEmail: (r.client_email as string) ?? "",
     performerName: (r.performer_name as string) ?? "—",
     serviceName: (r.service_name as string) ?? "—",
     priceTotal: (r.price_total as number) ?? 0,
