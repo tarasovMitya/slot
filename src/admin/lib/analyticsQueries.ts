@@ -460,3 +460,90 @@ export async function queryLTV(): Promise<LTVData> {
     avgOrderValue: Math.round(avgOrderValue),
   };
 }
+
+// ─── Business KPIs ────────────────────────────────────────────────────────────
+
+export interface BusinessKPIsData {
+  ordersPerDay: number;
+  fillRate: number;
+  cancelRate: number;
+  repeatRate: number;
+  timeToAssignHours: number | null;
+  commissionPerOrder: number;
+  totalOrders: number;
+  daysInRange: number;
+}
+
+export async function queryBusinessKPIs(startDate: string, timeRange: TimeRange): Promise<BusinessKPIsData> {
+  const daysInRange = timeRange === "today" ? 1
+    : timeRange === "7d"  ? 7
+    : timeRange === "30d" ? 30 : 90;
+
+  const [{ data: orders }, { data: allCompletedOrders }, { data: assignEvents }, { data: createdEvents }] = await Promise.all([
+    supabase.from("shared_orders")
+      .select("id, status, performer_id, price_total, client_email")
+      .gte("created_at", startDate),
+    supabase.from("shared_orders")
+      .select("client_email")
+      .eq("status", "completed"),
+    supabase.from("event_logs")
+      .select("created_at, metadata")
+      .eq("event_name", "performer_assigned")
+      .gte("created_at", startDate)
+      .limit(200),
+    supabase.from("event_logs")
+      .select("created_at, metadata")
+      .eq("event_name", "order_created")
+      .gte("created_at", startDate)
+      .limit(200),
+  ]);
+
+  const all = orders ?? [];
+  const total = all.length;
+  const assigned = all.filter(o => o.performer_id).length;
+  const cancelled = all.filter(o => o.status === "cancelled").length;
+
+  const fillRate    = total > 0 ? Math.round((assigned / total) * 100) : 0;
+  const cancelRate  = total > 0 ? Math.round((cancelled / total) * 100) : 0;
+  const ordersPerDay = total > 0 ? +(total / daysInRange).toFixed(1) : 0;
+
+  // Repeat rate: % of clients with 2+ completed orders
+  const clientCounts: Record<string, number> = {};
+  for (const r of allCompletedOrders ?? []) {
+    const email = r.client_email as string;
+    if (email) clientCounts[email] = (clientCounts[email] ?? 0) + 1;
+  }
+  const uniqueClients = Object.keys(clientCounts).length;
+  const repeatClients = Object.values(clientCounts).filter((c) => c >= 2).length;
+  const repeatRate = uniqueClients > 0 ? Math.round((repeatClients / uniqueClients) * 100) : 0;
+
+  // Commission per order: 15% of avg paid order value
+  const paid = all.filter((o) => !["cancelled", "searching_performer"].includes(o.status as string));
+  const avgPrice = paid.length > 0 ? paid.reduce((s, o) => s + ((o.price_total as number) ?? 0), 0) / paid.length : 0;
+  const commissionPerOrder = Math.round(avgPrice * 0.15);
+
+  // Time-to-assign: match order_created ↔ performer_assigned via metadata.order_id
+  let timeToAssignHours: number | null = null;
+  try {
+    const createdMap: Record<string, number> = {};
+    for (const e of createdEvents ?? []) {
+      const orderId = (e.metadata as Record<string, unknown> | null)?.order_id as string | undefined;
+      if (orderId) createdMap[orderId] = new Date(e.created_at as string).getTime();
+    }
+    const deltas: number[] = [];
+    for (const e of assignEvents ?? []) {
+      const orderId = (e.metadata as Record<string, unknown> | null)?.order_id as string | undefined;
+      if (orderId && createdMap[orderId]) {
+        const delta = (new Date(e.created_at as string).getTime() - createdMap[orderId]) / 3600000;
+        if (delta >= 0 && delta < 72) deltas.push(delta);
+      }
+    }
+    if (deltas.length > 0) {
+      timeToAssignHours = +(deltas.reduce((s, d) => s + d, 0) / deltas.length).toFixed(1);
+    }
+  } catch {
+    timeToAssignHours = null;
+  }
+
+  return { ordersPerDay, fillRate, cancelRate, repeatRate, timeToAssignHours, commissionPerOrder, totalOrders: total, daysInRange };
+}

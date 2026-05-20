@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LayoutGrid, GitMerge, TrendingUp, RotateCcw, AlertTriangle, Activity, RefreshCw } from "lucide-react";
+import { LayoutGrid, GitMerge, TrendingUp, RotateCcw, AlertTriangle, Activity, RefreshCw, Target } from "lucide-react";
 import { useAnalyticsStore } from "../store/analyticsStore";
 import type { TimeRange } from "../lib/analyticsQueries";
 import { OverviewSection }   from "../analytics/OverviewSection";
@@ -8,8 +8,9 @@ import { RevenueSection }    from "../analytics/RevenueSection";
 import { RetentionSection }  from "../analytics/RetentionSection";
 import { ErrorsSection }     from "../analytics/ErrorsSection";
 import { ActivitySection }   from "../analytics/ActivitySection";
+import { KPISection }        from "../analytics/KPISection";
 
-type Tab = "overview" | "funnel" | "revenue" | "retention" | "errors" | "activity";
+type Tab = "overview" | "funnel" | "revenue" | "retention" | "errors" | "activity" | "kpi";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "overview",  label: "Обзор",      icon: <LayoutGrid size={14} /> },
@@ -18,6 +19,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "retention", label: "Retention",  icon: <RotateCcw size={14} /> },
   { id: "errors",    label: "Ошибки",     icon: <AlertTriangle size={14} /> },
   { id: "activity",  label: "Активность", icon: <Activity size={14} /> },
+  { id: "kpi",       label: "KPI / Цели", icon: <Target size={14} /> },
 ];
 
 const TIME_RANGES: { value: TimeRange; label: string }[] = [
@@ -100,6 +102,7 @@ export function AdminAnalyticsPage() {
           {tab === "retention" && <RetentionSection />}
           {tab === "errors"    && <ErrorsSection />}
           {tab === "activity"  && <ActivitySection />}
+          {tab === "kpi"       && <KPISection />}
         </>
       )}
     </div>

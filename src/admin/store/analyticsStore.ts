@@ -3,13 +3,13 @@ import type {
   TimeRange,
   ActiveUsersData, RegistrationsData, RevenueData, OrdersTimePoint,
   QualityData, FunnelStep, ErrorsData, MarketplaceData, SupplyDemandData,
-  ActivityEvent, TopServicesData, RetentionData, LTVData,
+  ActivityEvent, TopServicesData, RetentionData, LTVData, BusinessKPIsData,
 } from "../lib/analyticsQueries";
 import {
   getStartDate,
   queryActiveUsers, queryRegistrations, queryRevenue, queryOrdersOverTime,
   queryQuality, queryFunnel, queryErrors, queryMarketplace, querySupplyDemand,
-  queryActivityFeed, queryTopServices, queryRetention, queryLTV,
+  queryActivityFeed, queryTopServices, queryRetention, queryLTV, queryBusinessKPIs,
 } from "../lib/analyticsQueries";
 
 interface AnalyticsState {
@@ -29,6 +29,7 @@ interface AnalyticsState {
   topServices:    TopServicesData | null;
   retention:      RetentionData | null;
   ltv:            LTVData | null;
+  businessKPIs:   BusinessKPIsData | null;
 
   setTimeRange: (range: TimeRange) => void;
   loadAll: () => Promise<void>;
@@ -51,6 +52,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
   topServices:    null,
   retention:      null,
   ltv:            null,
+  businessKPIs:   null,
 
   setTimeRange: (range) => {
     set({ timeRange: range });
@@ -64,7 +66,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     const [
       activeUsers, registrations, revenue, ordersOverTime, quality,
       funnel, errors, marketplace, supplyDemand, activityFeed,
-      topServices, retention, ltv,
+      topServices, retention, ltv, businessKPIs,
     ] = await Promise.all([
       queryActiveUsers(startDate).catch(() => null),
       queryRegistrations(startDate).catch(() => null),
@@ -79,6 +81,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       queryTopServices(startDate).catch(() => null),
       queryRetention(startDate).catch(() => null),
       queryLTV().catch(() => null),
+      queryBusinessKPIs(startDate, get().timeRange).catch(() => null),
     ]);
 
     set({
@@ -96,6 +99,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       topServices:    topServices    ?? null,
       retention:      retention      ?? null,
       ltv:            ltv            ?? null,
+      businessKPIs:   businessKPIs   ?? null,
     });
   },
 }));
