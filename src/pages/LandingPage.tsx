@@ -657,7 +657,6 @@ function DistrictsSection() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
-  const navigate = useNavigate();
   const { open: openModal } = useAuthModalStore();
 
   return (
@@ -699,9 +698,13 @@ function Footer() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Вход в кабинет</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Для мастеров</p>
             <div className="flex flex-col gap-2.5">
-              <button onClick={() => navigate("/performer/onboarding")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Стать исполнителем</button>
+              <Link to="/masters" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Работа мастером</Link>
+              <Link to="/masters/electrician" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Работа электриком</Link>
+              <Link to="/masters/plumber" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Работа сантехником</Link>
+              <Link to="/masters/handyman" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Работа мастером на час</Link>
+              <Link to="/masters/cleaning" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Работа клинером</Link>
               <button onClick={() => openModal("login")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors text-left">Вход в кабинет</button>
             </div>
           </div>

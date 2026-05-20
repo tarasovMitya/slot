@@ -55,6 +55,8 @@ import { MoscowSlugRouter } from "./pages/geo/MoscowSlugRouter";
 import { DistrictServicePage } from "./pages/geo/DistrictServicePage";
 import { BlogPage } from "./pages/blog/BlogPage";
 import { ArticlePage } from "./pages/blog/ArticlePage";
+import { MastersHubPage } from "./pages/masters/MastersHubPage";
+import { MasterServicePage } from "./pages/masters/MasterServicePage";
 
 function PageTracker() {
   usePageTracking();
@@ -102,6 +104,10 @@ function App() {
         {/* Blog */}
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<ArticlePage />} />
+
+        {/* Performer SEO */}
+        <Route path="/masters" element={<MastersHubPage />} />
+        <Route path="/masters/:service" element={<MasterServicePage />} />
 
         {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />
