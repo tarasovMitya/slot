@@ -57,6 +57,9 @@ import { BlogPage } from "./pages/blog/BlogPage";
 import { ArticlePage } from "./pages/blog/ArticlePage";
 import { MastersHubPage } from "./pages/masters/MastersHubPage";
 import { MasterServicePage } from "./pages/masters/MasterServicePage";
+import { TermsPage } from "./pages/legal/TermsPage";
+import { PrivacyPage } from "./pages/legal/PrivacyPage";
+import { ContactsPage } from "./pages/legal/ContactsPage";
 
 function PageTracker() {
   usePageTracking();
@@ -108,6 +111,11 @@ function App() {
         {/* Performer SEO */}
         <Route path="/masters" element={<MastersHubPage />} />
         <Route path="/masters/:service" element={<MasterServicePage />} />
+
+        {/* Legal */}
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/contacts" element={<ContactsPage />} />
 
         {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />

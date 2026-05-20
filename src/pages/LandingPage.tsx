@@ -712,9 +712,9 @@ function Footer() {
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Компания</p>
             <div className="flex flex-col gap-2.5">
-              <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Соглашение</a>
-              <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Конфиденциальность</a>
-              <a href="mailto:support@slot.ru" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Контакты</a>
+              <Link to="/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Соглашение</Link>
+              <Link to="/privacy" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Конфиденциальность</Link>
+              <Link to="/contacts" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Контакты</Link>
             </div>
           </div>
         </div>
