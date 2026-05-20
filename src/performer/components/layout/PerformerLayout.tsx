@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Outlet } from "react-router-dom";
+import { usePageMeta } from "../../../hooks/usePageMeta";
 import { PerformerSidebar } from "./PerformerSidebar";
 import { MobilePerformerNav } from "./MobilePerformerNav";
 import { useAuthStore } from "../../../store/authStore";
@@ -8,6 +9,7 @@ import { useSharedOrdersStore } from "../../../store/sharedOrdersStore";
 import { dbSubscribeSharedOrderUpdates, dbGetSharedOrder, dbLoadSearchingOrders, dbSubscribeSharedOrders } from "../../../lib/db";
 
 export function PerformerLayout() {
+  usePageMeta({ robots: "noindex, nofollow" });
   const { user } = useAuthStore();
   const { hydratePerformer, isHydrated, activeOrders, onClientConfirmed, onClientCancelled, addNotification } = usePerformerStore();
   const { addOrder, updateOrder } = useSharedOrdersStore();

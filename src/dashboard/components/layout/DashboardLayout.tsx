@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { Outlet } from "react-router-dom";
+import { usePageMeta } from "../../../hooks/usePageMeta";
 import { Sidebar } from "./Sidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { useAuthStore } from "../../../store/authStore";
@@ -9,6 +10,7 @@ import { dbSubscribeSharedOrderUpdates, dbGetSharedOrder } from "../../../lib/db
 import type { SharedOrder } from "../../../store/sharedOrdersStore";
 
 export function DashboardLayout() {
+  usePageMeta({ robots: "noindex, nofollow" });
   const { user } = useAuthStore();
   const { hydrateClient, hydrateNotifications, subscribeNotifications, isHydrated, orders, applyPerformerFromSharedOrder, applyCompletionRequest, applyPerformerOnTheWay, applyLocationUpdate, applyOrderStatusFromShared } = useDashboardStore();
   const { updateOrder: updateSharedOrder } = useSharedOrdersStore();
