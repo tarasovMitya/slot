@@ -1,11 +1,155 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>calc</title>
+
+    <!-- Primary meta -->
+    <title>SLOT — сервис бытовых услуг с проверенными исполнителями</title>
+    <meta name="description" content="Закажите электрика, сантехника, уборку и другие бытовые услуги онлайн. Проверенные мастера, фиксированные цены, удобный калькулятор стоимости." />
+    <meta name="keywords" content="бытовые услуги, электрик, сантехник, уборка, муж на час, сборка мебели, мелкий ремонт, вызвать мастера" />
+    <meta name="author" content="SLOT" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Preconnect for faster resource loading -->
+    <link rel="preconnect" href="https://mc.yandex.ru" />
+    <link rel="preconnect" href="https://api-maps.yandex.ru" />
+    <link rel="dns-prefetch" href="https://supabase.co" />
+    <meta name="google-site-verification" content="uOyN8D1Lt4iNem2k_F2tmTiwaPL4IJRqmPnh4199mTo" />
+    <link rel="canonical" href="https://slot-home.ru/" />
+
+    <!-- Theme & PWA -->
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SLOT" />
+    <meta property="og:title" content="SLOT — сервис бытовых услуг с проверенными исполнителями" />
+    <meta property="og:description" content="Закажите электрика, сантехника, уборку и другие бытовые услуги онлайн. Проверенные мастера, фиксированные цены." />
+    <meta property="og:url" content="https://slot-home.ru/" />
+    <meta property="og:locale" content="ru_RU" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="SLOT — сервис бытовых услуг" />
+    <meta name="twitter:description" content="Закажите электрика, сантехника, уборку и другие бытовые услуги онлайн. Проверенные мастера, фиксированные цены." />
+
+    <!-- Structured data: LocalBusiness + FAQ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://slot-home.ru/#organization",
+          "name": "SLOT",
+          "url": "https://slot-home.ru",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://slot-home.ru/favicon.svg"
+          }
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://slot-home.ru/#business",
+          "name": "SLOT — бытовые услуги",
+          "description": "Сервис бытовых услуг с проверенными исполнителями. Электрика, сантехника, уборка, муж на час, сборка мебели, мелкий ремонт.",
+          "url": "https://slot-home.ru",
+          "telephone": "",
+          "priceRange": "₽₽",
+          "currenciesAccepted": "RUB",
+          "paymentAccepted": "Credit Card",
+          "areaServed": {
+            "@type": "Country",
+            "name": "Russia"
+          },
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Бытовые услуги",
+            "itemListElement": [
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Электрика" } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Сантехника" } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Уборка" } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Муж на час" } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Сборка мебели" } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Мелкий ремонт" } }
+            ]
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://slot-home.ru/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Как рассчитывается стоимость?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Стоимость рассчитывается автоматически в калькуляторе на основе выбранных услуг и параметров. Итоговая цена фиксируется до оплаты."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Когда списывается оплата?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Оплата списывается при оформлении заказа. Средства резервируются и поступают исполнителю только после выполнения работ."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Как назначается исполнитель?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Заказ публикуется в системе и доступен свободным мастерам в вашем районе. Первый откликнувшийся исполнитель берёт заказ."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Что если исполнитель не найден?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Если в течение 30 минут никто не принял заказ, мы уведомим вас и предложим перенести время или вернуть оплату."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Можно ли отменить заказ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Да, заказ можно отменить до назначения исполнителя. После назначения отмена возможна с небольшой комиссией сервиса."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Кто выполняет работы?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Работы выполняют верифицированные исполнители — физические лица или самозанятые, прошедшие проверку документов."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
     <script src="/runtime-env.js"></script>
+
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+      (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+      })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=109309120','ym');
+      ym(109309120,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/109309120" style="position:absolute;left:-9999px" alt="" /></div></noscript>
+    <!-- /Yandex.Metrika counter -->
   </head>
   <body>
     <div id="root"></div>

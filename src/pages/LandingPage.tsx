@@ -8,6 +8,7 @@ import {
   Menu, X, ArrowRight, MapPin, UserCheck, Lock, TrendingUp,
 } from "lucide-react";
 import { Calculator } from "../components/Calculator";
+import { DISTRICTS } from "./geo/districtData";
 import { AuthModal } from "../components/auth/AuthModal";
 import { useAuthModalStore } from "../store/authModalStore";
 import { useAuthStore } from "../store/authStore";
@@ -29,12 +30,12 @@ const vp = { once: true, margin: "-80px" } as const;
 // ─── Static data ─────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { icon: Zap,      title: "Электрика",      price: "от 1 500 ₽", accent: "bg-amber-50 text-amber-600" },
-  { icon: Droplet,  title: "Сантехника",     price: "от 1 200 ₽", accent: "bg-blue-50 text-blue-600" },
-  { icon: Sparkles, title: "Уборка",         price: "от 2 000 ₽", accent: "bg-green-50 text-green-600" },
-  { icon: Hammer,   title: "Муж на час",     price: "от 1 500 ₽", accent: "bg-orange-50 text-orange-600" },
-  { icon: Package,  title: "Сборка мебели",  price: "от 1 500 ₽", accent: "bg-purple-50 text-purple-600" },
-  { icon: Wrench,   title: "Мелкий ремонт",  price: "от 500 ₽",   accent: "bg-red-50 text-red-600" },
+  { icon: Zap,      title: "Электрика",      price: "от 1 500 ₽", accent: "bg-amber-50 text-amber-600",  slug: "electrician" },
+  { icon: Droplet,  title: "Сантехника",     price: "от 1 200 ₽", accent: "bg-blue-50 text-blue-600",    slug: "plumber" },
+  { icon: Sparkles, title: "Уборка",         price: "от 2 000 ₽", accent: "bg-green-50 text-green-600",  slug: "cleaning" },
+  { icon: Hammer,   title: "Муж на час",     price: "от 1 500 ₽", accent: "bg-orange-50 text-orange-600",slug: "handyman" },
+  { icon: Package,  title: "Сборка мебели",  price: "от 1 500 ₽", accent: "bg-purple-50 text-purple-600",slug: "furniture-assembly" },
+  { icon: Wrench,   title: "Мелкий ремонт",  price: "от 500 ₽",   accent: "bg-red-50 text-red-600",      slug: "handyman" },
 ];
 
 const VALUE_PROPS = [
@@ -313,19 +314,22 @@ function CategoriesSection() {
 
           <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {CATEGORIES.map((cat) => (
-              <motion.button
+              <motion.div
                 key={cat.title}
                 variants={fadeUp}
                 whileHover={{ y: -4, transition: { duration: 0.18 } }}
-                onClick={() => navigate("/calculator")}
-                className="bg-white rounded-2xl p-5 text-left border border-gray-100 hover:border-gray-200 hover:shadow-md transition-shadow"
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${cat.accent}`}>
-                  <cat.icon size={20} />
-                </div>
-                <p className="font-bold text-gray-900 text-sm">{cat.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{cat.price}</p>
-              </motion.button>
+                <Link
+                  to={`/moscow/${cat.slug}`}
+                  className="block bg-white rounded-2xl p-5 text-left border border-gray-100 hover:border-gray-200 hover:shadow-md transition-shadow"
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${cat.accent}`}>
+                    <cat.icon size={20} />
+                  </div>
+                  <p className="font-bold text-gray-900 text-sm">{cat.title}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{cat.price}</p>
+                </Link>
+              </motion.div>
             ))}
           </motion.div>
 
@@ -613,6 +617,43 @@ function FinalCTASection() {
   );
 }
 
+// ─── Districts Section ────────────────────────────────────────────────────────
+
+function DistrictsSection() {
+  return (
+    <section className="py-14 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900">Мастера по районам Москвы</h2>
+            <p className="text-gray-500 text-sm mt-1">Выезд в день заказа в любой район</p>
+          </div>
+          <Link to="/moscow" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+            Все районы <ChevronRight size={14} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+          {DISTRICTS.map((d) => (
+            <Link
+              key={d.slug}
+              to={`/moscow/${d.slug}`}
+              className="flex items-center gap-2 px-4 py-3 bg-white rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group text-sm"
+            >
+              <MapPin size={13} className="text-gray-300 group-hover:text-gray-500 shrink-0 transition-colors" />
+              <span className="font-medium text-gray-700 group-hover:text-gray-900 truncate">{d.name}</span>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-4 sm:hidden text-center">
+          <Link to="/moscow" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+            Все районы →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
@@ -636,11 +677,24 @@ function Footer() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Сервис</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Услуги в Москве</p>
             <div className="flex flex-col gap-2.5">
-              <a href="#categories" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Услуги</a>
-              <a href="#how" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Как работает</a>
-              <a href="#faq" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">FAQ</a>
+              <Link to="/moscow/electrician" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Электрик</Link>
+              <Link to="/moscow/plumber" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Сантехник</Link>
+              <Link to="/moscow/cleaning" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Уборка</Link>
+              <Link to="/moscow/handyman" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Муж на час</Link>
+              <Link to="/moscow/furniture-assembly" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Сборка мебели</Link>
+              <Link to="/blog" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Блог</Link>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Районы Москвы</p>
+            <div className="flex flex-col gap-2.5">
+              {DISTRICTS.slice(0, 6).map((d) => (
+                <Link key={d.slug} to={`/moscow/${d.slug}`} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">{d.name}</Link>
+              ))}
+              <Link to="/moscow" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">Все районы →</Link>
             </div>
           </div>
 
@@ -714,6 +768,7 @@ export function LandingPage() {
         <PerformerSection />
         <FAQSection />
         <FinalCTASection />
+        <DistrictsSection />
       </main>
       <AuthModal />
       <Footer />

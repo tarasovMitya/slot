@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Loader2 } from "lucide-react";
+import { trackEvent } from "../../hooks/useAnalytics";
 import { ChatBubble } from "./ChatBubble";
 import type { Chat, Message } from "../types";
 import { sanitizeMessage } from "../../lib/sanitize";
@@ -49,6 +50,7 @@ export function ChatWindow({
   const handleSend = () => {
     const trimmed = sanitizeMessage(input.trim());
     if (!trimmed || isSending) return;
+    if (messages.length === 0) trackEvent("chat_message_sent");
     onSend(trimmed);
     setInput("");
     textareaRef.current?.focus();

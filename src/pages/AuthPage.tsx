@@ -100,7 +100,10 @@ export function AuthPage() {
       setError("Неверный код. Попробуй ещё раз");
       setLoading(false);
     } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      const isNew = user && (Date.now() - new Date(user.created_at).getTime()) < 60_000;
       trackEvent("login_success", { method: "otp" });
+      if (isNew) trackEvent("registration_completed");
     }
     // On success, onAuthStateChange fires → authStore updates → useEffect redirects
   };

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import { trackEvent } from "../../hooks/useAnalytics";
 
 interface CompletionConfirmBlockProps {
   comment: string | null | undefined;
@@ -22,6 +23,7 @@ export function CompletionConfirmBlock({
     setConfirming(true);
     try {
       await onConfirm();
+      trackEvent("order_confirmed");
       setConfirmed(true);
     } finally {
       setConfirming(false);

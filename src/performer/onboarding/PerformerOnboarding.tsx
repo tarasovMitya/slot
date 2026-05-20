@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { trackEvent } from "../../hooks/useAnalytics";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useOnboardingStore } from "./store/onboardingStore";
@@ -107,6 +108,7 @@ export function PerformerOnboarding() {
       };
       updateProfile(profileData);
       await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+      trackEvent("performer_registration_completed");
       complete();
       reset();
       navigate("/performer", { replace: true });

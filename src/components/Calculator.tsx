@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { usePageMeta } from "../hooks/usePageMeta";
+import { trackEvent } from "../hooks/useAnalytics";
 import { useCalculatorStore } from "../store/calculatorStore";
 import { useDashboardStore } from "../dashboard/store/dashboardStore";
 import { ProgressBar } from "./ProgressBar";
@@ -32,6 +34,11 @@ const STEPS_ORDER = [
 ];
 
 export function Calculator({ embedded = false }: { embedded?: boolean }) {
+  usePageMeta(
+    embedded
+      ? {}
+      : { title: "Калькулятор услуг", description: "Рассчитайте стоимость бытовых услуг онлайн: электрика, сантехника, уборка, сборка мебели и другое.", canonical: "https://slot-home.ru/calculator" }
+  );
   const navigate = useNavigate();
   const { setPendingOrder } = useDashboardStore();
   const {
@@ -52,6 +59,16 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const stepIdx = STEPS_ORDER.indexOf(step);
+  const stepIdxRef = useRef(stepIdx);
+  const orderCreatedRef = useRef(false);
+  useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]);
+  useEffect(() => {
+    return () => {
+      if (!orderCreatedRef.current && stepIdxRef.current > 0) {
+        trackEvent("calculator_abandoned");
+      }
+    };
+  }, []);
 
   // When at "category" with cart items already present, allow going back to the cart
   const canGoBack =
@@ -79,10 +96,15 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
       return;
     }
     if (step === "parameters") {
-      // Save current service to cart, then advance to add-more
       addToCart();
       goNext();
       return;
+    }
+    if (step === "category") {
+      trackEvent("calculator_started");
+    }
+    if (step === "add-more") {
+      trackEvent("payment_started");
     }
     goNext();
   };
@@ -135,6 +157,8 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         address: contacts.address,
       });
 
+      orderCreatedRef.current = true;
+      trackEvent("order_created", { value: cartTotal });
       reset();
       navigate("/dashboard");
     } catch (err) {

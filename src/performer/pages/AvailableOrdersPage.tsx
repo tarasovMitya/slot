@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { trackEvent } from "../../hooks/useAnalytics";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
@@ -71,6 +72,7 @@ export function AvailableOrdersPage() {
     setAcceptingId(orderId);
     const result = await acceptOrder(orderId);
     setAcceptingId(null);
+    if (result !== "already_taken") trackEvent("order_accepted");
     if (result === "already_taken") {
       setUnavailableIds((prev) => new Set(prev).add(orderId));
       setToast("Заказ уже занят другим исполнителем");

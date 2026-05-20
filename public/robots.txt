@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /calculator
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /performer
+Disallow: /performer/
+Disallow: /auth
+Disallow: /auth/
+
+Sitemap: https://slot-home.ru/sitemap.xml

@@ -47,6 +47,14 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { NotificationToast } from "./components/ui/NotificationToast";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { initAnalytics } from "./hooks/useAnalytics";
+import { ServicePage } from "./pages/services/ServicePage";
+import { MoscowPage } from "./pages/geo/MoscowPage";
+import { MoscowSlugRouter } from "./pages/geo/MoscowSlugRouter";
+import { DistrictServicePage } from "./pages/geo/DistrictServicePage";
+import { BlogPage } from "./pages/blog/BlogPage";
+import { ArticlePage } from "./pages/blog/ArticlePage";
 
 function PageTracker() {
   usePageTracking();
@@ -69,6 +77,7 @@ function App() {
   useEffect(() => {
     initialize();
     loadSettings();
+    initAnalytics();
   }, []);
 
   return (
@@ -81,6 +90,18 @@ function App() {
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/calculator" element={<Calculator />} />
+
+        {/* Service pages */}
+        <Route path="/services/:slug" element={<ServicePage />} />
+
+        {/* Geo pages — Moscow */}
+        <Route path="/moscow" element={<MoscowPage />} />
+        <Route path="/moscow/:district/:service" element={<DistrictServicePage />} />
+        <Route path="/moscow/:slug" element={<MoscowSlugRouter />} />
+
+        {/* Blog */}
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<ArticlePage />} />
 
         {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />
@@ -146,6 +167,8 @@ function App() {
             <Route path="events" element={<AdminEventLogsPage />} />
           </Route>
         </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </BrowserRouter>
     </ErrorBoundary>

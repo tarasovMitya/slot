@@ -4,6 +4,7 @@ import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriang
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
+import { trackEvent } from "../../hooks/useAnalytics";
 import { useAuthStore } from "../../store/authStore";
 import { useChatStore } from "../../store/chatStore";
 import { ChatDrawer } from "../../chat/components/ChatDrawer";
@@ -55,6 +56,7 @@ export function OrderDetailsPage() {
   const ratingWasSkipped = ratingSkipKey ? sessionStorage.getItem(ratingSkipKey) === "1" : false;
 
   const handleCancel = () => {
+    trackEvent("order_cancelled", { service: order!.serviceName });
     cancelOrder(order!.id);
     navigate("/dashboard/orders");
   };
@@ -302,6 +304,7 @@ export function OrderDetailsPage() {
           performerName={order.performer.name}
           onSubmit={async (rating, comment) => {
             await submitClientRating(order.id, order.performer!.id, rating, comment);
+            trackEvent("review_submitted", { rating });
             setShowRatingModal(false);
           }}
           onSkip={() => {
