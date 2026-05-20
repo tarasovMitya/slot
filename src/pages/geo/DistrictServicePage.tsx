@@ -22,7 +22,7 @@ export function DistrictServicePage() {
   if (!district || !service) return <NotFoundPage />;
 
   const { name: districtName, nameIn, okrug, slug: dSlug } = district;
-  const { nameRu, description, included, prices, faq, reviews, relatedSlugs } = service;
+  const { nameRu, nameAccusative, namePrepositional, description, included, prices, faq, reviews, relatedSlugs } = service;
 
   const canonical = `https://slot-home.ru/moscow/${dSlug}/${serviceSlug}`;
   const metaTitle = `${nameRu} ${nameIn} — цены, выезд в день заказа`;
@@ -121,7 +121,7 @@ export function DistrictServicePage() {
         {/* Prices */}
         <section>
           <h2 className="text-xl font-black text-gray-900 mb-4">
-            Цены на {nameRu.toLowerCase()} {nameIn}
+            Цены на {nameAccusative} {nameIn}
           </h2>
           <div className="rounded-2xl border border-gray-100 overflow-hidden">
             {prices.map((p, i) => (
@@ -141,7 +141,7 @@ export function DistrictServicePage() {
         {reviews.length > 0 && (
           <section>
             <h2 className="text-xl font-black text-gray-900 mb-4">
-              Отзывы о {nameRu.toLowerCase()} {nameIn}
+              Отзывы о {namePrepositional} {nameIn}
             </h2>
             <div className="flex flex-col gap-3">
               {reviews.slice(0, 3).map((r) => (
@@ -170,7 +170,7 @@ export function DistrictServicePage() {
         {faq.length > 0 && (
           <section>
             <h2 className="text-xl font-black text-gray-900 mb-4">
-              Вопросы о {nameRu.toLowerCase()} {nameIn}
+              Вопросы о {namePrepositional} {nameIn}
             </h2>
             <div className="flex flex-col gap-2">
               {faq.map((item, i) => (
@@ -248,7 +248,7 @@ export function DistrictServicePage() {
       {/* CTA */}
       <section className="bg-gray-950 text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-black mb-2">Вызвать {nameRu.toLowerCase()} {nameIn}</h2>
+          <h2 className="text-2xl font-black mb-2">Вызвать {nameAccusative} {nameIn}</h2>
           <p className="text-gray-300 text-sm mb-6">Выезд в день заказа · фиксированная цена · гарантия</p>
           <Link
             to="/calculator"

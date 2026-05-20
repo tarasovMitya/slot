@@ -65,7 +65,7 @@ export function ServicePage({ city }: ServicePageProps) {
     ? `${service.title} ${city.nameIn} — вызвать мастера онлайн`
     : `${service.title} на дому — вызвать мастера`;
   const metaDesc = city
-    ? `Вызвать ${service.nameRu.toLowerCase()} ${city.nameIn} онлайн. Проверенные мастера, фиксированные цены, приезд в день заказа.`
+    ? `Вызвать ${service.nameAccusative} ${city.nameIn} онлайн. Проверенные мастера, фиксированные цены, приезд в день заказа.`
     : service.metaDescription;
   const canonical = city
     ? `https://slot-home.ru/${city.slug}/${service.slug}`
@@ -320,7 +320,7 @@ export function ServicePage({ city }: ServicePageProps) {
 
         {/* CTA */}
         <section className="rounded-3xl bg-gray-950 text-white p-8 text-center">
-          <h2 className="text-2xl font-black mb-2">{`Заказать ${service.nameRu.toLowerCase()}${geo}`}</h2>
+          <h2 className="text-2xl font-black mb-2">{`Заказать ${service.nameAccusative}${geo}`}</h2>
           <p className="text-gray-300 text-sm mb-6">Рассчитайте стоимость и выберите удобное время прямо сейчас</p>
           <Link
             to="/calculator"

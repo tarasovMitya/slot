@@ -9,6 +9,8 @@ export const MOSCOW: CityInfo = { slug: "moscow", name: "Москва", nameIn: 
 export interface ServiceData {
   slug: string;
   nameRu: string;
+  nameAccusative: string;   // "Вызвать X", "Заказать X", "Цены на X"
+  namePrepositional: string; // "Отзывы о X", "Вопросы о X"
   title: string;
   description: string;
   metaDescription: string;
@@ -23,6 +25,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "electrician",
     nameRu: "Электрик",
+    nameAccusative: "электрика",
+    namePrepositional: "электрике",
     title: "Электрик",
     description: "Монтаж, ремонт и обслуживание электропроводки. Замена розеток, установка люстр, сборка щитка.",
     metaDescription: "Вызвать электрика на дом. Замена розеток, установка люстр, монтаж проводки. Проверенные мастера, выезд в день заказа.",
@@ -60,6 +64,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "plumber",
     nameRu: "Сантехник",
+    nameAccusative: "сантехника",
+    namePrepositional: "сантехнике",
     title: "Сантехник",
     description: "Устранение протечек, замена кранов и смесителей, установка сантехники. Работаем без выходных.",
     metaDescription: "Вызвать сантехника на дом. Устранение протечек, замена смесителей, установка унитаза. Приезд в день заказа.",
@@ -97,6 +103,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "cleaning",
     nameRu: "Уборка",
+    nameAccusative: "уборку",
+    namePrepositional: "уборке",
     title: "Уборка квартиры",
     description: "Профессиональная уборка квартир и домов. Стандартная, генеральная и уборка после ремонта.",
     metaDescription: "Заказать уборку квартиры на дом. Стандартная и генеральная уборка, уборка после ремонта. Клинеры со своей химией.",
@@ -134,6 +142,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "handyman",
     nameRu: "Муж на час",
+    nameAccusative: "мужа на час",
+    namePrepositional: "муже на час",
     title: "Муж на час",
     description: "Мастер на час для мелкого ремонта, навешивания полок, мелких работ по дому — быстро и недорого.",
     metaDescription: "Вызвать мастера на час. Мелкий ремонт, навешивание полок, сборка мебели, замена замков. Быстро и недорого.",
@@ -171,6 +181,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "furniture-assembly",
     nameRu: "Сборка мебели",
+    nameAccusative: "сборку мебели",
+    namePrepositional: "сборке мебели",
     title: "Сборка мебели",
     description: "Быстрая и аккуратная сборка мебели любой сложности — шкафы, кухни, кровати, детская мебель.",
     metaDescription: "Заказать сборку мебели на дом. IKEA, Hoff, любые производители. Мастер приедет и соберёт быстро и аккуратно.",
@@ -208,6 +220,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "tv-installation",
     nameRu: "Установка ТВ",
+    nameAccusative: "установку ТВ",
+    namePrepositional: "установке ТВ",
     title: "Установка телевизора",
     description: "Монтаж телевизора на стену любого типа. Скрытая прокладка кабелей, подключение всей техники.",
     metaDescription: "Установить телевизор на стену на дом. Монтаж кронштейна, скрытая прокладка кабелей, настройка Smart TV.",
@@ -245,6 +259,8 @@ export const SERVICES: ServiceData[] = [
   {
     slug: "door-installation",
     nameRu: "Установка дверей",
+    nameAccusative: "установку дверей",
+    namePrepositional: "установке дверей",
     title: "Установка дверей",
     description: "Монтаж межкомнатных и входных дверей. Замена полотна, установка доборов, наличников и замков.",
     metaDescription: "Установить дверь на дом. Межкомнатные и входные двери, замена полотна, доборы, наличники. Быстро и с гарантией.",
