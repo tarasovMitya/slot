@@ -68,17 +68,55 @@ function injectArticleSchema(article: ReturnType<typeof getArticle>) {
   const script = document.createElement("script");
   script.type = "application/ld+json";
   script.id = "article-ld-json";
-  script.textContent = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description: article.metaDescription,
-    datePublished: article.publishedAt,
-    dateModified: article.publishedAt,
-    author: { "@type": "Organization", name: "SLOT", url: "https://slot-home.ru" },
-    publisher: { "@type": "Organization", name: "SLOT", url: "https://slot-home.ru" },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `https://slot-home.ru/blog/${article.slug}` },
-  });
+
+  const faqBlocks = article.sections.filter((s) => s.type === "h2" && (s as { type: string; text: string }).text.toLowerCase().includes("вопрос"));
+  const hasFaq = faqBlocks.length > 0;
+
+  const graph: object[] = [
+    {
+      "@type": "Article",
+      headline: article.title,
+      description: article.metaDescription,
+      datePublished: article.publishedAt,
+      dateModified: article.publishedAt,
+      author: { "@type": "Organization", name: "SLOT", url: "https://slot-home.ru" },
+      publisher: { "@type": "Organization", name: "SLOT", url: "https://slot-home.ru" },
+      mainEntityOfPage: { "@type": "WebPage", "@id": `https://slot-home.ru/blog/${article.slug}` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Главная", item: "https://slot-home.ru" },
+        { "@type": "ListItem", position: 2, name: "Блог", item: "https://slot-home.ru/blog" },
+        { "@type": "ListItem", position: 3, name: article.title, item: `https://slot-home.ru/blog/${article.slug}` },
+      ],
+    },
+  ];
+
+  if (hasFaq) {
+    const qaPairs: { q: string; a: string }[] = [];
+    let currentQ = "";
+    for (const block of article.sections) {
+      if (block.type === "h3") {
+        currentQ = (block as { type: string; text: string }).text;
+      } else if (block.type === "p" && currentQ) {
+        qaPairs.push({ q: currentQ, a: (block as { type: string; text: string }).text });
+        currentQ = "";
+      }
+    }
+    if (qaPairs.length > 0) {
+      graph.push({
+        "@type": "FAQPage",
+        mainEntity: qaPairs.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      });
+    }
+  }
+
+  script.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
   document.head.appendChild(script);
   return () => document.getElementById("article-ld-json")?.remove();
 }

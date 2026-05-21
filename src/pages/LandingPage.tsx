@@ -12,6 +12,7 @@ import { DISTRICTS } from "./geo/districtData";
 import { AuthModal } from "../components/auth/AuthModal";
 import { useAuthModalStore } from "../store/authModalStore";
 import { useAuthStore } from "../store/authStore";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 // ─── Animation presets ───────────────────────────────────────────────────────
 
@@ -749,6 +750,12 @@ function MobileBottomCTA() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function LandingPage() {
+  usePageMeta({
+    title: "Мастера на дом в Москве — уборка, сантехника, электрика",
+    description: "Закажите мастера на дом в Москве за 3 минуты. Верифицированные исполнители, фиксированные цены, оплата онлайн. Уборка от 2 000 ₽, сантехник от 1 200 ₽.",
+    canonical: "https://slot-home.ru/",
+  });
+
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
     document.documentElement.style.scrollPaddingTop = "64px";
@@ -756,6 +763,40 @@ export function LandingPage() {
       document.documentElement.style.scrollBehavior = "";
       document.documentElement.style.scrollPaddingTop = "";
     };
+  }, []);
+
+  useEffect(() => {
+    const id = "landing-ld-json";
+    document.getElementById(id)?.remove();
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = id;
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "LocalBusiness",
+          name: "SLOT",
+          description: "Платформа мастеров на дом в Москве. Уборка, сантехника, электрика, сборка мебели.",
+          url: "https://slot-home.ru",
+          telephone: "",
+          areaServed: { "@type": "City", name: "Москва" },
+          priceRange: "₽₽",
+          aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "2500", bestRating: "5" },
+          openingHoursSpecification: { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], opens: "08:00", closes: "22:00" },
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: FAQ.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: { "@type": "Answer", text: item.a },
+          })),
+        },
+      ],
+    });
+    document.head.appendChild(script);
+    return () => { document.getElementById(id)?.remove(); };
   }, []);
 
   return (

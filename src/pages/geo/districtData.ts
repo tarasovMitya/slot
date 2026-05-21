@@ -36,6 +36,20 @@ export const DISTRICTS: DistrictData[] = [
   { slug: "yasenevo",       name: "Ясенево",         nameIn: "в Ясенево",        okrug: "ЮЗАО", okrugFull: "Юго-Западный округ" },
   { slug: "butovo",         name: "Бутово",          nameIn: "в Бутово",         okrug: "ЮЗАО", okrugFull: "Юго-Западный округ" },
   { slug: "tushino",        name: "Тушино",          nameIn: "в Тушино",         okrug: "СЗАО", okrugFull: "Северо-Западный округ" },
+  { slug: "mitino",         name: "Митино",          nameIn: "в Митино",         okrug: "СЗАО", okrugFull: "Северо-Западный округ" },
+  { slug: "shchukino",      name: "Щукино",          nameIn: "в Щукино",         okrug: "СЗАО", okrugFull: "Северо-Западный округ" },
+  { slug: "lyublino",       name: "Люблино",         nameIn: "в Люблино",        okrug: "ЮВАО", okrugFull: "Юго-Восточный округ" },
+  { slug: "vykhino",        name: "Выхино-Жулебино", nameIn: "в Выхино-Жулебино", okrug: "ЮВАО", okrugFull: "Юго-Восточный округ" },
+  { slug: "khovino",        name: "Ховрино",         nameIn: "в Ховрино",        okrug: "САО",  okrugFull: "Северный округ" },
+  { slug: "troparyovo",     name: "Тропарёво-Никулино", nameIn: "в Тропарёво-Никулино", okrug: "ЮЗАО", okrugFull: "Юго-Западный округ" },
+  { slug: "akademichesky",  name: "Академический",   nameIn: "в Академическом",  okrug: "ЮЗАО", okrugFull: "Юго-Западный округ" },
+  { slug: "lefortovo",      name: "Лефортово",       nameIn: "в Лефортово",      okrug: "ЮВАО", okrugFull: "Юго-Восточный округ" },
+  { slug: "begovoy",        name: "Беговой",         nameIn: "в Беговом",        okrug: "САО",  okrugFull: "Северный округ" },
+  { slug: "mozhaisk",       name: "Можайский",       nameIn: "в Можайском",      okrug: "ЗАО",  okrugFull: "Западный округ" },
+  { slug: "golyanovo",      name: "Гольяново",       nameIn: "в Гольяново",      okrug: "ВАО",  okrugFull: "Восточный округ" },
+  { slug: "perovo",         name: "Перово",          nameIn: "в Перово",         okrug: "ВАО",  okrugFull: "Восточный округ" },
+  { slug: "novogireevo",    name: "Новогиреево",     nameIn: "в Новогиреево",    okrug: "ВАО",  okrugFull: "Восточный округ" },
+  { slug: "orekhovo",       name: "Орехово-Борисово", nameIn: "в Орехово-Борисово", okrug: "ЮАО", okrugFull: "Южный округ" },
 ];
 
 export function getDistrict(slug: string): DistrictData | undefined {
