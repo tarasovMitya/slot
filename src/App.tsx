@@ -66,6 +66,7 @@ import { ContactsPage } from "./pages/legal/ContactsPage";
 import { RulesPage } from "./pages/legal/RulesPage";
 import { FinancialModelPage } from "./pages/internal/FinancialModelPage";
 import { TMAApp } from "./pages/tma/TMAApp";
+import { PricePage } from "./pages/price/PricePage";
 
 function PageTracker() {
   usePageTracking();
@@ -105,6 +106,9 @@ function App() {
 
         {/* Service pages */}
         <Route path="/services/:slug" element={<ServicePage />} />
+
+        {/* Price pages — Стоимость [услуга] в Москве */}
+        <Route path="/price/:slug" element={<PricePage />} />
 
         {/* Geo pages — Moscow */}
         <Route path="/moscow" element={<MoscowPage />} />

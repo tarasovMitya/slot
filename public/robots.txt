@@ -1,6 +1,15 @@
 User-agent: *
 Allow: /
 Allow: /calculator
+Allow: /services/
+Allow: /moscow/
+Allow: /blog/
+Allow: /masters/
+Allow: /price/
+Allow: /terms
+Allow: /privacy
+Allow: /contacts
+Allow: /rules
 
 Disallow: /admin
 Disallow: /admin/
@@ -10,5 +19,7 @@ Disallow: /performer
 Disallow: /performer/
 Disallow: /auth
 Disallow: /auth/
+Disallow: /app
+Disallow: /supabase-proxy/
 
 Sitemap: https://slot-home.ru/sitemap.xml
