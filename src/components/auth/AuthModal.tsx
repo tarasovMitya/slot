@@ -120,11 +120,21 @@ export function AuthModal() {
     });
     setLoading(false);
     if (err) {
+      console.error("[auth] OTP error:", err.status, err.message);
       const msg = err.message.toLowerCase();
+      const isRateLimit =
+        err.status === 429 ||
+        msg.includes("rate limit") ||
+        msg.includes("security purposes") ||
+        msg.includes("email rate") ||
+        msg.includes("over_email") ||
+        msg.includes("too many");
       setError(
-        msg.includes("rate limit") || msg.includes("security purposes") || err.status === 429
-          ? "Слишком много попыток. Подождите и повторите."
-          : "Ошибка отправки кода. Проверьте email."
+        isRateLimit
+          ? "Слишком много попыток. Подождите 1 час и повторите."
+          : err.status === 422
+          ? "Неверный формат email. Проверьте адрес."
+          : `Ошибка: ${err.message}`
       );
       return false;
     }

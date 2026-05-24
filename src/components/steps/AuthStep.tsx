@@ -148,12 +148,16 @@ export function AuthStep() {
       options: { shouldCreateUser: true },
     });
     if (err) {
-      const isRateLimit = err.message.toLowerCase().includes("rate limit") ||
-        err.message.toLowerCase().includes("security purposes") ||
-        err.status === 429;
+      console.error("[auth] OTP error:", err.status, err.message);
+      const msg = err.message.toLowerCase();
+      const isRateLimit = err.status === 429 || msg.includes("rate limit") ||
+        msg.includes("security purposes") || msg.includes("email rate") ||
+        msg.includes("over_email") || msg.includes("too many");
       setError(isRateLimit
-        ? "Слишком много попыток. Подождите минуту и попробуйте снова."
-        : err.message);
+        ? "Слишком много попыток. Подождите 1 час и повторите."
+        : err.status === 422
+        ? "Неверный формат email."
+        : `Ошибка: ${err.message}`);
     } else {
       setEmail(e);
       setSubStep("otp");
