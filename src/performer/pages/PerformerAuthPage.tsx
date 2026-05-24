@@ -6,7 +6,8 @@ import { Wrench } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { dbLoadPerformerProfile } from "../../lib/db";
-import { signInWithTelegram, loadTelegramWidget, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { signInWithTelegram, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 
 type SubStep = "email" | "otp";
 
@@ -31,38 +32,32 @@ export function PerformerAuthPage() {
 
   const [tgLoading, setTgLoading] = useState(false);
   const [tgError, setTgError] = useState("");
-  const tgContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
 
-  // Load Telegram widget on email step
-  useEffect(() => {
-    if (subStep !== "email" || !tgContainerRef.current) return;
-    const script = loadTelegramWidget("slot_home_bot", async (tgUser: TelegramUser) => {
-      setTgLoading(true);
-      setTgError("");
-      try {
-        await signInWithTelegram(tgUser);
-        await supabase.auth.updateUser({ data: { performer_role: true } });
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        if (freshUser?.user_metadata?.performer_onboarded) {
-          navigate("/performer", { replace: true }); return;
-        }
-        const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
-        if (existingProfile?.name) {
-          await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
-          navigate("/performer", { replace: true }); return;
-        }
-        navigate("/performer/onboarding", { replace: true });
-      } catch (e) {
-        setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
-        setTgLoading(false);
+  const handleTelegramAuth = async (tgUser: TelegramUser) => {
+    setTgLoading(true);
+    setTgError("");
+    try {
+      await signInWithTelegram(tgUser);
+      await supabase.auth.updateUser({ data: { performer_role: true } });
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (freshUser?.user_metadata?.performer_onboarded) {
+        navigate("/performer", { replace: true }); return;
       }
-    });
-    tgContainerRef.current.appendChild(script);
-  }, [subStep]);
+      const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
+      if (existingProfile?.name) {
+        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+        navigate("/performer", { replace: true }); return;
+      }
+      navigate("/performer/onboarding", { replace: true });
+    } catch (e) {
+      setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
+      setTgLoading(false);
+    }
+  };
 
   // If already authenticated as performer, redirect
   useEffect(() => {
@@ -217,13 +212,7 @@ export function PerformerAuthPage() {
 
               {/* Telegram widget */}
               <div className="flex flex-col items-center gap-2">
-                <div ref={tgContainerRef} className="flex justify-center" />
-                {tgLoading && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
-                    Входим через Telegram...
-                  </div>
-                )}
+                <TelegramLoginButton onAuth={handleTelegramAuth} loading={tgLoading} />
                 {tgError && <p className="text-red-500 text-sm text-center">{tgError}</p>}
               </div>
 
