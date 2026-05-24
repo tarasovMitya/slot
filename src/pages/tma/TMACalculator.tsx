@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { User } from "@telegram-apps/sdk-react";
+interface User { first_name: string; last_name?: string; username?: string; }
 import type { TMAPage } from "./TMAApp";
 import { SERVICES } from "../services/servicesData";
 import { supabase } from "../../lib/supabase";

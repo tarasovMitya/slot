@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { User } from "@telegram-apps/sdk-react";
+interface User { first_name?: string; id?: number; }
 import { supabase } from "../../lib/supabase";
 
 interface Order {
