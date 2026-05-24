@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -57,7 +57,7 @@ export function AuthModal() {
     }
   }, [isOpen]);
 
-  const handleTelegramAuth = async (tgUser: TelegramUser) => {
+  const handleTelegramAuth = useCallback(async (tgUser: TelegramUser) => {
     setTgLoading(true);
     setTgError("");
     try {
@@ -81,7 +81,7 @@ export function AuthModal() {
       setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
       setTgLoading(false);
     }
-  };
+  }, [role, reset, navigate]);
 
   // ESC to close
   useEffect(() => {
