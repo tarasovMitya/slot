@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog>
+    <shop>
+        <categories>
+            <category id="1">Уборка</category>
+            <category id="2">Сантехника</category>
+            <category id="3">Электрика</category>
+            <category id="4">Мебель</category>
+            <category id="5">Мелкий ремонт</category>
+            <category id="6">Химчистка</category>
+        </categories>
+        <offers>
+
+            <!-- УБОРКА -->
+            <offer id="101">
+                <name>Уборка квартиры</name>
+                <vendor>SLOT</vendor>
+                <price>2000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>1</categoryId>
+                <url>https://slot-home.ru/moscow/cleaning</url>
+                <description>Поддерживающая уборка квартиры в Москве. Пылесос, влажная уборка полов, протирка поверхностей, уборка санузла. Выезд в день заказа, проверенные мастера.</description>
+                <shortDescription>Поддерживающая уборка квартиры от 2 000 ₽. Выезд в день заказа по всей Москве.</shortDescription>
+            </offer>
+
+            <offer id="102">
+                <name>Генеральная уборка квартиры</name>
+                <vendor>SLOT</vendor>
+                <price>4000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>1</categoryId>
+                <url>https://slot-home.ru/moscow/cleaning</url>
+                <description>Генеральная уборка квартиры в Москве: мытьё окон изнутри, чистка плиты и холодильника, уборка за мебелью, санузел, балкон. Полная очистка всей квартиры.</description>
+                <shortDescription>Генеральная уборка квартиры от 4 000 ₽. Полная очистка, включая плиту, холодильник, санузел.</shortDescription>
+            </offer>
+
+            <offer id="103">
+                <name>Уборка после ремонта</name>
+                <vendor>SLOT</vendor>
+                <price>5000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>1</categoryId>
+                <url>https://slot-home.ru/moscow/cleaning</url>
+                <description>Уборка квартиры после ремонта в Москве: удаление строительной пыли, пятен краски и шпатлёвки, мытьё окон, уборка всех поверхностей. Профессиональное оборудование.</description>
+                <shortDescription>Уборка после ремонта от 5 000 ₽. Удалим строительную пыль и следы отделочных материалов.</shortDescription>
+            </offer>
+
+            <offer id="104">
+                <name>Мойка окон</name>
+                <vendor>SLOT</vendor>
+                <price>500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>1</categoryId>
+                <url>https://slot-home.ru/moscow/cleaning</url>
+                <description>Профессиональная мойка окон в квартире в Москве. Без разводов, быстро. Моем рамы, стёкла с обеих сторон, подоконники. Цена за одно окно.</description>
+                <shortDescription>Мойка окон от 500 ₽ за окно. Без разводов, включая рамы и подоконники.</shortDescription>
+            </offer>
+
+            <!-- САНТЕХНИКА -->
+            <offer id="201">
+                <name>Сантехник на дом</name>
+                <vendor>SLOT</vendor>
+                <price>1200</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>2</categoryId>
+                <url>https://slot-home.ru/moscow/plumber</url>
+                <description>Вызов сантехника на дом в Москве. Ремонт и замена смесителей, устранение течей, установка сантехники, прочистка засоров. Выезд за 2 часа, гарантия на работы.</description>
+                <shortDescription>Сантехник на дом от 1 200 ₽. Выезд за 2 часа, гарантия на работы.</shortDescription>
+            </offer>
+
+            <offer id="202">
+                <name>Прочистка засора канализации</name>
+                <vendor>SLOT</vendor>
+                <price>1200</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>2</categoryId>
+                <url>https://slot-home.ru/moscow/plumber</url>
+                <description>Прочистка засора раковины, ванны, унитаза или канализации в Москве. Механическая и химическая прочистка. Быстрый выезд, фиксированная цена.</description>
+                <shortDescription>Прочистка засора от 1 200 ₽. Раковина, ванна, унитаз. Выезд в день заказа.</shortDescription>
+            </offer>
+
+            <offer id="203">
+                <name>Замена смесителя</name>
+                <vendor>SLOT</vendor>
+                <price>1500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>2</categoryId>
+                <url>https://slot-home.ru/moscow/plumber</url>
+                <description>Замена смесителя в ванной или на кухне в Москве. Демонтаж старого, установка нового смесителя заказчика. Проверка на протечки. Гарантия 6 месяцев.</description>
+                <shortDescription>Замена смесителя от 1 500 ₽. Установка смесителя заказчика, гарантия 6 месяцев.</shortDescription>
+            </offer>
+
+            <offer id="204">
+                <name>Замена батарей отопления</name>
+                <vendor>SLOT</vendor>
+                <price>3000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>2</categoryId>
+                <url>https://slot-home.ru/moscow/plumber</url>
+                <description>Замена радиатора отопления в квартире в Москве. Демонтаж старой батареи, установка нового радиатора, опрессовка системы. Работаем в межотопительный сезон.</description>
+                <shortDescription>Замена батареи отопления от 3 000 ₽. Демонтаж и установка радиатора, опрессовка.</shortDescription>
+            </offer>
+
+            <offer id="205">
+                <name>Установка счётчиков воды</name>
+                <vendor>SLOT</vendor>
+                <price>1800</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>2</categoryId>
+                <url>https://slot-home.ru/moscow/plumber</url>
+                <description>Установка счётчиков воды в квартире в Москве. Монтаж, подключение, опломбирование. Помощь с оформлением документов. Гарантия герметичности соединений.</description>
+                <shortDescription>Установка счётчиков воды от 1 800 ₽. Монтаж, подключение, помощь с документами.</shortDescription>
+            </offer>
+
+            <!-- ЭЛЕКТРИКА -->
+            <offer id="301">
+                <name>Электрик на дом</name>
+                <vendor>SLOT</vendor>
+                <price>1500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>3</categoryId>
+                <url>https://slot-home.ru/moscow/electrician</url>
+                <description>Вызов электрика на дом в Москве. Замена розеток и выключателей, установка люстр и светильников, ремонт проводки. Проверенные мастера, выезд в день заказа.</description>
+                <shortDescription>Электрик на дом от 1 500 ₽. Замена розеток, установка люстр, ремонт проводки.</shortDescription>
+            </offer>
+
+            <offer id="302">
+                <name>Замена розеток и выключателей</name>
+                <vendor>SLOT</vendor>
+                <price>500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>3</categoryId>
+                <url>https://slot-home.ru/moscow/electrician</url>
+                <description>Замена розеток и выключателей в квартире в Москве. Демонтаж старых, установка новых розеток и выключателей заказчика. Цена за одну точку.</description>
+                <shortDescription>Замена розетки или выключателя от 500 ₽. Быстро, аккуратно, с гарантией.</shortDescription>
+            </offer>
+
+            <offer id="303">
+                <name>Установка люстры и светильников</name>
+                <vendor>SLOT</vendor>
+                <price>800</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>3</categoryId>
+                <url>https://slot-home.ru/moscow/electrician</url>
+                <description>Установка люстры, потолочного светильника или бра в квартире в Москве. Подключение к проводке, крепление к потолку или стене, проверка работы.</description>
+                <shortDescription>Установка люстры от 800 ₽. Подключение к проводке, крепление к потолку или стене.</shortDescription>
+            </offer>
+
+            <offer id="304">
+                <name>Электромонтажные работы</name>
+                <vendor>SLOT</vendor>
+                <price>2000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>3</categoryId>
+                <url>https://slot-home.ru/moscow/electrician</url>
+                <description>Электромонтажные работы в квартире в Москве: прокладка проводки, монтаж распределительных коробок, установка щитка. Работаем по нормам ПУЭ.</description>
+                <shortDescription>Электромонтажные работы от 2 000 ₽. Прокладка проводки, монтаж щитка.</shortDescription>
+            </offer>
+
+            <!-- МЕБЕЛЬ -->
+            <offer id="401">
+                <name>Сборка мебели</name>
+                <vendor>SLOT</vendor>
+                <price>800</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>4</categoryId>
+                <url>https://slot-home.ru/moscow/furniture</url>
+                <description>Сборка мебели на дому в Москве. Шкафы, кровати, комоды, столы, кухонные гарнитуры, IKEA. Аккуратно, с гарантией качества сборки. Выезд в день заказа.</description>
+                <shortDescription>Сборка мебели от 800 ₽. Шкафы, кровати, кухни, IKEA. Выезд в день заказа.</shortDescription>
+            </offer>
+
+            <offer id="402">
+                <name>Разборка и вынос мебели</name>
+                <vendor>SLOT</vendor>
+                <price>600</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>4</categoryId>
+                <url>https://slot-home.ru/moscow/furniture</url>
+                <description>Разборка мебели для переезда или утилизации в Москве. Аккуратный демонтаж, упаковка фурнитуры. Помогаем при переезде и замене мебели.</description>
+                <shortDescription>Разборка мебели от 600 ₽. Аккуратный демонтаж для переезда или замены.</shortDescription>
+            </offer>
+
+            <!-- МЕЛКИЙ РЕМОНТ -->
+            <offer id="501">
+                <name>Мастер на час</name>
+                <vendor>SLOT</vendor>
+                <price>1000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>5</categoryId>
+                <url>https://slot-home.ru/moscow/handyman</url>
+                <description>Мастер на час в Москве. Навеска полок, карнизов, картин, зеркал. Мелкий ремонт, замена замков, установка дверных ручек. Любые бытовые задачи за 1–2 часа.</description>
+                <shortDescription>Мастер на час от 1 000 ₽. Полки, карнизы, мелкий ремонт. Выезд по всей Москве.</shortDescription>
+            </offer>
+
+            <offer id="502">
+                <name>Навеска полок и карнизов</name>
+                <vendor>SLOT</vendor>
+                <price>500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>5</categoryId>
+                <url>https://slot-home.ru/moscow/handyman</url>
+                <description>Навеска полок, карнизов, картин, зеркал и телевизоров в квартире в Москве. Сверление, крепёж в бетон, кирпич и гипсокартон. Ровно и надёжно.</description>
+                <shortDescription>Навеска полок и карнизов от 500 ₽. Сверление бетона, гипсокартона. Ровно и надёжно.</shortDescription>
+            </offer>
+
+            <offer id="503">
+                <name>Установка телевизора на стену</name>
+                <vendor>SLOT</vendor>
+                <price>1500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>5</categoryId>
+                <url>https://slot-home.ru/moscow/handyman</url>
+                <description>Установка телевизора на стену в Москве. Крепление кронштейна заказчика к бетонной или кирпичной стене, подключение техники. Скрытие проводов в кабель-канале.</description>
+                <shortDescription>Установка телевизора на стену от 1 500 ₽. Крепление кронштейна, скрытие проводов.</shortDescription>
+            </offer>
+
+            <offer id="504">
+                <name>Поклейка обоев</name>
+                <vendor>SLOT</vendor>
+                <price>150</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>5</categoryId>
+                <url>https://slot-home.ru/moscow/handyman</url>
+                <description>Поклейка обоев в квартире в Москве. Все виды обоев: бумажные, виниловые, флизелиновые. Подготовка стен, точная подгонка рисунка. Цена за кв.м.</description>
+                <shortDescription>Поклейка обоев от 150 ₽/кв.м. Все виды обоев, подготовка стен включена.</shortDescription>
+            </offer>
+
+            <!-- ХИМЧИСТКА -->
+            <offer id="601">
+                <name>Химчистка дивана</name>
+                <vendor>SLOT</vendor>
+                <price>2500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>6</categoryId>
+                <url>https://slot-home.ru/moscow/dry-cleaning</url>
+                <description>Химчистка дивана на дому в Москве. Удаление пятен, запахов, клещей и аллергенов. Профессиональная итальянская химия, безопасная для детей и животных.</description>
+                <shortDescription>Химчистка дивана от 2 500 ₽. Удаление пятен, запахов и аллергенов на дому.</shortDescription>
+            </offer>
+
+            <offer id="602">
+                <name>Химчистка матраса</name>
+                <vendor>SLOT</vendor>
+                <price>2000</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>6</categoryId>
+                <url>https://slot-home.ru/moscow/dry-cleaning</url>
+                <description>Химчистка матраса на дому в Москве. Удаление пятен, пылевых клещей и аллергенов. УФ-обработка по желанию. Матрас высыхает за 2–3 часа.</description>
+                <shortDescription>Химчистка матраса от 2 000 ₽. Удаление клещей и аллергенов, быстрое высыхание.</shortDescription>
+            </offer>
+
+            <offer id="603">
+                <name>Химчистка ковра</name>
+                <vendor>SLOT</vendor>
+                <price>150</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>6</categoryId>
+                <url>https://slot-home.ru/moscow/dry-cleaning</url>
+                <description>Химчистка ковра на дому в Москве. Удаление пятен, запахов, пыли и аллергенов. Любые размеры и материалы. Цена за кв.м. ковра.</description>
+                <shortDescription>Химчистка ковра от 150 ₽/кв.м. Любые размеры и материалы, выезд на дом.</shortDescription>
+            </offer>
+
+            <offer id="604">
+                <name>Химчистка кресла</name>
+                <vendor>SLOT</vendor>
+                <price>1500</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>6</categoryId>
+                <url>https://slot-home.ru/moscow/dry-cleaning</url>
+                <description>Химчистка кресла на дому в Москве. Удаление пятен и загрязнений с любой ткани: велюр, флок, микрофибра, кожа. Быстрое высыхание — 1–2 часа.</description>
+                <shortDescription>Химчистка кресла от 1 500 ₽. Любая ткань, быстрое высыхание.</shortDescription>
+            </offer>
+
+        </offers>
+    </shop>
+</yml_catalog>
