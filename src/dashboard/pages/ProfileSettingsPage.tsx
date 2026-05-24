@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { supabase } from "../../lib/supabase";
 import { AddressSuggest } from "../../components/ui/AddressSuggest";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { dbGetNotificationPrefs, dbUpdateNotificationPrefs } from "../../lib/pushDb";
+import { linkTelegramToAccount, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 import type { UserProfile } from "../types";
 
 type ProfileFormData = Pick<UserProfile, "name" | "phone" | "email" | "address">;
@@ -231,6 +233,9 @@ export function ProfileSettingsPage() {
         {/* Addresses */}
         <AddressesSection />
 
+        {/* Telegram link */}
+        <TelegramLinkSection user={user} />
+
         {/* Notifications */}
         <NotificationSettings userId={user?.id ?? null} />
 
@@ -251,6 +256,87 @@ export function ProfileSettingsPage() {
           </button>
         )}
       </form>
+    </div>
+  );
+}
+
+function TelegramLinkSection({ user }: { user: { user_metadata?: Record<string, unknown>; id?: string } | null }) {
+  const meta = user?.user_metadata as Record<string, unknown> | undefined;
+  const linkedId = meta?.telegram_id as number | undefined;
+  const linkedName = (meta?.telegram_name as string) ?? (meta?.first_name as string) ?? null;
+  const linkedUsername = meta?.telegram_username as string | undefined;
+
+  const [linking, setLinking] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleLink = useCallback(async (tgUser: TelegramUser) => {
+    setLinking(true);
+    setError("");
+    try {
+      await linkTelegramToAccount(tgUser);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка привязки");
+    } finally {
+      setLinking(false);
+    }
+  }, []);
+
+  const handleUnlink = async () => {
+    await supabase.auth.updateUser({
+      data: { telegram_id: null, telegram_username: null, telegram_name: null },
+    });
+    await supabase.auth.refreshSession();
+  };
+
+  return (
+    <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Аккаунты</p>
+
+      {linkedId ? (
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#229ED9]/10 flex items-center justify-center shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                {linkedName ?? `ID ${linkedId}`}
+              </p>
+              {linkedUsername && (
+                <p className="text-xs text-gray-400">@{linkedUsername}</p>
+              )}
+            </div>
+          </div>
+          {success ? (
+            <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+              <Check size={13} /> Сохранено
+            </span>
+          ) : (
+            <button
+              onClick={handleUnlink}
+              className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
+            >
+              Отвязать
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-gray-500">
+            Привяжите Telegram, чтобы входить без email и видеть все заказы в одном месте.
+          </p>
+          <TelegramLoginButton onAuth={handleLink} loading={linking} />
+          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          {success && (
+            <p className="text-xs text-green-600 text-center font-medium">Telegram привязан!</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

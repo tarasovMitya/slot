@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc -b --noEmit
+
+      - name: Notify Telegram on failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.ADMIN_CHAT_ID }}" \
+            -d parse_mode="Markdown" \
+            -d text="❌ *TypeScript ошибка в slot-home.ru*%0A%0AВетка: \`${{ github.ref_name }}\`%0AКоммит: \`${{ github.sha }}\`%0A%0A[Посмотреть логи](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"

@@ -32,18 +32,33 @@ export async function signInWithTelegram(tgUser: TelegramUser): Promise<void> {
     throw new Error(err.error ?? "Ошибка авторизации через Telegram");
   }
 
-  const { action_link } = await res.json();
-  if (!action_link) throw new Error("Не удалось получить ссылку для входа");
+  const data = await res.json();
+  const tokenHash = data.token_hash;
+  if (!tokenHash) throw new Error("Не удалось получить токен авторизации");
 
-  // Exchange the magic link for a session — Supabase verifyOtp with type=magiclink
-  const url = new URL(action_link);
-  const tokenHash = url.searchParams.get("token_hash");
-  const type = url.searchParams.get("type") as "magiclink";
-
-  if (!tokenHash) throw new Error("Неверный формат ссылки");
-
-  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
   if (error) throw new Error(error.message);
+}
+
+export async function linkTelegramToAccount(tgUser: TelegramUser): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Необходимо войти в аккаунт");
+
+  const res = await fetch(getFunctionUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ mode: "link", ...tgUser }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error ?? "Ошибка привязки Telegram");
+  }
+
+  await supabase.auth.refreshSession();
 }
 
 export function loadTelegramWidget(
