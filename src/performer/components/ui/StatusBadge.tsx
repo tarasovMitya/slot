@@ -1,6 +1,6 @@
 import type { PerformerOrderStatus } from "../../types";
 
-const config: Record<PerformerOrderStatus, { label: string; className: string }> = {
+const config: Record<string, { label: string; className: string }> = {
   available: { label: "Новый", className: "bg-amber-50 text-amber-700" },
   accepted: { label: "Принят", className: "bg-blue-50 text-blue-700" },
   on_the_way: { label: "Еду к клиенту", className: "bg-indigo-50 text-indigo-700" },

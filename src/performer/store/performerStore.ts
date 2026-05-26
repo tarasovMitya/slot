@@ -166,7 +166,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       createdAt: o.createdAt,
       scheduledDate: o.scheduledDate,
       scheduledTime: o.scheduledTime,
-      status: (o.status === "cancelled" ? "cancelled" : "completed") as PerformerOrderStatus,
+      status: (o.status === "cancelled" ? "rejected" : "completed") as PerformerOrderStatus,
       categoryName: o.categoryName,
       serviceName: o.serviceName,
       address: o.address,
