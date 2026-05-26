@@ -80,10 +80,12 @@ export function TMAApp() {
         );
         if (!res.ok) return;
 
-        const { token_hash } = await res.json();
-        if (!token_hash) return;
-
-        await supabase.auth.verifyOtp({ token_hash, type: "magiclink" });
+        const data = await res.json();
+        if (data.access_token) {
+          await supabase.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token ?? "" });
+        } else if (data.token_hash) {
+          await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+        }
       } catch { /* silent */ }
     })();
   }, []);
