@@ -50,7 +50,11 @@ export function TelegramLoginButton({ onAuth, loading }: Props) {
   if (loading) {
     return (
       <div className="flex items-center justify-center gap-2 w-full py-3 text-sm text-gray-500">
-        <div className="w-4 h-4 border-2 border-gray-300 border-t-[#229ED9] rounded-full animate-spin" />
+        <span className="flex gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#229ED9] animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#229ED9] animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#229ED9] animate-bounce [animation-delay:300ms]" />
+        </span>
         Входим через Telegram...
       </div>
     );
@@ -78,9 +82,10 @@ export function TelegramLoginButton({ onAuth, loading }: Props) {
 
       {/* Loading placeholder while checking */}
       {widgetStatus === "loading" && (
-        <div className="flex items-center justify-center gap-2 text-xs text-gray-400 py-1">
-          <div className="w-3 h-3 border-2 border-gray-200 border-t-gray-400 rounded-full animate-spin" />
-          Загрузка...
+        <div className="flex items-center justify-center gap-1.5 py-1">
+          <span className="w-1 h-1 rounded-full bg-gray-300 animate-bounce [animation-delay:0ms]" />
+          <span className="w-1 h-1 rounded-full bg-gray-300 animate-bounce [animation-delay:150ms]" />
+          <span className="w-1 h-1 rounded-full bg-gray-300 animate-bounce [animation-delay:300ms]" />
         </div>
       )}
     </div>
