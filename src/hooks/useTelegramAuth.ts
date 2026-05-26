@@ -35,20 +35,11 @@ export async function signInWithTelegram(tgUser: TelegramUser): Promise<void> {
   }
 
   const data = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
+  const tokenHash = data.token_hash;
 
-  // New flow: server returns access_token + refresh_token directly (bypasses egress-blocked admin API)
-  if (data.access_token) {
-    const { error } = await supabase.auth.setSession({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token ?? "",
-    });
-    if (error) throw new Error(`setSession: ${error.message}`);
-    return;
-  }
+  if (!tokenHash) throw new Error(`token_hash отсутствует. Ответ: ${raw.slice(0, 200)}`);
 
-  // Legacy fallback: token_hash flow (kept for compatibility)
-  if (!data.token_hash) throw new Error(`Нет токена. Ответ: ${raw.slice(0, 200)}`);
-  const { error } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
   if (error) throw new Error(`verifyOtp: ${error.message}`);
 }
 

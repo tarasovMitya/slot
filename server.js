@@ -3,15 +3,11 @@ const http = require("http");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const { Pool } = require("pg");
-const jwt = require("jsonwebtoken");
 
 const PORT = process.env.PORT || 8080;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || "";
-const DATABASE_URL = process.env.DATABASE_URL || "";
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const DADATA_KEY = process.env.VITE_DADATA_KEY || "";
 const DIST = path.join(__dirname, "dist");
@@ -74,82 +70,7 @@ function verifyTmaHash(initData, botToken) {
   return { valid: computed === hash, user: userStr ? JSON.parse(userStr) : null };
 }
 
-// ── Direct PostgreSQL pool (bypasses REST API egress quota) ───────────────
-let pgPool = null;
-function getPool() {
-  if (!pgPool && DATABASE_URL) {
-    pgPool = new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
-  }
-  return pgPool;
-}
-
-async function createTelegramSession(tgId, meta) {
-  if (!SUPABASE_JWT_SECRET) throw new Error("SUPABASE_JWT_SECRET not configured");
-
-  const pool = getPool();
-  if (!pool) throw new Error("DATABASE_URL not configured");
-
-  const email = `tg_${tgId}@slot-home.ru`;
-  const userMeta = { ...meta, telegram_id: tgId, provider: "telegram" };
-
-  // Find or create user directly in auth.users (bypasses REST API egress quota)
-  const existing = await pool.query(
-    "SELECT id, raw_user_meta_data FROM auth.users WHERE email = $1 LIMIT 1",
-    [email]
-  );
-
-  let userId;
-  if (existing.rows.length > 0) {
-    userId = existing.rows[0].id;
-    await pool.query(
-      "UPDATE auth.users SET raw_user_meta_data = $1, updated_at = now() WHERE id = $2",
-      [JSON.stringify(userMeta), userId]
-    );
-  } else {
-    const newId = crypto.randomUUID();
-    await pool.query(
-      `INSERT INTO auth.users
-        (id, email, email_confirmed_at, raw_user_meta_data, role, aud, created_at, updated_at, instance_id)
-       VALUES ($1, $2, now(), $3, 'authenticated', 'authenticated', now(), now(), '00000000-0000-0000-0000-000000000000')`,
-      [newId, email, JSON.stringify(userMeta)]
-    );
-    userId = newId;
-  }
-
-  // Sign a Supabase-compatible JWT directly
-  const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    sub: userId,
-    email,
-    role: "authenticated",
-    aud: "authenticated",
-    iat: now,
-    exp: now + 60 * 60, // 1 hour
-    user_metadata: userMeta,
-  };
-  const accessToken = jwt.sign(payload, SUPABASE_JWT_SECRET, { algorithm: "HS256" });
-
-  // Store session in auth.sessions so Supabase recognizes it
-  const sessionId = crypto.randomUUID();
-  await pool.query(
-    `INSERT INTO auth.sessions (id, user_id, created_at, updated_at, not_after)
-     VALUES ($1, $2, now(), now(), now() + interval '1 hour')
-     ON CONFLICT DO NOTHING`,
-    [sessionId, userId]
-  );
-
-  // Generate refresh token
-  const refreshToken = crypto.randomBytes(32).toString("base64url");
-  await pool.query(
-    `INSERT INTO auth.refresh_tokens (token, user_id, session_id, revoked, created_at, updated_at)
-     VALUES ($1, $2, $3, false, now(), now())`,
-    [refreshToken, userId, sessionId]
-  );
-
-  return { access_token: accessToken, refresh_token: refreshToken, user_id: userId, email };
-}
-
-// ── Supabase admin helper (kept for link mode JWT verification) ────────────
+// ── Supabase admin helper ──────────────────────────────────────────────────
 function supabaseAdminRequest(method, apiPath, body) {
   return new Promise((resolve, reject) => {
     const bodyStr = body ? JSON.stringify(body) : null;
@@ -176,6 +97,38 @@ function supabaseAdminRequest(method, apiPath, body) {
     if (bodyStr) req.write(bodyStr);
     req.end();
   });
+}
+
+async function createTelegramSession(tgId, meta) {
+  const email = `tg_${tgId}@slot-home.ru`;
+
+  const getRes = await supabaseAdminRequest("GET", `/auth/v1/admin/users?filter=email.eq.${encodeURIComponent(email)}&page=1&per_page=1`, null);
+  const existingUsers = Array.isArray(getRes.body?.users) ? getRes.body.users : [];
+
+  let userId;
+  if (existingUsers.length > 0) {
+    userId = existingUsers[0].id;
+    await supabaseAdminRequest("PUT", `/auth/v1/admin/users/${userId}`, {
+      user_metadata: { ...meta, telegram_id: tgId, provider: "telegram" },
+    });
+  } else {
+    const createRes = await supabaseAdminRequest("POST", "/auth/v1/admin/users", {
+      email,
+      email_confirm: true,
+      user_metadata: { ...meta, telegram_id: tgId, provider: "telegram" },
+    });
+    if (!createRes.body?.id) throw new Error(`Create user failed: ${JSON.stringify(createRes.body)}`);
+    userId = createRes.body.id;
+  }
+
+  const linkRes = await supabaseAdminRequest("POST", "/auth/v1/admin/generate_link", {
+    type: "magiclink",
+    email,
+  });
+  const hashed_token = linkRes.body?.properties?.hashed_token || linkRes.body?.hashed_token;
+  if (!hashed_token) throw new Error(`generateLink failed: ${JSON.stringify(linkRes.body)}`);
+
+  return { token_hash: hashed_token, user_id: userId, email };
 }
 
 // ── Telegram auth handler ──────────────────────────────────────────────────
