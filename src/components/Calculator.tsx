@@ -15,6 +15,7 @@ import { AddMoreStep } from "./steps/AddMoreStep";
 import { AuthStep } from "./steps/AuthStep";
 import { CheckoutStep } from "./steps/CheckoutStep";
 import { supabase } from "../lib/supabase";
+import { dbSaveProfile } from "../lib/db";
 import { ENABLE_PAYMENTS } from "../lib/featureFlags";
 
 const variants = {
@@ -161,6 +162,21 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         setPendingOrder(orderData);
       } else {
         createOrderDirectly(orderData);
+      }
+
+      // Save filled-in profile data — non-blocking
+      if (user) {
+        const profilePatch: Record<string, string> = {};
+        if (contacts.name && !contacts.name.startsWith("tg_"))    profilePatch.name    = contacts.name;
+        if (contacts.phone && contacts.phone.length > 3)           profilePatch.phone   = contacts.phone;
+        if (contacts.email && !contacts.email.endsWith("@slot-home.ru")) profilePatch.email = contacts.email;
+        if (contacts.address)                                       profilePatch.address = contacts.address;
+        if (Object.keys(profilePatch).length > 0) {
+          dbSaveProfile(user.id, profilePatch).catch(() => {});
+          if (profilePatch.name) {
+            supabase.auth.updateUser({ data: { full_name: profilePatch.name } }).catch(() => {});
+          }
+        }
       }
 
       orderCreatedRef.current = true;
