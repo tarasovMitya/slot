@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 
 interface Props {
   onSuccess: () => void;
-  linkMode?: boolean; // true = attach Telegram to existing account instead of signing in
+  linkMode?: boolean;
 }
 
 const BOT_NAME = "slot_home_bot";
-const POLL_INTERVAL_MS = 2000;
 const EXPIRY_MS = 5 * 60 * 1000;
 
 function generateState(): string {
@@ -17,104 +16,150 @@ function generateState(): string {
 }
 
 export function TelegramLoginButton({ onSuccess, linkMode }: Props) {
-  const [phase, setPhase] = useState<"idle" | "waiting" | "authing" | "expired" | "error">("idle");
+  const [phase, setPhase] = useState<"idle" | "waiting" | "verifying" | "expired" | "error">("idle");
+  const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [errorMsg, setErrorMsg] = useState("");
   const stateRef = useRef<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedAtRef = useRef(0);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const stopPolling = () => {
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-  };
-
-  useEffect(() => () => stopPolling(), []);
-
-  const startAuth = async () => {
+  const openBot = () => {
     const state = generateState();
     stateRef.current = state;
     startedAtRef.current = Date.now();
     setPhase("waiting");
+    setDigits(["", "", "", "", "", ""]);
     setErrorMsg("");
-
     window.open(`https://t.me/${BOT_NAME}?start=LOGIN_${state}`, "_blank");
-
-    stopPolling();
-    pollRef.current = setInterval(async () => {
-      if (Date.now() - startedAtRef.current > EXPIRY_MS) {
-        stopPolling();
-        setPhase("expired");
-        return;
-      }
-      try {
-        if (linkMode) {
-          // Poll for bot confirmation, then update current user's Telegram metadata
-          const statusRes = await fetch(`/api/telegram-auth/status?state=${state}`);
-          const statusData = await statusRes.json();
-          if (statusData.status === "pending") return;
-
-          stopPolling();
-          setPhase("authing");
-          const { data: { session } } = await supabase.auth.getSession();
-          const linkRes = await fetch(`/api/telegram-auth/link?state=${state}`, {
-            headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
-          });
-          if (!linkRes.ok) {
-            const err = await linkRes.json().catch(() => ({}));
-            setPhase("error");
-            setErrorMsg(err.error ?? "Ошибка привязки Telegram");
-          } else {
-            await supabase.auth.refreshSession();
-            onSuccess();
-          }
-        } else {
-          // Poll for bot confirmation, then verify OTP to sign in
-          const res = await fetch(`/api/telegram-auth/status?state=${state}`);
-          const data = await res.json();
-          if (data.status === "ready" && data.token_hash) {
-            stopPolling();
-            setPhase("authing");
-            const { error } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
-            if (error) {
-              setPhase("error");
-              setErrorMsg(`Ошибка входа: ${error.message}`);
-            } else {
-              onSuccess();
-            }
-          }
-        }
-      } catch {
-        // network hiccup — keep polling
-      }
-    }, POLL_INTERVAL_MS);
+    setTimeout(() => inputRefs.current[0]?.focus(), 400);
   };
 
-  if (phase === "authing") {
+  const handleDigitChange = (i: number, val: string) => {
+    const d = val.replace(/\D/, "").slice(-1);
+    const next = [...digits];
+    next[i] = d;
+    setDigits(next);
+    if (d && i < 5) inputRefs.current[i + 1]?.focus();
+  };
+
+  const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !digits[i] && i > 0) inputRefs.current[i - 1]?.focus();
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6).split("");
+    const next = [...pasted, ...Array(6 - pasted.length).fill("")];
+    setDigits(next);
+    inputRefs.current[Math.min(pasted.length, 5)]?.focus();
+  };
+
+  const handleSubmit = async () => {
+    const code = digits.join("");
+    if (code.length < 6) return;
+    if (Date.now() - startedAtRef.current > EXPIRY_MS) { setPhase("expired"); return; }
+
+    setPhase("verifying");
+    const state = stateRef.current!;
+
+    try {
+      if (linkMode) {
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(`/api/telegram-auth/link?state=${state}&code=${code}`, {
+          headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+        });
+        const data = await res.json();
+        if (data.error === "invalid_code") { showError("Неверный код"); return; }
+        if (data.status === "pending") { showError("Бот ещё не прислал код — подождите и попробуйте снова"); return; }
+        if (!res.ok || data.error) { showError(data.error ?? "Ошибка привязки"); return; }
+        await supabase.auth.refreshSession();
+        onSuccess();
+      } else {
+        const res = await fetch(`/api/telegram-auth/status?state=${state}&code=${code}`);
+        const data = await res.json();
+        if (data.status === "pending") { showError("Бот ещё не прислал код — подождите и попробуйте снова"); return; }
+        if (data.error === "invalid_code") { showError("Неверный код. Проверьте сообщение от бота."); return; }
+        if (data.status === "ready" && data.token_hash) {
+          const { error } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+          if (error) { showError(`Ошибка входа: ${error.message}`); return; }
+          onSuccess();
+          return;
+        }
+        showError("Что-то пошло не так. Попробуйте снова.");
+      }
+    } catch {
+      showError("Ошибка сети. Попробуйте снова.");
+    }
+  };
+
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    setDigits(["", "", "", "", "", ""]);
+    setPhase("error");
+    setTimeout(() => inputRefs.current[0]?.focus(), 50);
+  };
+
+  // ── Verifying ──────────────────────────────────────────────────────────────
+  if (phase === "verifying") {
     return (
       <div className="flex items-center justify-center gap-2 w-full py-3 text-sm text-gray-500">
-        <Dots color="#229ED9" />
-        {linkMode ? "Привязываем..." : "Входим..."}
+        <Dots />
+        Проверяем код...
       </div>
     );
   }
 
-  if (phase === "waiting") {
+  // ── Code input (waiting / error) ───────────────────────────────────────────
+  if (phase === "waiting" || phase === "error") {
+    const codeStr = digits.join("");
     return (
-      <div className="flex flex-col items-center gap-2 w-full">
-        <div className="flex items-center gap-2 py-2 text-sm text-gray-500">
-          <Dots color="#229ED9" />
-          Откройте бот и нажмите «Старт»
+      <div className="flex flex-col gap-3 w-full">
+        {phase === "error" && (
+          <p className="text-xs text-red-500 text-center">{errorMsg}</p>
+        )}
+        <p className="text-sm text-gray-500 text-center">
+          Введите 6-значный код из сообщения бота
+        </p>
+
+        {/* Code boxes */}
+        <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+          {digits.map((d, i) => (
+            <input
+              key={i}
+              ref={(el) => { inputRefs.current[i] = el; }}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={d}
+              onChange={(e) => handleDigitChange(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(i, e)}
+              className={`w-10 h-12 text-center text-xl font-bold rounded-xl border-2 outline-none transition-colors ${
+                d ? "border-[#229ED9] bg-blue-50 text-gray-900" : "border-gray-100 focus:border-gray-300"
+              }`}
+            />
+          ))}
         </div>
-        <button onClick={startAuth} className="text-xs text-[#229ED9] hover:underline">
+
+        <button
+          onClick={handleSubmit}
+          disabled={codeStr.length < 6}
+          className="w-full py-3 rounded-2xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all active:scale-95"
+        >
+          {linkMode ? "Привязать" : "Войти"}
+        </button>
+
+        <button onClick={openBot} className="text-xs text-[#229ED9] hover:underline text-center">
           Открыть бот ещё раз
         </button>
       </div>
     );
   }
 
+  // ── Expired ────────────────────────────────────────────────────────────────
   if (phase === "expired") {
     return (
       <button
-        onClick={startAuth}
+        onClick={openBot}
         className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl border border-amber-300 text-amber-600 text-sm font-semibold hover:bg-amber-50 transition-colors"
       >
         Время вышло — попробовать снова
@@ -122,24 +167,10 @@ export function TelegramLoginButton({ onSuccess, linkMode }: Props) {
     );
   }
 
-  if (phase === "error") {
-    return (
-      <div className="flex flex-col items-center gap-2 w-full">
-        <p className="text-xs text-red-500 text-center">{errorMsg}</p>
-        <button
-          onClick={startAuth}
-          className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl border border-[#229ED9] text-[#229ED9] text-sm font-semibold hover:bg-[#229ED9]/5 transition-colors"
-        >
-          <TgIcon />
-          Попробовать снова
-        </button>
-      </div>
-    );
-  }
-
+  // ── Idle ───────────────────────────────────────────────────────────────────
   return (
     <button
-      onClick={startAuth}
+      onClick={openBot}
       className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl border border-[#229ED9] text-[#229ED9] text-sm font-semibold hover:bg-[#229ED9]/5 transition-colors"
     >
       <TgIcon />
@@ -148,12 +179,16 @@ export function TelegramLoginButton({ onSuccess, linkMode }: Props) {
   );
 }
 
-function Dots({ color }: { color: string }) {
+function Dots() {
   return (
     <span className="flex gap-1">
-      <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: color }} />
-      <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: color }} />
-      <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: color }} />
+      {[0, 150, 300].map((delay) => (
+        <span
+          key={delay}
+          className="w-1.5 h-1.5 rounded-full bg-[#229ED9] animate-bounce"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
     </span>
   );
 }

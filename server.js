@@ -220,9 +220,10 @@ http.createServer(async (req, res) => {
         const expected = crypto.createHmac("sha256", BOT_TOKEN).update(rawBody).digest("hex");
         if (!BOT_TOKEN || sig !== expected) throw Object.assign(new Error("Invalid signature"), { status: 401 });
         const data = JSON.parse(rawBody);
-        if (!data.state || !data.telegram_id) throw Object.assign(new Error("Missing fields"), { status: 400 });
+        if (!data.state || !data.telegram_id || !data.code) throw Object.assign(new Error("Missing fields"), { status: 400 });
         const insertRes = await supabaseAdminRequest("POST", "/rest/v1/auth_sessions", {
           state: data.state,
+          code: data.code,
           telegram_id: data.telegram_id,
           first_name: data.first_name || null,
           last_name: data.last_name || null,
@@ -240,14 +241,20 @@ http.createServer(async (req, res) => {
     return;
   }
 
-  // Client polling: check if bot confirmed auth for a given state token
+  // Client submits code received from bot → verify and create session
   if (req.method === "GET" && pathname === "/api/telegram-auth/status") {
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    const state = new URL(req.url, "http://x").searchParams.get("state");
+    const url = new URL(req.url, "http://x");
+    const state = url.searchParams.get("state");
+    const code = url.searchParams.get("code");
     if (!state || !/^[a-f0-9]{32}$/.test(state)) {
       res.writeHead(400);
       return res.end(JSON.stringify({ error: "invalid state" }));
+    }
+    if (!code || !/^\d{6}$/.test(code)) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({ error: "invalid code" }));
     }
     try {
       const sessionRes = await supabaseAdminRequest(
@@ -264,6 +271,10 @@ http.createServer(async (req, res) => {
       if (session.used_at) {
         res.writeHead(200);
         return res.end(JSON.stringify({ status: "used" }));
+      }
+      if (session.code !== code) {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ error: "invalid_code" }));
       }
       const result = await createTelegramSession(session.telegram_id, {
         first_name: session.first_name,
@@ -288,11 +299,13 @@ http.createServer(async (req, res) => {
   if (req.method === "GET" && pathname === "/api/telegram-auth/link") {
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    const state = new URL(req.url, "http://x").searchParams.get("state");
+    const linkUrl = new URL(req.url, "http://x");
+    const state = linkUrl.searchParams.get("state");
+    const code = linkUrl.searchParams.get("code");
     const jwt = req.headers.authorization?.replace("Bearer ", "");
-    if (!state || !jwt) {
+    if (!state || !jwt || !code) {
       res.writeHead(400);
-      return res.end(JSON.stringify({ error: "state and Authorization required" }));
+      return res.end(JSON.stringify({ error: "state, code and Authorization required" }));
     }
     try {
       const jwtRes = await new Promise((resolve, reject) => {
@@ -319,6 +332,10 @@ http.createServer(async (req, res) => {
       }
       const session = sessions[0];
       if (session.used_at) throw Object.assign(new Error("Session already used"), { status: 400 });
+      if (session.code !== code) {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ error: "invalid_code" }));
+      }
       await supabaseAdminRequest("PUT", `/auth/v1/admin/users/${jwtRes.id}`, {
         user_metadata: {
           ...jwtRes.user_metadata,
