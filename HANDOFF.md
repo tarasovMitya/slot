@@ -4,24 +4,80 @@
 
 ---
 
-## Текущее состояние (2026-05-27)
+## Текущее состояние (2026-05-27, сессия 2)
 
 ### Что работает
 - Деплой: `git push release main && git push origin main` (Railway цепляет `calc_realize.git`)
 - Supabase Admin REST API для создания пользователей (Pro план активен)
-- Telegram Widget auth flow: виджет → `/api/telegram-auth` → `token_hash` → `verifyOtp`
+- **Новый Telegram auth flow (бот):** кнопка → открывает `t.me/slot_home_bot?start=LOGIN_<state>` → бот → `/api/telegram-auth/bot-session` → клиент поллит `/api/telegram-auth/status` → `verifyOtp`
 - TMA (Mini App) auto sign-in через `initData`
 - Ошибки пишутся в `error_logs` в Supabase, видны в /admin/logs
 - **MVP TEST MODE активен:** заказы создаются без оплаты (`ENABLE_PAYMENTS=false`), сразу уходят исполнителям
 
 ### Что не тестировалось в проде
-- Telegram Widget auth: фикс `email_exists` (422) задеплоен, живого теста не было
-- Telegram Link mode (привязка tg к email-аккаунту)
+- Telegram Bot auth flow (задеплоен, живого теста не было)
+- Telegram Link mode (привязка tg к email-аккаунту) — новый бот-flow, не тестировалось
 - MVP flow end-to-end: калькулятор → заказ → исполнитель принимает → клиент видит исполнителя
 
 ---
 
-## Изменения этой сессии (2026-05-27)
+## Изменения сессии 2 (2026-05-27)
+
+### Новый Telegram auth flow — через бота
+
+**Проблема:** oauth.telegram.org показывал форму ввода номера телефона; уведомление в Telegram не приходило.
+
+**Решение:** Бот-based flow.
+
+**Новые таблицы Supabase:**
+| Таблица | Описание |
+|---------|---------|
+| `auth_sessions` | state (PK), telegram_id, first_name, last_name, username, created_at, used_at. RLS включён. |
+
+**Новые endpoint'ы в `server.js`:**
+| Endpoint | Описание |
+|----------|---------|
+| `POST /api/telegram-auth/bot-session` | Бот шлёт данные (HMAC через BOT_TOKEN), сервер пишет в `auth_sessions` |
+| `GET /api/telegram-auth/status?state=<uuid>` | Клиент поллит каждые 2с; если сессия есть → создаёт OTP через `createTelegramSession`, возвращает `token_hash` |
+| `GET /api/telegram-auth/link?state=<uuid>` | Привязка TG к существующему аккаунту: обновляет user_metadata через Admin API |
+
+**Изменённые файлы:**
+| Файл | Что изменилось |
+|------|---------------|
+| `src/components/auth/TelegramLoginButton.tsx` | Полный рерайт. Props: `onSuccess`, `linkMode?`. Самодостаточный: генерирует state, открывает бот, поллит, вызывает verifyOtp. |
+| `src/components/auth/AuthModal.tsx` | `handleTelegramAuth(tgUser)` → `handleTelegramSuccess()`. Убраны `tgLoading`/`tgError`. |
+| `src/components/steps/AuthStep.tsx` | Аналогично AuthModal. |
+| `src/performer/pages/PerformerAuthPage.tsx` | Аналогично AuthModal. |
+| `src/dashboard/pages/ProfileSettingsPage.tsx` | `onAuth={handleLink}` → `onSuccess={handleLink} linkMode`. |
+| `src/performer/pages/ProfilePage.tsx` | Аналогично ProfileSettingsPage. |
+| `bot/index.ts` | `/start LOGIN_<state>` → вызов `POST /api/telegram-auth/bot-session` с HMAC-подписью. |
+
+**Архитектура flow:**
+```
+Клиент: кнопка нажата
+  → generateState() → UUID hex 32 символа
+  → window.open(t.me/slot_home_bot?start=LOGIN_<state>)
+  → polling: GET /api/telegram-auth/status?state=<state> каждые 2с
+
+Бот: /start LOGIN_<state>
+  → storeAuthSession() → POST /api/telegram-auth/bot-session
+  → HMAC(BOT_TOKEN, payload) в X-Bot-Signature
+  → Сервер: верифицирует HMAC, INSERT auth_sessions
+
+Сервер /status:
+  → SELECT auth_sessions WHERE state=?
+  → if found: createTelegramSession(telegram_id, meta) → token_hash
+  → PATCH auth_sessions SET used_at=now()
+  → return { status: "ready", token_hash }
+
+Клиент: verifyOtp(token_hash) → onSuccess()
+```
+
+**Что НЕ трогали:** Widget auth (server.js код сохранён), TMA flow, оплата, performer flow, admin panel.
+
+---
+
+## Изменения сессии 1 (2026-05-27)
 
 ### MVP TEST MODE — убрана обязательная оплата
 
@@ -65,7 +121,7 @@
 
 ---
 
-## Предыдущие изменения (2026-05-26)
+## Изменения (2026-05-26)
 
 ### `server.js` — фикс `email_exists` (422)
 `createTelegramSession` использует `/auth/v1/admin/generate_link` напрямую — создаёт пользователя если нет, или генерит ссылку если есть. Больше не нужен find-then-create.
@@ -84,8 +140,11 @@
 ```
 calc/
 ├── server.js                        # Node HTTP сервер (Railway, port 8080)
-│   ├── POST /api/telegram-auth      # Telegram HMAC verify + Supabase Admin API
-│   └── /supabase-proxy/*            # Прокси к Supabase (обход DNS-блокировок)
+│   ├── POST /api/telegram-auth           # Widget/TMA auth (legacy, не используется для login)
+│   ├── POST /api/telegram-auth/bot-session  # Бот → сервер (HMAC)
+│   ├── GET  /api/telegram-auth/status    # Клиент поллит статус
+│   ├── GET  /api/telegram-auth/link      # Привязка TG к аккаунту
+│   └── /supabase-proxy/*                 # Прокси к Supabase (обход DNS-блокировок)
 ├── src/
 │   ├── lib/
 │   │   ├── featureFlags.ts          # ENABLE_PAYMENTS flag
@@ -145,7 +204,7 @@ Railway dashboard → project `exquisite-adaptation` → service `calc_realize`
 
 ## Следующие задачи
 
-- [ ] Протестировать Telegram Widget auth вживую (фикс `email_exists` задеплоен)
+- [ ] Протестировать новый Telegram Bot auth flow вживую (кнопка → бот → авторизован)
 - [ ] Протестировать MVP flow end-to-end в проде
 - [ ] Протестировать Link mode (привязка Telegram к email-аккаунту)
 - [ ] Добавить `sourcemap: true` в `vite.config` для читаемых stack trace
