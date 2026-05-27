@@ -7,7 +7,6 @@ import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { useDashboardStore } from "../../dashboard/store/dashboardStore";
 import { AddressSuggest } from "../ui/AddressSuggest";
-import { signInWithTelegram, type TelegramUser } from "../../hooks/useTelegramAuth";
 import { TelegramLoginButton } from "../auth/TelegramLoginButton";
 
 type SubStep = "email" | "otp" | "profile";
@@ -39,24 +38,9 @@ export function AuthStep() {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [tgLoading, setTgLoading] = useState(false);
-  const [tgError, setTgError] = useState("");
-
   useEffect(() => {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
-
-  const handleTelegramAuth = async (tgUser: TelegramUser) => {
-    setTgLoading(true);
-    setTgError("");
-    try {
-      await signInWithTelegram(tgUser);
-      // isAuthenticated effect will detect the session and transition to profile
-    } catch (e) {
-      setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
-      setTgLoading(false);
-    }
-  };
 
   const startCooldown = (seconds = 60) => {
     setCooldown(seconds);
@@ -278,8 +262,7 @@ export function AuthStep() {
 
             {/* Telegram login */}
             <div>
-              <TelegramLoginButton onAuth={handleTelegramAuth} loading={tgLoading} />
-              {tgError && <p className="text-red-500 text-sm text-center mt-1">{tgError}</p>}
+              <TelegramLoginButton onSuccess={() => { /* session detected by isAuthenticated effect */ }} />
             </div>
 
             <div className="flex items-center gap-3">

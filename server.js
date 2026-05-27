@@ -208,6 +208,138 @@ http.createServer((req, res) => {
     return res.end();
   }
 
+  // Bot → server: store Telegram auth session (bot-signed with BOT_TOKEN HMAC)
+  if (req.method === "POST" && pathname === "/api/telegram-auth/bot-session") {
+    let rawBody = "";
+    req.on("data", (chunk) => (rawBody += chunk));
+    req.on("end", async () => {
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      try {
+        const sig = req.headers["x-bot-signature"];
+        const expected = crypto.createHmac("sha256", BOT_TOKEN).update(rawBody).digest("hex");
+        if (!BOT_TOKEN || sig !== expected) throw Object.assign(new Error("Invalid signature"), { status: 401 });
+        const data = JSON.parse(rawBody);
+        if (!data.state || !data.telegram_id) throw Object.assign(new Error("Missing fields"), { status: 400 });
+        const insertRes = await supabaseAdminRequest("POST", "/rest/v1/auth_sessions", {
+          state: data.state,
+          telegram_id: data.telegram_id,
+          first_name: data.first_name || null,
+          last_name: data.last_name || null,
+          username: data.username || null,
+        });
+        if (insertRes.status >= 300) throw new Error(`DB insert failed (${insertRes.status}): ${JSON.stringify(insertRes.body)}`);
+        res.writeHead(200);
+        res.end(JSON.stringify({ ok: true }));
+      } catch (e) {
+        console.error("[bot-session]", e.message);
+        res.writeHead(e.status || 500);
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // Client polling: check if bot confirmed auth for a given state token
+  if (req.method === "GET" && pathname === "/api/telegram-auth/status") {
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const state = new URL(req.url, "http://x").searchParams.get("state");
+    if (!state || !/^[a-f0-9]{32}$/.test(state)) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({ error: "invalid state" }));
+    }
+    try {
+      const sessionRes = await supabaseAdminRequest(
+        "GET",
+        `/rest/v1/auth_sessions?state=eq.${encodeURIComponent(state)}&select=*&limit=1`,
+        null
+      );
+      const sessions = Array.isArray(sessionRes.body) ? sessionRes.body : [];
+      if (sessions.length === 0) {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ status: "pending" }));
+      }
+      const session = sessions[0];
+      if (session.used_at) {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ status: "used" }));
+      }
+      const result = await createTelegramSession(session.telegram_id, {
+        first_name: session.first_name,
+        last_name: session.last_name,
+        username: session.username,
+      });
+      await supabaseAdminRequest(
+        "PATCH",
+        `/rest/v1/auth_sessions?state=eq.${encodeURIComponent(state)}`,
+        { used_at: new Date().toISOString() }
+      );
+      res.writeHead(200);
+      return res.end(JSON.stringify({ status: "ready", ...result }));
+    } catch (e) {
+      console.error("[telegram-auth/status]", e.message);
+      res.writeHead(500);
+      return res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  // Link Telegram to existing authenticated account
+  if (req.method === "GET" && pathname === "/api/telegram-auth/link") {
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const state = new URL(req.url, "http://x").searchParams.get("state");
+    const jwt = req.headers.authorization?.replace("Bearer ", "");
+    if (!state || !jwt) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({ error: "state and Authorization required" }));
+    }
+    try {
+      const jwtRes = await new Promise((resolve, reject) => {
+        const opts = {
+          hostname: supabaseHost,
+          path: "/auth/v1/user",
+          method: "GET",
+          headers: { "Authorization": `Bearer ${jwt}`, "apikey": SUPABASE_ANON_KEY },
+        };
+        const r2 = https.request(opts, (r) => {
+          let data = ""; r.on("data", c => (data += c));
+          r.on("end", () => { try { resolve(JSON.parse(data)); } catch { resolve({}); } });
+        });
+        r2.on("error", reject); r2.end();
+      });
+      if (!jwtRes.id) throw Object.assign(new Error("Unauthorized"), { status: 401 });
+      const sessionRes = await supabaseAdminRequest(
+        "GET", `/rest/v1/auth_sessions?state=eq.${encodeURIComponent(state)}&select=*&limit=1`, null
+      );
+      const sessions = Array.isArray(sessionRes.body) ? sessionRes.body : [];
+      if (sessions.length === 0) {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ status: "pending" }));
+      }
+      const session = sessions[0];
+      if (session.used_at) throw Object.assign(new Error("Session already used"), { status: 400 });
+      await supabaseAdminRequest("PUT", `/auth/v1/admin/users/${jwtRes.id}`, {
+        user_metadata: {
+          ...jwtRes.user_metadata,
+          telegram_id: session.telegram_id,
+          telegram_username: session.username || null,
+          telegram_name: session.first_name || null,
+        },
+      });
+      await supabaseAdminRequest(
+        "PATCH", `/rest/v1/auth_sessions?state=eq.${encodeURIComponent(state)}`,
+        { used_at: new Date().toISOString() }
+      );
+      res.writeHead(200);
+      return res.end(JSON.stringify({ ok: true }));
+    } catch (e) {
+      console.error("[telegram-auth/link]", e.message);
+      res.writeHead(e.status || 500);
+      return res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
   // Telegram auth endpoint — runs on Railway, no Supabase Edge Function needed
   if (req.method === "POST" && pathname === "/api/telegram-auth") {
     let rawBody = "";

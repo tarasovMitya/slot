@@ -6,7 +6,6 @@ import { Wrench } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { dbLoadPerformerProfile } from "../../lib/db";
-import { signInWithTelegram, type TelegramUser } from "../../hooks/useTelegramAuth";
 import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 
 type SubStep = "email" | "otp";
@@ -30,33 +29,22 @@ export function PerformerAuthPage() {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [tgLoading, setTgLoading] = useState(false);
-  const [tgError, setTgError] = useState("");
-
   useEffect(() => {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
 
-  const handleTelegramAuth = async (tgUser: TelegramUser) => {
-    setTgLoading(true);
-    setTgError("");
-    try {
-      await signInWithTelegram(tgUser);
-      await supabase.auth.updateUser({ data: { performer_role: true } });
-      const { data: { user: freshUser } } = await supabase.auth.getUser();
-      if (freshUser?.user_metadata?.performer_onboarded) {
-        navigate("/performer", { replace: true }); return;
-      }
-      const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
-      if (existingProfile?.name) {
-        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
-        navigate("/performer", { replace: true }); return;
-      }
-      navigate("/performer/onboarding", { replace: true });
-    } catch (e) {
-      setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
-      setTgLoading(false);
+  const handleTelegramSuccess = async () => {
+    await supabase.auth.updateUser({ data: { performer_role: true } });
+    const { data: { user: freshUser } } = await supabase.auth.getUser();
+    if (freshUser?.user_metadata?.performer_onboarded) {
+      navigate("/performer", { replace: true }); return;
     }
+    const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
+    if (existingProfile?.name) {
+      await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+      navigate("/performer", { replace: true }); return;
+    }
+    navigate("/performer/onboarding", { replace: true });
   };
 
   // If already authenticated as performer, redirect
@@ -212,8 +200,7 @@ export function PerformerAuthPage() {
 
               {/* Telegram widget */}
               <div className="flex flex-col items-center gap-2">
-                <TelegramLoginButton onAuth={handleTelegramAuth} loading={tgLoading} />
-                {tgError && <p className="text-red-500 text-sm text-center">{tgError}</p>}
+                <TelegramLoginButton onSuccess={handleTelegramSuccess} />
               </div>
 
               <div className="flex items-center gap-3">

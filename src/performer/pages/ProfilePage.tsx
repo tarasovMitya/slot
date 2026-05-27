@@ -8,7 +8,6 @@ import { supabase } from "../../lib/supabase";
 import { pluralRu } from "../../utils/priceCalculator";
 import { AddressSection } from "../components/ui/AddressSection";
 import { BankCardItem } from "../components/ui/BankCardItem";
-import { linkTelegramToAccount, type TelegramUser } from "../../hooks/useTelegramAuth";
 import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 
 function ProfileSkeleton() {
@@ -294,22 +293,11 @@ function PerformerTelegramSection() {
   const linkedName = (meta?.telegram_name as string) ?? (meta?.first_name as string) ?? null;
   const linkedUsername = meta?.telegram_username as string | undefined;
 
-  const [linking, setLinking] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleLink = useCallback(async (tgUser: TelegramUser) => {
-    setLinking(true);
-    setError("");
-    try {
-      await linkTelegramToAccount(tgUser);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка привязки");
-    } finally {
-      setLinking(false);
-    }
+  const handleLink = useCallback(async () => {
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 3000);
   }, []);
 
   const handleUnlink = async () => {
@@ -356,8 +344,7 @@ function PerformerTelegramSection() {
           <p className="text-sm text-gray-500">
             Привяжите Telegram для входа в кабинет без email.
           </p>
-          <TelegramLoginButton onAuth={handleLink} loading={linking} />
-          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          <TelegramLoginButton onSuccess={handleLink} linkMode />
           {success && <p className="text-xs text-green-600 text-center font-medium">Telegram привязан!</p>}
         </div>
       )}

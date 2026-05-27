@@ -7,7 +7,6 @@ import { supabase } from "../../lib/supabase";
 import { useAuthModalStore } from "../../store/authModalStore";
 import { useAuthStore } from "../../store/authStore";
 import { dbSaveProfile, dbLoadPerformerProfile } from "../../lib/db";
-import { signInWithTelegram, type TelegramUser } from "../../hooks/useTelegramAuth";
 import { TelegramLoginButton } from "./TelegramLoginButton";
 
 const stepAnim = {
@@ -35,8 +34,6 @@ export function AuthModal() {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [tgLoading, setTgLoading] = useState(false);
-  const [tgError, setTgError] = useState("");
 
   const emailForm = useForm<{ email: string }>();
   const registerForm = useForm<{ name: string; phone: string; email: string }>();
@@ -49,38 +46,28 @@ export function AuthModal() {
       setLoading(false);
       setError("");
       setCooldown(0);
-      setTgError("");
-      setTgLoading(false);
       if (cooldownRef.current) clearInterval(cooldownRef.current);
       emailForm.reset();
       registerForm.reset();
     }
   }, [isOpen]);
 
-  const handleTelegramAuth = useCallback(async (tgUser: TelegramUser) => {
-    setTgLoading(true);
-    setTgError("");
-    try {
-      await signInWithTelegram(tgUser);
-      if (role === "performer") {
-        await supabase.auth.updateUser({ data: { performer_role: true } });
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        if (freshUser?.user_metadata?.performer_onboarded) {
-          reset(); navigate("/performer"); return;
-        }
-        const existing = await dbLoadPerformerProfile(freshUser?.id ?? "");
-        if (existing?.name) {
-          await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
-          reset(); navigate("/performer"); return;
-        }
-        reset(); navigate("/performer/onboarding"); return;
+  const handleTelegramSuccess = useCallback(async () => {
+    if (role === "performer") {
+      await supabase.auth.updateUser({ data: { performer_role: true } });
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (freshUser?.user_metadata?.performer_onboarded) {
+        reset(); navigate("/performer"); return;
       }
-      reset();
-      navigate("/dashboard");
-    } catch (e) {
-      setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
-      setTgLoading(false);
+      const existing = await dbLoadPerformerProfile(freshUser?.id ?? "");
+      if (existing?.name) {
+        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+        reset(); navigate("/performer"); return;
+      }
+      reset(); navigate("/performer/onboarding"); return;
     }
+    reset();
+    navigate("/dashboard");
   }, [role, reset, navigate]);
 
   // ESC to close
@@ -425,8 +412,7 @@ export function AuthModal() {
 
                       {/* Telegram login */}
                       <div className="mb-4">
-                        <TelegramLoginButton onAuth={handleTelegramAuth} loading={tgLoading} />
-                        {tgError && <p className="text-red-500 text-xs text-center mt-1">{tgError}</p>}
+                        <TelegramLoginButton onSuccess={handleTelegramSuccess} />
                       </div>
 
                       <div className="flex items-center gap-3 mb-4">

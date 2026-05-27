@@ -8,7 +8,6 @@ import { supabase } from "../../lib/supabase";
 import { AddressSuggest } from "../../components/ui/AddressSuggest";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { dbGetNotificationPrefs, dbUpdateNotificationPrefs } from "../../lib/pushDb";
-import { linkTelegramToAccount, type TelegramUser } from "../../hooks/useTelegramAuth";
 import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 import type { UserProfile } from "../types";
 
@@ -266,22 +265,11 @@ function TelegramLinkSection({ user }: { user: { user_metadata?: Record<string, 
   const linkedName = (meta?.telegram_name as string) ?? (meta?.first_name as string) ?? null;
   const linkedUsername = meta?.telegram_username as string | undefined;
 
-  const [linking, setLinking] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleLink = useCallback(async (tgUser: TelegramUser) => {
-    setLinking(true);
-    setError("");
-    try {
-      await linkTelegramToAccount(tgUser);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка привязки");
-    } finally {
-      setLinking(false);
-    }
+  const handleLink = useCallback(async () => {
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 3000);
   }, []);
 
   const handleUnlink = async () => {
@@ -330,8 +318,7 @@ function TelegramLinkSection({ user }: { user: { user_metadata?: Record<string, 
           <p className="text-sm text-gray-500">
             Привяжите Telegram, чтобы входить без email и видеть все заказы в одном месте.
           </p>
-          <TelegramLoginButton onAuth={handleLink} loading={linking} />
-          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          <TelegramLoginButton onSuccess={handleLink} linkMode />
           {success && (
             <p className="text-xs text-green-600 text-center font-medium">Telegram привязан!</p>
           )}
