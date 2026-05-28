@@ -177,6 +177,18 @@ export function ArticlePage() {
 
   const related = ARTICLES.filter((a) => a.categorySlug === article.categorySlug && a.slug !== article.slug).slice(0, 2);
 
+  const CTA_NEED: Record<string, string> = {
+    electrician: "Нужен электрик?",
+    plumber: "Нужен сантехник?",
+    cleaning: "Нужна уборка?",
+    "dry-cleaning": "Нужна химчистка?",
+    "furniture-assembly": "Нужна сборка мебели?",
+    handyman: "Нужен мастер на час?",
+    "door-installation": "Нужна установка дверей?",
+    "tv-installation": "Нужна установка ТВ?",
+  };
+  const ctaNeed = CTA_NEED[article.relatedServiceSlug] ?? "Нужен мастер?";
+
   return (
     <div className="min-h-screen bg-white">
       <PublicHeader />
@@ -237,7 +249,7 @@ export function ArticlePage() {
 
         {/* CTA */}
         <div className="mt-10 rounded-3xl bg-gray-950 text-white p-7 text-center">
-          <p className="font-black text-lg mb-1">Нужен {article.category.toLowerCase()}?</p>
+          <p className="font-black text-lg mb-1">{ctaNeed}</p>
           <p className="text-gray-300 text-sm mb-5">Рассчитайте стоимость и выберите удобное время</p>
           <Link
             to="/calculator"
