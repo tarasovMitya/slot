@@ -160,7 +160,12 @@ export function ArticlePage() {
 
   usePageMeta(
     article
-      ? { title: article.metaTitle, description: article.metaDescription, canonical: `https://slot-home.ru/blog/${article.slug}` }
+      ? {
+          title: article.metaTitle,
+          description: article.metaDescription,
+          canonical: `https://slot-home.ru/blog/${article.slug}`,
+          image: article.coverImage,
+        }
       : { title: "Статья не найдена", robots: "noindex" }
   );
 

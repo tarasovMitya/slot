@@ -5,6 +5,7 @@ interface PageMeta {
   description?: string;
   robots?: string;
   canonical?: string;
+  image?: string;
 }
 
 const DEFAULT_TITLE = "SLOT — сервис бытовых услуг с проверенными исполнителями";
@@ -31,16 +32,25 @@ function setCanonical(href: string) {
   el.href = href;
 }
 
-export function usePageMeta({ title, description, robots, canonical }: PageMeta = {}) {
+export function usePageMeta({ title, description, robots, canonical, image }: PageMeta = {}) {
   useEffect(() => {
     const resolvedTitle = title ? `${title} — SLOT` : DEFAULT_TITLE;
+    const resolvedImage = image
+      ? (image.startsWith("http") ? image : `https://slot-home.ru${image}`)
+      : "https://slot-home.ru/favicon.svg";
     document.title = resolvedTitle;
     setMeta("description", description ?? DEFAULT_DESCRIPTION);
     setMeta("robots", robots ?? "index, follow");
     setMeta("og:title", resolvedTitle, "property");
     setMeta("og:description", description ?? DEFAULT_DESCRIPTION, "property");
+    setMeta("og:image", resolvedImage, "property");
+    setMeta("og:image:width", "1792", "property");
+    setMeta("og:image:height", "1008", "property");
+    setMeta("og:type", "article", "property");
+    setMeta("twitter:card", image ? "summary_large_image" : "summary");
     setMeta("twitter:title", resolvedTitle);
     setMeta("twitter:description", description ?? DEFAULT_DESCRIPTION);
+    setMeta("twitter:image", resolvedImage);
     if (canonical) setCanonical(canonical);
 
     return () => {
