@@ -378,6 +378,18 @@ http.createServer(async (req, res) => {
     return;
   }
 
+  // RSS feed for Yandex Dzen / search engines
+  if (pathname === "/rss.xml") {
+    const rssFile = path.join(DIST, "rss.xml");
+    if (fs.existsSync(rssFile)) {
+      res.setHeader("Content-Type", "application/rss+xml; charset=utf-8");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return fs.createReadStream(rssFile).pipe(res);
+    }
+    res.writeHead(404);
+    return res.end("RSS not found — rebuild required");
+  }
+
   // Proxy Supabase requests through the server (bypasses regional DNS blocking)
   if (req.url.startsWith("/supabase-proxy")) {
     if (!supabaseHost) {
