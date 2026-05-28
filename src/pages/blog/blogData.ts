@@ -1895,7 +1895,6 @@ export const ARTICLES: Article[] = [
     metaTitle: "Засор в трубах: прочистить самому или вызвать сантехника",
     metaDescription: "Как прочистить засор в раковине, ванной или унитазе. Вантуз, трос, химия — что работает. Цены сантехника в Москве 2026.",
     relatedServiceSlug: "plumber",
-    coverImage: "/blog-images/zasor-v-trubah-kak-prochistit.jpg",
     sections: [
             {
                   "type": "p",
