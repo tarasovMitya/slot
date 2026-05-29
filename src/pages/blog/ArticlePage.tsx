@@ -87,12 +87,26 @@ function injectArticleSchema(article: ReturnType<typeof getArticle>) {
   script.type = "application/ld+json";
   script.id = "article-ld-json";
 
-  const faqBlocks = article.sections.filter((s) => s.type === "h2" && (s as { type: string; text: string }).text.toLowerCase().includes("вопрос"));
-  const hasFaq = faqBlocks.length > 0;
-
   const coverImageUrl = article.coverImage
     ? `https://slot-home.ru${article.coverImage}`
     : "https://slot-home.ru/favicon.svg";
+
+  // Collect only h3+p pairs that appear AFTER an h2 containing "вопрос"
+  const faqPairs: { q: string; a: string }[] = [];
+  let inFaqSection = false;
+  let currentQ = "";
+  for (const block of article.sections) {
+    if (block.type === "h2") {
+      const text = (block as { type: string; text: string }).text.toLowerCase();
+      inFaqSection = text.includes("вопрос") || text.includes("faq");
+      currentQ = "";
+    } else if (inFaqSection && block.type === "h3") {
+      currentQ = (block as { type: string; text: string }).text;
+    } else if (inFaqSection && block.type === "p" && currentQ) {
+      faqPairs.push({ q: currentQ, a: (block as { type: string; text: string }).text });
+      currentQ = "";
+    }
+  }
 
   const graph: object[] = [
     {
@@ -126,27 +140,15 @@ function injectArticleSchema(article: ReturnType<typeof getArticle>) {
     },
   ];
 
-  if (hasFaq) {
-    const qaPairs: { q: string; a: string }[] = [];
-    let currentQ = "";
-    for (const block of article.sections) {
-      if (block.type === "h3") {
-        currentQ = (block as { type: string; text: string }).text;
-      } else if (block.type === "p" && currentQ) {
-        qaPairs.push({ q: currentQ, a: (block as { type: string; text: string }).text });
-        currentQ = "";
-      }
-    }
-    if (qaPairs.length > 0) {
-      graph.push({
-        "@type": "FAQPage",
-        mainEntity: qaPairs.map(({ q, a }) => ({
-          "@type": "Question",
-          name: q,
-          acceptedAnswer: { "@type": "Answer", text: a },
-        })),
-      });
-    }
+  if (faqPairs.length > 0) {
+    graph.push({
+      "@type": "FAQPage",
+      mainEntity: faqPairs.map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    });
   }
 
   script.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
