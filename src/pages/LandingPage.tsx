@@ -46,15 +46,6 @@ const VALUE_PROPS = [
   { icon: Lock,       title: "Весь процесс — в кабинете",   desc: "Статус заказа, контакты исполнителя, история — всё в одном месте." },
 ];
 
-const STEPS = [
-  { n: "01", title: "Выберите услугу",        desc: "Электрика, сантехника, уборка и другие категории" },
-  { n: "02", title: "Укажите параметры",      desc: "Тип работ, объём, условия — калькулятор учтёт всё" },
-  { n: "03", title: "Получите стоимость",     desc: "Точная сумма до оплаты, без сюрпризов" },
-  { n: "04", title: "Войдите по email",       desc: "Одноразовый код — без паролей и регистрации" },
-  { n: "05", title: "Оплатите заказ",         desc: "Безопасная оплата картой онлайн" },
-  { n: "06", title: "Исполнитель примет",     desc: "Свободный мастер возьмёт заказ" },
-  { n: "07", title: "Следите за статусом",    desc: "Уведомления и контакты мастера в кабинете" },
-];
 
 const TRUST = [
   { icon: UserCheck,    title: "Проверенные исполнители", desc: "Верификация документов и рейтинговая система" },
@@ -68,6 +59,33 @@ const PERFORMER_BENEFITS = [
   { title: "Заказы рядом",        desc: "Фильтрация по вашему местоположению" },
   { title: "Выплаты на карту",    desc: "Вывод средств без задержек" },
   { title: "Личный кабинет",      desc: "Управление заказами и заработком онлайн" },
+];
+
+const CUSTOMER_STORIES = [
+  {
+    name: "Анна, Бутово",
+    service: "Электрика",
+    accent: "bg-amber-50 border-amber-100",
+    badge: "text-amber-700 bg-amber-100",
+    quote: "У мастера сломалась машина по дороге. Он взял 12 кг инструментов и поехал на метро через три пересадки — потому что слово дал.",
+    slug: "/blog/story-elektrik-s-instrumentami",
+  },
+  {
+    name: "Светлана, Митино",
+    service: "Сборка мебели",
+    accent: "bg-blue-50 border-blue-100",
+    badge: "text-blue-700 bg-blue-100",
+    quote: "Кухню собрали на следующий день после доставки. У нас трое детей и квартира вся в коробках — это было настоящим спасением.",
+    slug: "/blog/story-sborka-kuhni-sem-ya",
+  },
+  {
+    name: "Дарья, Выхино",
+    service: "Уборка",
+    accent: "bg-green-50 border-green-100",
+    badge: "text-green-700 bg-green-100",
+    quote: "Позвонила в панике за 5 часов до прихода гостей. Клинер пришёл через час и убрал всё после ремонта. Гости не верили, что маляры были здесь вчера.",
+    slug: "/blog/story-uborka-pered-gostami",
+  },
 ];
 
 const FAQ = [
@@ -543,6 +561,45 @@ function TrustSection() {
   );
 }
 
+// ─── Customer Stories ─────────────────────────────────────────────────────────
+
+function CustomerStoriesSection() {
+  return (
+    <section className="py-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={vp}>
+          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">Истории клиентов</h2>
+              <p className="text-gray-500 mt-2">Реальные ситуации — реальные люди</p>
+            </div>
+            <Link to="/blog" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors shrink-0 flex items-center gap-1">
+              Все истории <ChevronRight size={16} />
+            </Link>
+          </motion.div>
+
+          <motion.div variants={stagger} className="grid sm:grid-cols-3 gap-5">
+            {CUSTOMER_STORIES.map((s) => (
+              <motion.div key={s.slug} variants={fadeUp}>
+                <Link
+                  to={s.slug}
+                  className={`block rounded-2xl border p-6 h-full hover:shadow-md transition-shadow ${s.accent}`}
+                >
+                  <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full mb-4 ${s.badge}`}>
+                    {s.service}
+                  </span>
+                  <p className="text-gray-800 text-sm leading-relaxed mb-5">«{s.quote}»</p>
+                  <p className="text-xs text-gray-400 font-medium">{s.name}</p>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Performer ────────────────────────────────────────────────────────────────
 
 function PerformerSection() {
@@ -849,6 +906,7 @@ export function LandingPage() {
         <HowItWorksSection />
         <CalculatorSection />
         <TrustSection />
+        <CustomerStoriesSection />
         <PerformerSection />
         <FAQSection />
         <FinalCTASection />
