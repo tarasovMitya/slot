@@ -973,7 +973,7 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
-    slug: "vызов-mastera-na-chas-chto-mozhno-zakazat",
+    slug: "vyzov-mastera-na-chas-chto-mozhno-zakazat",
     title: "Муж на час: полный список задач, с которыми справится мастер",
     excerpt: "Сборка мебели, мелкий ремонт, навеска картин, замена замков — что конкретно входит в услугу и сколько задач можно решить за один визит.",
     category: "Муж на час",

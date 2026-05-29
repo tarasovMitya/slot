@@ -109,14 +109,14 @@ async function gscPost(token, path, body) {
 
 // ── URL Inspection ─────────────────────────────────────────────────────────
 async function inspectUrl(token, inspectionUrl) {
-  const data = await gscPost(token, "/v1/urlInspectionResult:inspect", {
+  const data = await gscPost(token, "/v1/urlInspection/index:inspect", {
     inspectionUrl,
     siteUrl: SITE_URL,
   });
 
   if (data.error) return { url: inspectionUrl, error: data.error.message };
 
-  const result = data.urlInspectionResult;
+  const result = data.inspectionResult;
   const index = result?.indexStatusResult;
   return {
     url: inspectionUrl,
@@ -152,19 +152,27 @@ async function cmdInspect(token, url) {
   if (r.canonical !== r.url && r.canonical !== "—") console.log(`     Canonical → ${r.canonical}`);
 }
 
+async function inspectWithRetry(token, url, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await inspectUrl(token, url);
+    } catch (e) {
+      if (attempt < retries) await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+      else return { url, error: e.message };
+    }
+  }
+}
+
 async function cmdCheckAll(token) {
   const urls = getArticleUrls();
   console.log(`\n🔍 Checking ${urls.length} article pages...\n`);
 
   const results = [];
-  const CONCURRENCY = 5;
-
-  for (let i = 0; i < urls.length; i += CONCURRENCY) {
-    const batch = urls.slice(i, i + CONCURRENCY);
-    const batch_results = await Promise.all(batch.map((u) => inspectUrl(token, u)));
-    results.push(...batch_results);
-    // GSC API rate limit: ~1200 requests/minute
-    await new Promise((r) => setTimeout(r, 300));
+  for (let i = 0; i < urls.length; i++) {
+    const r = await inspectWithRetry(token, urls[i]);
+    results.push(r);
+    process.stdout.write(`  ${i + 1}/${urls.length} ${r.verdict ?? "ERR"}\r`);
+    await new Promise(res => setTimeout(res, 500));
   }
 
   const indexed = results.filter((r) => r.verdict === "PASS");
