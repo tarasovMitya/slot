@@ -1,5 +1,5 @@
 // Google Search Console API manager
-// Authenticates via service account (GSC_SERVICE_ACCOUNT_JSON env var).
+// Auth priority: OAuth2 refresh token (GSC_REFRESH_TOKEN) > service account (GSC_SERVICE_ACCOUNT_JSON)
 // Usage:
 //   node scripts/gsc.mjs inspect <url>
 //   node scripts/gsc.mjs check-all
@@ -14,29 +14,35 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 
 const SITE_URL = "https://slot-home.ru/";
-const PROPERTY = "sc-domain:slot-home.ru"; // domain property (fallback: https://slot-home.ru/)
+const PROPERTY = "sc-domain:slot-home.ru";
 
-// ── Service Account JWT Auth ───────────────────────────────────────────────
-function getServiceAccount() {
-  const json = process.env.GSC_SERVICE_ACCOUNT_JSON;
-  if (!json) {
-    console.error("❌ GSC_SERVICE_ACCOUNT_JSON env var not set.");
-    console.error("   Set it in Railway → service → Variables.");
-    process.exit(1);
-  }
-  try {
-    return JSON.parse(json);
-  } catch {
-    console.error("❌ GSC_SERVICE_ACCOUNT_JSON is not valid JSON");
-    process.exit(1);
-  }
+// ── OAuth2 Refresh Token Auth ──────────────────────────────────────────────
+async function getAccessTokenOAuth() {
+  const clientId = process.env.GSC_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.GSC_OAUTH_CLIENT_SECRET;
+  const refreshToken = process.env.GSC_REFRESH_TOKEN;
+
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+  const data = await res.json();
+  if (!data.access_token) throw new Error(`OAuth refresh failed: ${JSON.stringify(data)}`);
+  return data.access_token;
 }
 
+// ── Service Account JWT Auth ───────────────────────────────────────────────
 function base64url(buf) {
   return Buffer.from(buf).toString("base64url");
 }
 
-async function getAccessToken(sa) {
+async function getAccessTokenServiceAccount(sa) {
   const now = Math.floor(Date.now() / 1000);
   const header = base64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claim = base64url(JSON.stringify({
@@ -62,8 +68,26 @@ async function getAccessToken(sa) {
     }),
   });
   const data = await res.json();
-  if (!data.access_token) throw new Error(`Auth failed: ${JSON.stringify(data)}`);
+  if (!data.access_token) throw new Error(`Service account auth failed: ${JSON.stringify(data)}`);
   return data.access_token;
+}
+
+// ── Auth router ────────────────────────────────────────────────────────────
+async function getAccessToken() {
+  if (process.env.GSC_REFRESH_TOKEN && process.env.GSC_OAUTH_CLIENT_ID && process.env.GSC_OAUTH_CLIENT_SECRET) {
+    console.log("🔑 Using OAuth2 refresh token");
+    return getAccessTokenOAuth();
+  }
+  if (process.env.GSC_SERVICE_ACCOUNT_JSON) {
+    let sa;
+    try { sa = JSON.parse(process.env.GSC_SERVICE_ACCOUNT_JSON); } catch {
+      console.error("❌ GSC_SERVICE_ACCOUNT_JSON is not valid JSON"); process.exit(1);
+    }
+    console.log(`🔑 Using service account: ${sa.client_email}`);
+    return getAccessTokenServiceAccount(sa);
+  }
+  console.error("❌ No GSC credentials found. Set either:\n  GSC_REFRESH_TOKEN + GSC_OAUTH_CLIENT_ID + GSC_OAUTH_CLIENT_SECRET\n  or GSC_SERVICE_ACCOUNT_JSON");
+  process.exit(1);
 }
 
 // ── GSC API helpers ────────────────────────────────────────────────────────
@@ -227,9 +251,7 @@ if (!cmd) {
   process.exit(0);
 }
 
-const sa = getServiceAccount();
-const token = await getAccessToken(sa);
-console.log(`🔑 Authenticated as ${sa.client_email}`);
+const token = await getAccessToken();
 
 switch (cmd) {
   case "inspect":
