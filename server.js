@@ -28,6 +28,10 @@ const MIME = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".ico": "image/x-icon",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml",
+  ".json": "application/json",
+  ".webmanifest": "application/manifest+json",
   ".woff": "font/woff",
   ".woff2": "font/woff2",
 };
