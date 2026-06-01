@@ -12,6 +12,47 @@ const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const DADATA_KEY = process.env.VITE_DADATA_KEY || "";
 const DIST = path.join(__dirname, "dist");
 
+// ── Blog SSR data ─────────────────────────────────────────────────────────────
+let BLOG_ARTICLES = [];
+try {
+  const dataPath = path.join(DIST, "articles-data.json");
+  if (fs.existsSync(dataPath)) {
+    BLOG_ARTICLES = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
+    console.log(`Blog SSR: loaded ${BLOG_ARTICLES.length} articles`);
+  }
+} catch (e) {
+  console.warn("Blog SSR: failed to load articles-data.json", e.message);
+}
+
+function renderBlogHtml(article, baseHtml) {
+  const sections = article.sections || [];
+  let body = "";
+  for (const s of sections.slice(0, 10)) {
+    if (s.type === "p") body += `<p>${s.text}</p>`;
+    else if (s.type === "h2") body += `<h2>${s.text}</h2>`;
+    else if (s.type === "h3") body += `<h3>${s.text}</h3>`;
+    else if (s.type === "ul") body += `<ul>${(s.items||[]).map(i=>`<li>${i}</li>`).join("")}</ul>`;
+    else if (s.type === "tip") body += `<p><em>${s.text}</em></p>`;
+  }
+  const title = article.metaTitle || article.title;
+  const desc = article.metaDescription || article.excerpt || "";
+  const url = `https://slot-home.ru/blog/${article.slug}`;
+  const img = `https://slot-home.ru/blog-images/${article.slug}.jpg`;
+
+  return baseHtml
+    .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
+    .replace(/<meta name="description" content="[^"]*"/, `<meta name="description" content="${desc.replace(/"/g,'&quot;')}"`)
+    .replace(/<link rel="canonical" href="[^"]*"/, `<link rel="canonical" href="${url}"`)
+    .replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${title.replace(/"/g,'&quot;')}"`)
+    .replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${desc.replace(/"/g,'&quot;')}"`)
+    .replace(/<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${url}"`)
+    .replace(/<meta property="og:type" content="[^"]*"/, `<meta property="og:type" content="article"`)
+    .replace(
+      '<div id="root"></div>',
+      `<div id="root"><main><h1>${article.title}</h1><article>${body}</article></main></div>`
+    );
+}
+
 fs.writeFileSync(
   path.join(DIST, "runtime-env.js"),
   `window.__env__ = { VITE_SUPABASE_ANON_KEY: '${SUPABASE_ANON_KEY}', VITE_DADATA_KEY: '${DADATA_KEY}' };\n`
@@ -426,6 +467,20 @@ http.createServer(async (req, res) => {
       if (!res.headersSent) { res.writeHead(502); res.end("Proxy error"); }
     });
     return req.pipe(proxy);
+  }
+
+  // Blog SSR — inject article content into HTML for crawlers
+  const blogMatch = pathname.match(/^\/blog\/([a-z0-9-]+)\/?$/);
+  if (blogMatch && BLOG_ARTICLES.length > 0) {
+    const slug = blogMatch[1];
+    const article = BLOG_ARTICLES.find(a => a.slug === slug);
+    if (article) {
+      const baseHtml = fs.readFileSync(path.join(DIST, "index.html"), "utf-8");
+      const rendered = renderBlogHtml(article, baseHtml);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.end(rendered);
+    }
   }
 
   // Static file serving
