@@ -581,7 +581,7 @@ function CustomerStoriesSection() {
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">Истории клиентов</h2>
               <p className="text-gray-500 mt-2">Реальные ситуации — реальные люди</p>
             </div>
-            <Link to="/blog" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors shrink-0 flex items-center gap-1">
+            <Link to="/blog?category=Истории клиентов" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors shrink-0 flex items-center gap-1">
               Все истории <ChevronRight size={16} />
             </Link>
           </motion.div>

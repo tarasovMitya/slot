@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Clock, ChevronRight, MapPin } from "lucide-react";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { PublicHeader } from "../../components/PublicHeader";
@@ -15,6 +15,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Сборка мебели":    "bg-purple-50 text-purple-700 border-purple-200",
   "Установка ТВ":     "bg-gray-100 text-gray-700 border-gray-200",
   "Установка дверей": "bg-red-50 text-red-700 border-red-200",
+  "Истории клиентов": "bg-rose-50 text-rose-700 border-rose-200",
 };
 
 const CATEGORY_COLORS_BADGE: Record<string, string> = {
@@ -25,12 +26,21 @@ const CATEGORY_COLORS_BADGE: Record<string, string> = {
   "Сборка мебели":    "bg-purple-50 text-purple-700",
   "Установка ТВ":     "bg-gray-100 text-gray-700",
   "Установка дверей": "bg-red-50 text-red-700",
+  "Истории клиентов": "bg-rose-50 text-rose-700",
 };
 
 const ALL_CATEGORIES = Array.from(new Set(ARTICLES.map((a) => a.category)));
 
 export function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    searchParams.get("category") ?? null
+  );
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat) setActiveCategory(cat);
+  }, [searchParams]);
 
   usePageMeta({
     title: "Блог — советы по бытовым услугам",
