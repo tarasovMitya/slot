@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { Wrench } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { dbLoadPerformerProfile } from "../../lib/db";
@@ -176,8 +175,8 @@ export function PerformerAuthPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center mx-auto mb-4">
-            <Wrench size={22} stroke="white" strokeWidth={2.5} />
+          <div className="flex justify-center mb-4">
+            <img src="/logo-full.svg" alt="SLOT" className="h-10 w-auto" />
           </div>
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Портал исполнителей</p>
         </div>

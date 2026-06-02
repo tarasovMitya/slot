@@ -40,7 +40,7 @@ export function PerformerSidebar() {
       {/* Logo */}
       <div className="px-6 py-6 border-b border-gray-50">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-gray-900 tracking-tight">SLOT</span>
+          <img src="/logo-full.svg" alt="SLOT" className="h-7 w-auto" />
           <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Про</span>
         </div>
       </div>

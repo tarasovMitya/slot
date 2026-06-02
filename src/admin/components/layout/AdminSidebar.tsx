@@ -25,7 +25,7 @@ export function AdminSidebar() {
   return (
     <aside className="w-56 shrink-0 bg-gray-900 min-h-screen flex flex-col">
       <div className="px-4 py-5 border-b border-gray-800">
-        <p className="text-white font-bold text-sm tracking-tight">SLOT Admin</p>
+        <img src="/logo-full.svg" alt="SLOT" className="h-6 w-auto brightness-0 invert mb-1" />
         <p className="text-gray-500 text-xs mt-0.5">{role ? ROLE_LABELS[role] : ""}</p>
       </div>
 
