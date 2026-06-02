@@ -407,67 +407,75 @@ function ValueSection() {
 
 const HOW_STEPS = [
   {
-    title: "Опишите задачу",
-    desc: "Мы зададим несколько вопросов, чтобы специалисты смогли оценить работу.",
+    title: "Рассчитайте стоимость",
+    desc: "Выберите услугу в калькуляторе и укажите параметры — цена формируется сразу, без звонков и торга.",
     bg: "bg-rose-50",
     visual: (
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <p className="text-sm font-semibold text-gray-800 mb-3">Где вам удобно встретиться</p>
-        {["Дистанционно", "У специалиста", "У меня"].map((opt, i) => (
-          <div key={opt} className="flex items-center gap-2.5 py-1.5">
-            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${i === 0 ? "border-gray-900 bg-gray-900" : "border-gray-300"}`}>
-              {i === 0 && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-            </div>
-            <span className="text-sm text-gray-700">{opt}</span>
+      <div className="bg-white rounded-2xl p-4 shadow-sm flex flex-col gap-2.5">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Калькулятор</p>
+        {[
+          { label: "Тип услуги", value: "Электрик" },
+          { label: "Работа", value: "Замена розетки" },
+          { label: "Количество", value: "2 шт." },
+        ].map((row) => (
+          <div key={row.label} className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">{row.label}</span>
+            <span className="text-xs font-medium text-gray-800 bg-gray-50 px-2.5 py-1 rounded-lg">{row.value}</span>
           </div>
         ))}
+        <div className="border-t border-gray-100 pt-2 flex items-center justify-between">
+          <span className="text-xs text-gray-400">Итого</span>
+          <span className="text-sm font-bold text-gray-900">1 600 ₽</span>
+        </div>
       </div>
     ),
   },
   {
-    title: "Специалисты напишут сами",
-    desc: "Покажем задачу подходящим профи. Они напишут, если готовы помочь.",
+    title: "Мы назначаем мастера",
+    desc: "Заказ получают только проверенные специалисты из вашего района. Первый свободный мастер берёт заказ.",
     bg: "bg-amber-50",
     visual: (
       <div className="flex flex-col gap-2">
-        {[
-          { name: "Ирина", rating: "5,0", msg: "Добрый день! Готова помочь", color: "bg-purple-500" },
-          { name: "Василий", rating: "4,8", msg: "Здравствуйте! Живу недалеко", color: "bg-orange-400" },
-          { name: "Наиль", rating: "4,9", msg: "Здравствуйте! Когда нужна услуга", color: "bg-rose-400" },
-        ].map((p) => (
-          <div key={p.name} className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-2.5 shadow-sm">
-            <div className={`w-8 h-8 rounded-full ${p.color} flex items-center justify-center shrink-0`}>
-              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-gray-900">{p.name} <span className="text-amber-500">☆</span> {p.rating}</p>
-              <p className="text-xs text-gray-400 truncate">{p.msg}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    title: "Выберите подходящего",
-    desc: "Обо всех деталях договаривайтесь со специалистом и платите ему напрямую.",
-    bg: "bg-violet-50",
-    visual: (
-      <div className="flex flex-col gap-2.5">
         <div className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-2.5 shadow-sm">
           <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center shrink-0">
             <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
           </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-900">Василий</p>
-            <p className="text-xs text-gray-400"><span className="text-amber-500">☆</span> 4,8 · 57 отзывов</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-gray-900">Василий <span className="text-amber-500">☆</span> 4,8</p>
+            <p className="text-xs text-gray-400">57 выполненных заказов</p>
+          </div>
+          <div className="shrink-0">
+            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Назначен</span>
           </div>
         </div>
-        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm">
-          <p className="text-sm font-medium text-gray-800">Все вместе 2000 рублей</p>
+        <div className="bg-white rounded-xl px-3 py-2.5 shadow-sm flex items-center gap-2">
+          <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p className="text-xs text-gray-600">Документы и опыт проверены</p>
         </div>
-        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm">
-          <p className="text-sm font-medium text-gray-800">Когда вам удобно?</p>
+        <div className="bg-white rounded-xl px-3 py-2.5 shadow-sm flex items-center gap-2">
+          <svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <p className="text-xs text-gray-600">Работает в вашем районе</p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: "Мастер приедет к вам",
+    desc: "Специалист приезжает в удобное время и выполняет работу у вас дома. Оплата после выполнения.",
+    bg: "bg-violet-50",
+    visual: (
+      <div className="flex flex-col gap-2.5">
+        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2.5">
+          <svg className="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <p className="text-sm font-medium text-gray-800">Выезд на дом к клиенту</p>
+        </div>
+        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2.5">
+          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p className="text-sm font-medium text-gray-800">В удобное для вас время</p>
+        </div>
+        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2.5">
+          <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p className="text-sm font-medium text-gray-800">Оплата после выполнения</p>
         </div>
       </div>
     ),
