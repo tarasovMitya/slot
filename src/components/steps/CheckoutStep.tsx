@@ -184,7 +184,7 @@ export function CheckoutStep() {
 
         {/* Price disclaimer */}
         <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          Стоимость является предварительной оценкой. Финальная стоимость согласовывается с исполнителем.
+          Стоимость фиксируется при оформлении заказа и не может быть изменена.
         </div>
 
         {/* TEST MODE notice */}
