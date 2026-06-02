@@ -21,11 +21,8 @@ export function PublicHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
-            <span className="text-white text-[10px] font-black tracking-tight">SL</span>
-          </div>
-          <span className="font-black text-gray-900 tracking-tight">SLOT</span>
+        <Link to="/" className="flex items-center shrink-0">
+          <img src="/logo-full.svg" alt="SLOT" className="h-7 w-auto" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-5">
