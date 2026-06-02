@@ -121,11 +121,14 @@ export function OrderDetailsPage() {
             <span className="text-sm font-bold text-gray-900">Итого</span>
             <span className="text-base font-bold text-gray-900">{formatPrice(order.priceTotal)}</span>
           </div>
-          {!ENABLE_PAYMENTS && (
-            <p className="text-xs text-blue-600 mt-2">
-              Стоимость фиксируется при оформлении заказа и не может быть изменена.
-            </p>
-          )}
+          <p className="text-xs text-blue-600 mt-2">
+            Стоимость фиксируется при оформлении заказа и не может быть изменена.
+            {" "}Если исполнитель назвал другую сумму после уточнения деталей —{" "}
+            <a href="/dashboard/support" className="underline font-medium hover:text-blue-800 transition-colors">
+              напишите в поддержку
+            </a>
+            {" "}для урегулирования.
+          </p>
         </Section>
 
         {/* Performer */}

@@ -185,6 +185,11 @@ export function CheckoutStep() {
         {/* Price disclaimer */}
         <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           Стоимость фиксируется при оформлении заказа и не может быть изменена.
+          {" "}Если исполнитель назвал другую сумму после уточнения деталей —{" "}
+          <a href="/dashboard/support" className="underline font-medium hover:text-blue-900 transition-colors">
+            напишите в поддержку
+          </a>
+          {" "}для урегулирования.
         </div>
 
         {/* TEST MODE notice */}
