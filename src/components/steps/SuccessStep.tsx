@@ -80,7 +80,7 @@ export function SuccessStep() {
       <div className="w-full max-w-xs mt-4 flex flex-col gap-3">
         <button
           onClick={handleGoToDashboard}
-          className="w-full py-4 rounded-2xl bg-black text-white text-base font-semibold hover:bg-gray-800 transition-all active:scale-95"
+          className="w-full py-4 rounded-2xl bg-[#006AFF] text-white text-base font-semibold hover:bg-[#004CB8] transition-all active:scale-95"
         >
           Перейти к оплате →
         </button>

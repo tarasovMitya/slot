@@ -440,7 +440,7 @@ export function AuthModal() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm disabled:opacity-50 hover:bg-gray-800 transition-all active:scale-95"
+                          className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm disabled:opacity-50 hover:bg-[#004CB8] transition-all active:scale-95"
                         >
                           {loading ? "Отправляем..." : "Получить код"}
                         </button>
@@ -490,7 +490,7 @@ export function AuthModal() {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm disabled:opacity-50 hover:bg-gray-800 transition-all active:scale-95"
+                          className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm disabled:opacity-50 hover:bg-[#004CB8] transition-all active:scale-95"
                         >
                           {loading ? "Отправляем..." : "Продолжить"}
                         </button>
@@ -530,7 +530,7 @@ export function AuthModal() {
                       <button
                         onClick={handleVerifyOtp}
                         disabled={loading || otp.join("").length < 6}
-                        className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm disabled:opacity-50 hover:bg-gray-800 transition-all active:scale-95 mb-4"
+                        className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm disabled:opacity-50 hover:bg-[#004CB8] transition-all active:scale-95 mb-4"
                       >
                         {loading ? "Проверяем..." : "Войти"}
                       </button>

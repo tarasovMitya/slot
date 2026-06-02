@@ -23,7 +23,7 @@ export function SearchingPerformerView() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 rounded-full border-2 border-gray-100 border-t-black"
+          className="absolute inset-0 rounded-full border-2 border-gray-100 border-t-[#006AFF]"
         />
         <motion.div
           animate={{ scale: [1, 1.08, 1] }}
@@ -57,7 +57,7 @@ export function SearchingPerformerView() {
                 step.done
                   ? "bg-black"
                   : step.active
-                  ? "border-2 border-black bg-white"
+                  ? "border-2 border-[#006AFF] bg-white"
                   : "border-2 border-gray-200 bg-white"
               }`}
             >

@@ -283,7 +283,7 @@ export function AuthStep() {
                 className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
                   emailForm.formState.errors.email
                     ? "border-red-400"
-                    : "border-gray-100 focus:border-black"
+                    : "border-gray-100 focus:border-[#006AFF]"
                 }`}
               />
               {emailForm.formState.errors.email && (
@@ -295,7 +295,7 @@ export function AuthStep() {
               <button
                 type="submit"
                 disabled={loading || cooldown > 0}
-                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
               >
                 {loading ? "Отправляем..." : cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"}
               </button>
@@ -335,7 +335,7 @@ export function AuthStep() {
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
                   className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 outline-none transition-colors ${
-                    digit ? "border-black bg-gray-50" : "border-gray-100 focus:border-gray-400"
+                    digit ? "border-[#006AFF] bg-gray-50" : "border-gray-100 focus:border-gray-400"
                   }`}
                 />
               ))}
@@ -346,7 +346,7 @@ export function AuthStep() {
             <button
               onClick={handleVerifyOtp}
               disabled={loading || otp.join("").length < 6}
-              className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+              className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
             >
               {loading ? "Проверяем..." : "Подтвердить"}
             </button>
@@ -402,7 +402,7 @@ export function AuthStep() {
                   className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
                     profileForm.formState.errors.name
                       ? "border-red-400"
-                      : "border-gray-100 focus:border-black"
+                      : "border-gray-100 focus:border-[#006AFF]"
                   }`}
                 />
                 {profileForm.formState.errors.name && (
@@ -420,7 +420,7 @@ export function AuthStep() {
                   placeholder="+7 (999) 999-99-99"
                   inputMode="numeric"
                   className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
-                    phoneError ? "border-red-400" : "border-gray-100 focus:border-black"
+                    phoneError ? "border-red-400" : "border-gray-100 focus:border-[#006AFF]"
                   }`}
                 />
                 {phoneError && (
@@ -436,7 +436,7 @@ export function AuthStep() {
                     type="button"
                     onClick={() => { setSelectedAddressId(a.id); setAddressError(""); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-colors ${
-                      selectedAddressId === a.id ? "border-black bg-gray-50" : "border-gray-100 hover:border-gray-300"
+                      selectedAddressId === a.id ? "border-[#006AFF] bg-gray-50" : "border-gray-100 hover:border-gray-300"
                     }`}
                   >
                     <MapPin size={16} className={selectedAddressId === a.id ? "text-black" : "text-gray-400"} />
@@ -456,7 +456,7 @@ export function AuthStep() {
                   type="button"
                   onClick={() => { setSelectedAddressId("new"); setAddressError(""); }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-colors ${
-                    selectedAddressId === "new" ? "border-black bg-gray-50" : "border-gray-100 hover:border-gray-300"
+                    selectedAddressId === "new" ? "border-[#006AFF] bg-gray-50" : "border-gray-100 hover:border-gray-300"
                   }`}
                 >
                   <Plus size={16} className={selectedAddressId === "new" ? "text-black" : "text-gray-400"} />
@@ -507,13 +507,13 @@ export function AuthStep() {
                 {...profileForm.register("comment")}
                 placeholder="Комментарий (необязательно)"
                 rows={3}
-                className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-black text-lg outline-none transition-colors resize-none"
+                className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#006AFF] text-lg outline-none transition-colors resize-none"
               />
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 hover:bg-gray-800 active:scale-95 transition-all"
+                className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 hover:bg-[#004CB8] active:scale-95 transition-all"
               >
                 {loading ? "Сохраняем..." : "Далее"}
               </button>

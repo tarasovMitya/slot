@@ -48,7 +48,7 @@ export function SliderControl({
             onClick={() => onChange(v)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               value === v
-                ? "bg-black text-white"
+                ? "bg-[#006AFF] text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >

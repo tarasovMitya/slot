@@ -118,7 +118,7 @@ export function DashboardPage() {
             action={
               <button
                 onClick={handleNewOrder}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-[#006AFF] text-white text-sm font-semibold rounded-xl hover:bg-[#004CB8] transition-all"
               >
                 <Plus size={16} />
                 Новый заказ
@@ -198,7 +198,7 @@ export function DashboardPage() {
           </p>
           <button
             onClick={handleNewOrder}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#006AFF] text-white text-sm font-semibold rounded-xl hover:bg-[#004CB8] transition-all"
           >
             <RotateCcw size={14} />
             Повторить

@@ -54,7 +54,7 @@ export function PublicHeader() {
           )}
           <Link
             to="/calculator"
-            className="text-sm font-bold px-4 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition-all active:scale-95"
+            className="text-sm font-bold px-4 py-2 bg-[#006AFF] text-white rounded-xl hover:bg-[#004CB8] transition-all active:scale-95"
           >
             Заказать
           </Link>

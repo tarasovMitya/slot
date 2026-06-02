@@ -24,7 +24,7 @@ How to get them:
 }
 
 const REDIRECT_URI = "http://localhost:3001/oauth2callback";
-const SCOPES = "https://www.googleapis.com/auth/webmasters https://www.googleapis.com/auth/webmasters.readonly";
+const SCOPES = "https://www.googleapis.com/auth/webmasters https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/indexing";
 
 const authUrl =
   `https://accounts.google.com/o/oauth2/v2/auth` +

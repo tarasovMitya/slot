@@ -257,7 +257,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                   <button
                     onClick={handleNext}
                     disabled={isSubmitting}
-                    className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
+                    className="px-8 py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold hover:bg-[#004CB8] disabled:opacity-50 transition-all active:scale-95"
                   >
                     {isSubmitting ? "Оформляем..." : submitLabel}
                   </button>
@@ -331,7 +331,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                   <button
                     onClick={handleNext}
                     disabled={isSubmitting}
-                    className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
+                    className="px-8 py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold hover:bg-[#004CB8] disabled:opacity-50 transition-all active:scale-95"
                   >
                     {isSubmitting ? "Оформляем..." : submitLabel}
                   </button>

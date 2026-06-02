@@ -122,14 +122,14 @@ export function RatingModal({ performerName, onSubmit, onSkip }: RatingModalProp
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Расскажите подробнее (необязательно)"
                   rows={3}
-                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:border-black text-sm outline-none transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:border-[#006AFF] text-sm outline-none transition-colors resize-none"
                 />
 
                 <div className="w-full flex flex-col gap-2">
                   <button
                     onClick={handleSubmit}
                     disabled={rating === 0 || submitting}
-                    className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-40"
+                    className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base hover:bg-[#004CB8] transition-all active:scale-95 disabled:opacity-40"
                   >
                     {submitting ? "Отправляем..." : "Отправить отзыв"}
                   </button>

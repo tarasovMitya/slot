@@ -124,7 +124,7 @@ export function AvailableOrdersPage() {
               onClick={() => setSortBy(key)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 sortBy === key
-                  ? "bg-black text-white"
+                  ? "bg-[#006AFF] text-white"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >

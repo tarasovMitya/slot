@@ -131,7 +131,7 @@ export function MasterServicePage() {
           <div className="grid sm:grid-cols-3 gap-4">
             {steps.map((step, i) => (
               <div key={i} className="p-5 rounded-2xl border border-gray-100">
-                <div className="w-8 h-8 rounded-xl bg-black text-white text-sm font-black flex items-center justify-center mb-4">
+                <div className="w-8 h-8 rounded-xl bg-[#006AFF] text-white text-sm font-black flex items-center justify-center mb-4">
                   {i + 1}
                 </div>
                 <p className="font-bold text-gray-900 mb-1">{step.title}</p>

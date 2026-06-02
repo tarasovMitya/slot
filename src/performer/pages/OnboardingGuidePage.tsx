@@ -157,7 +157,7 @@ export function OnboardingGuidePage() {
       </div>
 
       {/* Support CTA */}
-      <div className="rounded-2xl bg-gray-900 text-white p-5 flex flex-col gap-3">
+      <div className="rounded-2xl bg-[#003B8F] text-white p-5 flex flex-col gap-3">
         <h3 className="font-bold text-base">Остались вопросы?</h3>
         <p className="text-sm text-gray-300">Команда поддержки поможет разобраться с любым вопросом. Работаем 9:00–22:00 МСК.</p>
         <Link

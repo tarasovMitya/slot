@@ -84,7 +84,7 @@ export function AcceptOrderModal({ order, onConfirm, onCancel }: AcceptOrderModa
               <button
                 onClick={() => setAgreed(!agreed)}
                 className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  agreed ? "bg-black border-black" : "border-gray-300"
+                  agreed ? "bg-[#006AFF] border-[#006AFF]" : "border-gray-300"
                 }`}
               >
                 {agreed && <Check size={11} className="text-white" strokeWidth={3} />}
@@ -105,7 +105,7 @@ export function AcceptOrderModal({ order, onConfirm, onCancel }: AcceptOrderModa
               <button
                 onClick={handleConfirm}
                 disabled={!agreed || submitting}
-                className="flex-1 py-3.5 rounded-2xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-40"
+                className="flex-1 py-3.5 rounded-2xl bg-[#006AFF] text-white text-sm font-semibold hover:bg-[#004CB8] transition-all active:scale-95 disabled:opacity-40"
               >
                 {submitting ? "Принимаем..." : "Принять заказ"}
               </button>

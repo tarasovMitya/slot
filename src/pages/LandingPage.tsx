@@ -124,7 +124,7 @@ function Header() {
           {isAuthenticated ? (
             <button
               onClick={() => openModal("cabinet")}
-              className="text-sm font-semibold bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-all active:scale-95"
+              className="text-sm font-semibold bg-[#006AFF] text-white px-4 py-2 rounded-xl hover:bg-[#004CB8] transition-all active:scale-95"
             >
               Мой кабинет
             </button>
@@ -138,7 +138,7 @@ function Header() {
               </button>
               <button
                 onClick={() => openModal("register")}
-                className="text-sm font-semibold bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-all active:scale-95"
+                className="text-sm font-semibold bg-[#006AFF] text-white px-4 py-2 rounded-xl hover:bg-[#004CB8] transition-all active:scale-95"
               >
                 Зарегистрироваться
               </button>
@@ -169,7 +169,7 @@ function Header() {
               {isAuthenticated ? (
                 <button
                   onClick={() => { setOpen(false); openModal("cabinet"); }}
-                  className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold"
+                  className="w-full py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold"
                 >
                   Мой кабинет
                 </button>
@@ -183,7 +183,7 @@ function Header() {
                   </button>
                   <button
                     onClick={() => { setOpen(false); openModal("register"); }}
-                    className="w-full py-3 rounded-xl bg-black text-white text-sm font-semibold"
+                    className="w-full py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold"
                   >
                     Зарегистрироваться
                   </button>
@@ -224,7 +224,7 @@ function HeroSection() {
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => navigate("/calculator")}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-black text-white font-semibold rounded-2xl hover:bg-gray-800 transition-all active:scale-95 text-base"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-[#006AFF] text-white font-semibold rounded-2xl hover:bg-[#004CB8] transition-all active:scale-95 text-base"
             >
               Рассчитать стоимость <ArrowRight size={18} />
             </button>
@@ -288,7 +288,7 @@ function HeroSection() {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
-                className="w-8 h-8 rounded-full border-2 border-gray-100 border-t-black shrink-0"
+                className="w-8 h-8 rounded-full border-2 border-gray-100 border-t-[#006AFF] shrink-0"
               />
               <div>
                 <p className="text-xs font-semibold text-gray-900">Ищем исполнителя</p>
@@ -611,7 +611,7 @@ function PerformerSection() {
   const navigate = useNavigate();
 
   return (
-    <section className="py-20 bg-gray-900">
+    <section className="py-20 bg-[#003B8F]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={vp} className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div variants={fadeUp}>
@@ -632,7 +632,7 @@ function PerformerSection() {
 
           <motion.div variants={stagger} className="grid grid-cols-2 gap-4">
             {PERFORMER_BENEFITS.map((b) => (
-              <motion.div key={b.title} variants={fadeUp} className="bg-gray-800 rounded-2xl p-5">
+              <motion.div key={b.title} variants={fadeUp} className="bg-[#004CB8] rounded-2xl p-5">
                 <h3 className="font-bold text-white text-sm mb-1">{b.title}</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">{b.desc}</p>
               </motion.div>
@@ -842,7 +842,7 @@ function MobileBottomCTA() {
       <button onClick={() => openModal("login")} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 active:scale-95 transition-all">
         Войти
       </button>
-      <button onClick={() => navigate("/calculator")} className="flex-1 py-3 rounded-xl bg-black text-white text-sm font-semibold active:scale-95 transition-all">
+      <button onClick={() => navigate("/calculator")} className="flex-1 py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold active:scale-95 transition-all">
         Создать заказ
       </button>
     </div>

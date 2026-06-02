@@ -147,7 +147,7 @@ export function VerificationGate({ children }: VerificationGateProps) {
         </p>
         <a
           href="mailto:support@slot.ru"
-          className="w-full inline-block px-6 py-3 bg-black text-white rounded-xl font-semibold text-sm hover:bg-gray-800 transition-colors"
+          className="w-full inline-block px-6 py-3 bg-[#006AFF] text-white rounded-xl font-semibold text-sm hover:bg-[#004CB8] transition-colors"
         >
           Написать в поддержку
         </a>

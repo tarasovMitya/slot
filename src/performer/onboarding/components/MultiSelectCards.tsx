@@ -25,13 +25,13 @@ export function MultiSelectCards({ options, selected, onToggle }: MultiSelectCar
             whileTap={{ scale: 0.96 }}
             className={`relative flex flex-col items-start gap-3 p-4 rounded-2xl border-2 text-left transition-colors ${
               active
-                ? "border-black bg-black/[0.03]"
+                ? "border-[#006AFF] bg-black/[0.03]"
                 : "border-gray-100 bg-white hover:border-gray-300"
             }`}
           >
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                active ? "bg-black text-white" : "bg-gray-100 text-gray-600"
+                active ? "bg-[#006AFF] text-white" : "bg-gray-100 text-gray-600"
               }`}
             >
               {icon}

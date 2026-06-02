@@ -22,7 +22,7 @@ export function PushPermissionBanner() {
   };
 
   return (
-    <div className="flex items-center gap-3 bg-gray-900 text-white px-4 py-3 text-sm">
+    <div className="flex items-center gap-3 bg-[#003B8F] text-white px-4 py-3 text-sm">
       <Bell size={16} className="shrink-0 text-white" />
       <span className="flex-1">Включите уведомления, чтобы не пропустить статус заказа</span>
       <button

@@ -50,7 +50,7 @@ function DisputeTimeline({ status }: { status: DisputeStatus }) {
         const current = i === activeStep;
         return (
           <div key={step.id} className="flex items-center gap-3">
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${done ? "bg-black" : current ? "border-2 border-black bg-white" : "border-2 border-gray-200"}`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${done ? "bg-black" : current ? "border-2 border-[#006AFF] bg-white" : "border-2 border-gray-200"}`}>
               {done && <Check size={10} className="text-white" strokeWidth={3} />}
               {current && <div className="w-2 h-2 rounded-full bg-black animate-pulse" />}
             </div>
@@ -142,7 +142,7 @@ function NewDisputeSheet({ onClose, onSubmit }: { onClose: () => void; onSubmit:
             </div>
             <p className="font-bold text-gray-900">Спор открыт</p>
             <p className="text-sm text-gray-500">Рассматриваем 1–3 рабочих дня. Средства заморожены до решения.</p>
-            <button onClick={onClose} className="mt-2 w-full py-3.5 rounded-2xl bg-gray-900 text-white text-sm font-semibold">Закрыть</button>
+            <button onClick={onClose} className="mt-2 w-full py-3.5 rounded-2xl bg-[#003B8F] text-white text-sm font-semibold">Закрыть</button>
           </motion.div>
         ) : (
           <>
@@ -151,7 +151,7 @@ function NewDisputeSheet({ onClose, onSubmit }: { onClose: () => void; onSubmit:
               <div className="flex flex-col gap-1.5">
                 {REASONS.map((r) => (
                   <label key={r} className="flex items-center gap-3 py-2.5 px-3 rounded-xl border border-gray-100 cursor-pointer hover:border-gray-300 transition-colors">
-                    <div onClick={() => setReason(r)} className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${reason === r ? "border-black" : "border-gray-300"}`}>
+                    <div onClick={() => setReason(r)} className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${reason === r ? "border-[#006AFF]" : "border-gray-300"}`}>
                       {reason === r && <div className="w-2 h-2 rounded-full bg-black" />}
                     </div>
                     <span className="text-sm text-gray-700">{r}</span>
@@ -173,7 +173,7 @@ function NewDisputeSheet({ onClose, onSubmit }: { onClose: () => void; onSubmit:
             </WarningCard>
             <label className="flex items-start gap-3 cursor-pointer mb-5">
               <button onClick={() => setAgreed(!agreed)}
-                className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${agreed ? "bg-black border-black" : "border-gray-300"}`}>
+                className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${agreed ? "bg-[#006AFF] border-[#006AFF]" : "border-gray-300"}`}>
                 {agreed && <Check size={11} className="text-white" strokeWidth={3} />}
               </button>
               <span className="text-sm text-gray-700 leading-snug">Подтверждаю, что приведённые сведения достоверны</span>
@@ -264,7 +264,7 @@ export function ClientDisputesPage() {
         </div>
         <button
           onClick={() => setShowNew(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black text-white text-xs font-semibold hover:bg-gray-800 transition-all active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#006AFF] text-white text-xs font-semibold hover:bg-[#004CB8] transition-all active:scale-95"
         >
           + Новый спор
         </button>

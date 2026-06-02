@@ -102,7 +102,7 @@ export function DistrictPage({ district }: DistrictPageProps) {
             >
               <span className="text-3xl leading-none">{SERVICE_ICONS[service.slug] ?? "🔩"}</span>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-gray-900 group-hover:text-black">
+                <div className="font-bold text-gray-900 group-hover:text-[#006AFF]">
                   {service.nameRu} {nameIn}
                 </div>
                 <div className="text-sm text-gray-500 mt-0.5 line-clamp-2">{service.description}</div>

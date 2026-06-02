@@ -36,10 +36,10 @@ export function Step7Availability() {
               onClick={() => toggleAvailability(value)}
               whileTap={{ scale: 0.98 }}
               className={`flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all ${
-                active ? "border-black bg-black/[0.02]" : "border-gray-100 bg-white hover:border-gray-300"
+                active ? "border-[#006AFF] bg-black/[0.02]" : "border-gray-100 bg-white hover:border-gray-300"
               }`}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${active ? "bg-black text-white" : "bg-gray-100 text-gray-500"}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${active ? "bg-[#006AFF] text-white" : "bg-gray-100 text-gray-500"}`}>
                 {icon}
               </div>
               <div className="flex-1">
@@ -48,7 +48,7 @@ export function Step7Availability() {
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
               </div>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${active ? "border-black bg-black" : "border-gray-300"}`}>
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${active ? "border-[#006AFF] bg-black" : "border-gray-300"}`}>
                 {active && <Check size={12} className="text-white" strokeWidth={3} />}
               </div>
             </motion.button>

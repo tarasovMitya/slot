@@ -189,7 +189,7 @@ export function PerformerOnboarding() {
                 <button
                   onClick={() => inputEmail && sendOtp(inputEmail)}
                   disabled={loading || !inputEmail || cooldown > 0}
-                  className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                  className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
                 >
                   {loading ? "Отправляем..." : "Получить код"}
                 </button>
@@ -238,7 +238,7 @@ export function PerformerOnboarding() {
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                     className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 outline-none transition-colors ${
-                      digit ? "border-black bg-gray-50" : "border-gray-100 focus:border-gray-400"
+                      digit ? "border-[#006AFF] bg-gray-50" : "border-gray-100 focus:border-gray-400"
                     }`}
                   />
                 ))}
@@ -249,7 +249,7 @@ export function PerformerOnboarding() {
               <button
                 onClick={handleVerifyOtp}
                 disabled={loading || otp.join("").length < 6}
-                className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
               >
                 {loading ? "Проверяем..." : "Войти в кабинет"}
               </button>

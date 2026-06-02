@@ -53,7 +53,7 @@ export function PriceSummary({ variant, onSubmit, submitLabel = "Продолж�
             <button
               onClick={onSubmit}
               disabled={isSubmitting}
-              className="shrink-0 px-6 py-3 rounded-xl bg-black text-white font-semibold text-sm disabled:opacity-50 transition-all active:scale-95"
+              className="shrink-0 px-6 py-3 rounded-xl bg-[#006AFF] text-white font-semibold text-sm disabled:opacity-50 transition-all active:scale-95"
             >
               {isSubmitting ? "..." : submitLabel}
             </button>
@@ -157,7 +157,7 @@ export function PriceSummary({ variant, onSubmit, submitLabel = "Продолж�
           <button
             onClick={onSubmit}
             disabled={isSubmitting}
-            className="w-full py-4 rounded-xl bg-black text-white font-semibold disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+            className="w-full py-4 rounded-xl bg-[#006AFF] text-white font-semibold disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
           >
             {isSubmitting ? "Загрузка..." : submitLabel}
           </button>

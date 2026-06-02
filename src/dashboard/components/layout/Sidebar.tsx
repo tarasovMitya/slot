@@ -68,7 +68,7 @@ export function Sidebar() {
             <Icon size={18} />
             <span>{label}</span>
             {label === "Уведомления" && unread > 0 && (
-              <span className="ml-auto bg-black text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="ml-auto bg-[#006AFF] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                 {unread}
               </span>
             )}

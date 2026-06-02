@@ -115,7 +115,7 @@ export function FinancialModelPage() {
         </Section>
 
         {/* Key metrics */}
-        <div className="rounded-2xl bg-gray-900 text-white p-5">
+        <div className="rounded-2xl bg-[#003B8F] text-white p-5">
           <h3 className="font-bold text-base mb-3">Целевые KPI для инвестора</h3>
           <div className="grid grid-cols-2 gap-3">
             {[

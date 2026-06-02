@@ -167,7 +167,7 @@ export function AuthPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-black animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-[#006AFF] animate-spin" />
       </div>
     );
   }
@@ -203,7 +203,7 @@ export function AuthPage() {
                 <div ref={tgContainerRef} className="flex justify-center" />
                 {tgLoading && (
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-[#006AFF] rounded-full animate-spin" />
                     Входим через Telegram...
                   </div>
                 )}
@@ -228,7 +228,7 @@ export function AuthPage() {
                   className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
                     emailForm.formState.errors.email
                       ? "border-red-400"
-                      : "border-gray-100 focus:border-black"
+                      : "border-gray-100 focus:border-[#006AFF]"
                   }`}
                 />
                 {emailForm.formState.errors.email && (
@@ -238,7 +238,7 @@ export function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading || cooldown > 0}
-                  className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                  className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
                 >
                   {loading ? "Отправляем..." : cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"}
                 </button>
@@ -248,7 +248,7 @@ export function AuthPage() {
                 Нет аккаунта?{" "}
                 <button
                   onClick={() => navigate("/calculator")}
-                  className="text-black font-medium hover:underline"
+                  className="text-[#006AFF] font-medium hover:underline"
                 >
                   Зарегистрироваться
                 </button>
@@ -257,7 +257,7 @@ export function AuthPage() {
                 Вы мастер?{" "}
                 <button
                   onClick={() => navigate("/performer/auth")}
-                  className="text-black font-medium hover:underline"
+                  className="text-[#006AFF] font-medium hover:underline"
                 >
                   Войти как исполнитель
                 </button>
@@ -294,7 +294,7 @@ export function AuthPage() {
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                     className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 outline-none transition-colors ${
-                      digit ? "border-black bg-gray-50" : "border-gray-100 focus:border-gray-400"
+                      digit ? "border-[#006AFF] bg-gray-50" : "border-gray-100 focus:border-gray-400"
                     }`}
                   />
                 ))}
@@ -306,7 +306,7 @@ export function AuthPage() {
               <button
                 onClick={handleVerifyOtp}
                 disabled={loading || otp.join("").length < 6}
-                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
               >
                 {loading ? "Проверяем..." : "Войти"}
               </button>

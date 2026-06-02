@@ -38,7 +38,7 @@ export function ActiveOrdersPage() {
         </div>
         <Link
           to="/calculator"
-          className="flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#006AFF] text-white text-sm font-semibold rounded-xl hover:bg-[#004CB8] transition-all"
         >
           <Plus size={15} />
           Новый
@@ -53,7 +53,7 @@ export function ActiveOrdersPage() {
           action={
             <Link
               to="/calculator"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-[#006AFF] text-white text-sm font-semibold rounded-xl hover:bg-[#004CB8] transition-all"
             >
               Оформить заказ
             </Link>

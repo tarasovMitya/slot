@@ -187,7 +187,7 @@ export function AdminPerformersPage() {
                 <button
                   disabled={actionLoading || !balanceDelta.trim()}
                   onClick={handleAdjust}
-                  className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 bg-[#003B8F] text-white rounded-lg text-xs font-medium hover:bg-[#004CB8] transition-colors disabled:opacity-50"
                 >
                   {actionLoading ? "..." : "Применить"}
                 </button>

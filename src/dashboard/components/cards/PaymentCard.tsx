@@ -18,7 +18,7 @@ export function PaymentCard({ payment, onSetDefault, onDelete }: PaymentCardProp
   return (
     <div
       className={`border-2 rounded-2xl p-5 transition-all ${
-        payment.isDefault ? "border-black" : "border-gray-100"
+        payment.isDefault ? "border-[#006AFF]" : "border-gray-100"
       }`}
     >
       <div className="flex items-center gap-4">

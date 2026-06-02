@@ -214,7 +214,7 @@ export function SecurityPage() {
                 className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-gray-400"
               />
               <p className="text-xs text-gray-400">На новый номер будет отправлен код подтверждения</p>
-              <button className="w-full py-3.5 rounded-2xl bg-black text-white text-sm font-semibold">
+              <button className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white text-sm font-semibold">
                 Получить код
               </button>
             </div>
@@ -230,7 +230,7 @@ export function SecurityPage() {
                 className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-gray-400"
               />
               <p className="text-xs text-gray-400">На новый адрес будет отправлена ссылка для подтверждения</p>
-              <button className="w-full py-3.5 rounded-2xl bg-black text-white text-sm font-semibold">
+              <button className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white text-sm font-semibold">
                 Сохранить
               </button>
             </div>
@@ -243,7 +243,7 @@ export function SecurityPage() {
               <input type="password" placeholder="Текущий пароль" className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-gray-400" />
               <input type="password" placeholder="Новый пароль (мин. 8 символов)" className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-gray-400" />
               <input type="password" placeholder="Повторите новый пароль" className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-gray-400" />
-              <button className="w-full py-3.5 rounded-2xl bg-black text-white text-sm font-semibold">
+              <button className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white text-sm font-semibold">
                 Изменить пароль
               </button>
             </div>

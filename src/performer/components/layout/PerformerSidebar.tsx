@@ -81,7 +81,7 @@ export function PerformerSidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
                 isActive
-                  ? "bg-gray-900 text-white"
+                  ? "bg-[#003B8F] text-white"
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
               }`
             }

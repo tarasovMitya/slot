@@ -13,7 +13,7 @@ export function ToggleField({ label, value, price, onChange }: ToggleFieldProps)
       onClick={() => onChange(!value)}
       className={`w-full px-6 py-5 rounded-2xl border-2 flex items-center justify-between transition-all ${
         value
-          ? "border-black bg-gray-50"
+          ? "border-[#006AFF] bg-gray-50"
           : "border-gray-100 bg-white hover:border-gray-300"
       }`}
     >

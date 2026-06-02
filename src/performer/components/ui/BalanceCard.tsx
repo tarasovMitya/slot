@@ -21,7 +21,7 @@ export function BalanceCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-900 rounded-3xl p-6 text-white"
+      className="bg-[#003B8F] rounded-3xl p-6 text-white"
     >
       {/* Balance */}
       <div className="flex items-start justify-between mb-6">

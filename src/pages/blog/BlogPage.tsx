@@ -78,7 +78,7 @@ export function BlogPage() {
             onClick={() => setActiveCategory(null)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
               activeCategory === null
-                ? "bg-gray-900 text-white border-gray-900"
+                ? "bg-[#003B8F] text-white border-gray-900"
                 : "bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-800"
             }`}
           >

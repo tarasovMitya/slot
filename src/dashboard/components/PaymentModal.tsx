@@ -134,7 +134,7 @@ export function PaymentModal() {
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-10 h-10 rounded-full border-2 border-gray-100 border-t-black"
+                      className="w-10 h-10 rounded-full border-2 border-gray-100 border-t-[#006AFF]"
                     />
                     <p className="text-base font-semibold text-gray-900">Подтверждаем оплату...</p>
                     <p className="text-sm text-gray-400">Деньги будут заморожены до завершения заказа</p>
@@ -287,7 +287,7 @@ export function PaymentModal() {
                 <button
                   onClick={handlePay}
                   disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base disabled:opacity-60 hover:bg-gray-800 transition-all active:scale-95"
+                  className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base disabled:opacity-60 hover:bg-[#004CB8] transition-all active:scale-95"
                 >
                   Оплатить {formatPrice(pendingOrder.priceTotal)}
                 </button>

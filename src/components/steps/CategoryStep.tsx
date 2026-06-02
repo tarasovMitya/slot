@@ -25,10 +25,10 @@ export function CategoryStep() {
           <button
             key={cat.id}
             onClick={() => handleSelect(cat.id)}
-            className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all group"
+            className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-gray-100 hover:border-[#006AFF] hover:bg-gray-50 transition-all group"
           >
             <span className="text-4xl">{cat.icon}</span>
-            <span className="text-base font-semibold text-gray-900 group-hover:text-black">
+            <span className="text-base font-semibold text-gray-900 group-hover:text-[#006AFF]">
               {cat.name}
             </span>
           </button>

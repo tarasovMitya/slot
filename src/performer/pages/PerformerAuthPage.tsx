@@ -165,7 +165,7 @@ export function PerformerAuthPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-black animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-[#006AFF] animate-spin" />
       </div>
     );
   }
@@ -220,7 +220,7 @@ export function PerformerAuthPage() {
                   className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
                     emailForm.formState.errors.email
                       ? "border-red-400"
-                      : "border-gray-100 focus:border-black"
+                      : "border-gray-100 focus:border-[#006AFF]"
                   }`}
                 />
                 {emailForm.formState.errors.email && (
@@ -230,7 +230,7 @@ export function PerformerAuthPage() {
                 <button
                   type="submit"
                   disabled={loading || cooldown > 0}
-                  className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                  className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
                 >
                   {loading ? "Отправляем..." : cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"}
                 </button>
@@ -239,13 +239,13 @@ export function PerformerAuthPage() {
               <div className="flex flex-col gap-2 text-center">
                 <p className="text-sm text-gray-400">
                   Ещё не зарегистрированы?{" "}
-                  <Link to="/performer/onboarding" className="text-black font-medium hover:underline">
+                  <Link to="/performer/onboarding" className="text-[#006AFF] font-medium hover:underline">
                     Стать исполнителем
                   </Link>
                 </p>
                 <p className="text-sm text-gray-400">
                   Вы клиент?{" "}
-                  <Link to="/auth" className="text-black font-medium hover:underline">
+                  <Link to="/auth" className="text-[#006AFF] font-medium hover:underline">
                     Войти как клиент
                   </Link>
                 </p>
@@ -282,7 +282,7 @@ export function PerformerAuthPage() {
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                     className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 outline-none transition-colors ${
-                      digit ? "border-black bg-gray-50" : "border-gray-100 focus:border-gray-400"
+                      digit ? "border-[#006AFF] bg-gray-50" : "border-gray-100 focus:border-gray-400"
                     }`}
                   />
                 ))}
@@ -293,7 +293,7 @@ export function PerformerAuthPage() {
               <button
                 onClick={handleVerifyOtp}
                 disabled={loading || otp.join("").length < 6}
-                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-gray-800 active:scale-95"
+                className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
               >
                 {loading ? "Проверяем..." : "Войти"}
               </button>

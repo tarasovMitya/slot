@@ -13,7 +13,7 @@ export function NotFoundPage() {
       </p>
       <Link
         to="/"
-        className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-black text-white font-semibold rounded-2xl hover:bg-gray-800 transition-all"
+        className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-[#006AFF] text-white font-semibold rounded-2xl hover:bg-[#004CB8] transition-all"
       >
         На главную
       </Link>

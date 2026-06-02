@@ -157,7 +157,7 @@ export function AddressSuggest({
           className={
             inputClassName ??
             `w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors pr-12 ${
-              error ? "border-red-400" : "border-gray-100 focus:border-black"
+              error ? "border-red-400" : "border-gray-100 focus:border-[#006AFF]"
             }`
           }
         />

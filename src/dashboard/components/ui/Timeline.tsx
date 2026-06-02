@@ -19,9 +19,9 @@ export function Timeline({ events }: TimelineProps) {
               <div
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                   event.completed
-                    ? "border-black bg-black"
+                    ? "border-[#006AFF] bg-black"
                     : isActive
-                    ? "border-black bg-white"
+                    ? "border-[#006AFF] bg-white"
                     : "border-gray-200 bg-white"
                 }`}
               >

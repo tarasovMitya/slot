@@ -59,7 +59,7 @@ export function AdminSettingsPage() {
 
       <Section title="Ваши права">
         <div className="flex items-center gap-3">
-          <span className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium">
+          <span className="px-3 py-1.5 bg-[#003B8F] text-white rounded-lg text-sm font-medium">
             {role ? ROLE_LABELS[role] : "—"}
           </span>
           <p className="text-sm text-gray-500">Роли назначаются через базу данных администратором</p>
@@ -103,7 +103,7 @@ export function AdminSettingsPage() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[#003B8F] text-white rounded-lg text-sm font-medium hover:bg-[#004CB8] transition-colors disabled:opacity-50"
         >
           <Save size={15} />
           {isSaving ? "Сохранение..." : "Сохранить изменения"}

@@ -54,7 +54,7 @@ export function OrderHistoryPage() {
             onClick={() => setFilter(key)}
             className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               filter === key
-                ? "bg-black text-white"
+                ? "bg-[#006AFF] text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >

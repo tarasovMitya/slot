@@ -27,10 +27,10 @@ export function ServiceStep() {
           <button
             key={service.id}
             onClick={() => handleSelect(service.id)}
-            className="w-full px-6 py-5 rounded-2xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 text-left flex items-center justify-between transition-all group"
+            className="w-full px-6 py-5 rounded-2xl border-2 border-gray-100 hover:border-[#006AFF] hover:bg-gray-50 text-left flex items-center justify-between transition-all group"
           >
             <div>
-              <p className="text-lg font-semibold text-gray-900 group-hover:text-black">
+              <p className="text-lg font-semibold text-gray-900 group-hover:text-[#006AFF]">
                 {service.name}
               </p>
               {service.description && (

@@ -127,7 +127,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                       type="text" inputMode="numeric" placeholder="0000 0000 0000 0000"
                       value={cardNumber}
                       onChange={(e) => { setCardNumber(formatCardNumber(e.target.value)); setCardError(""); }}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium tracking-widest transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-[#006AFF] outline-none text-base font-medium tracking-widest transition-colors"
                     />
                   </div>
                   <div>
@@ -136,11 +136,11 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                       type="text" inputMode="numeric" placeholder="ММ/ГГ"
                       value={cardExpiry}
                       onChange={(e) => { setCardExpiry(formatExpiry(e.target.value)); setCardError(""); }}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-[#006AFF] outline-none text-base font-medium transition-colors"
                     />
                   </div>
                   {cardError && <p className="text-xs text-red-500">{cardError}</p>}
-                  <button onClick={handleAddCard} className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 mt-1">
+                  <button onClick={handleAddCard} className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base hover:bg-[#004CB8] transition-all active:scale-95 mt-1">
                     Сохранить карту
                   </button>
                 </div>
@@ -152,7 +152,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
               <motion.div key="processing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center py-16 px-6 gap-5">
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-12 h-12 rounded-full border-2 border-gray-100 border-t-black" />
+                  className="w-12 h-12 rounded-full border-2 border-gray-100 border-t-[#006AFF]" />
                 <div className="text-center">
                   <p className="text-base font-semibold text-gray-900">Отправляем заявку...</p>
                   <p className="text-sm text-gray-400 mt-1">Это займёт секунду</p>
@@ -179,7 +179,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                 <div className="w-full bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-xs text-amber-700 text-left">
                   Обычно рассмотрение занимает 1–3 рабочих дня
                 </div>
-                <button onClick={onClose} className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm hover:bg-gray-800 transition-all">
+                <button onClick={onClose} className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm hover:bg-[#004CB8] transition-all">
                   Понятно
                 </button>
               </motion.div>
@@ -196,7 +196,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                   <p className="text-xl font-bold text-gray-900">Ошибка</p>
                   <p className="text-sm text-gray-500 mt-1">{errorMessage}</p>
                 </div>
-                <button onClick={() => setStep("form")} className="w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm hover:bg-gray-800 transition-all">
+                <button onClick={() => setStep("form")} className="w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm hover:bg-[#004CB8] transition-all">
                   Попробовать снова
                 </button>
               </motion.div>
@@ -227,7 +227,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                         type="number" value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0"
-                        className="w-full text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-black pb-2 outline-none transition-colors"
+                        className="w-full text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-[#006AFF] pb-2 outline-none transition-colors"
                       />
                       <span className="absolute right-0 bottom-2.5 text-xl font-bold text-gray-400">₽</span>
                     </div>
@@ -236,12 +236,12 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                     <div className="flex gap-2 mt-3">
                       {QUICK_AMOUNTS.filter((a) => a <= balance).map((a) => (
                         <button key={a} onClick={() => setAmount(String(a))}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${numericAmount === a ? "bg-black text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${numericAmount === a ? "bg-[#006AFF] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                           {a.toLocaleString()}
                         </button>
                       ))}
                       <button onClick={() => setAmount(String(balance))}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${numericAmount === balance ? "bg-black text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${numericAmount === balance ? "bg-[#006AFF] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                         Всё
                       </button>
                     </div>
@@ -253,8 +253,8 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                     <div className="flex flex-col gap-2">
                       {bankCards.map((card) => (
                         <button key={card.id} onClick={() => setSelectedCardId(card.id)}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all ${selectedCardId === card.id ? "border-black bg-black/[0.02]" : "border-gray-100 hover:border-gray-200"}`}>
-                          <div className="w-8 h-5 bg-gray-900 rounded flex items-center justify-center">
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all ${selectedCardId === card.id ? "border-[#006AFF] bg-black/[0.02]" : "border-gray-100 hover:border-gray-200"}`}>
+                          <div className="w-8 h-5 bg-[#003B8F] rounded flex items-center justify-center">
                             <CreditCard size={10} className="text-white" />
                           </div>
                           <span className="text-sm font-medium text-gray-900">{card.brand} •••• {card.last4}</span>
@@ -268,16 +268,16 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
                           <input type="text" inputMode="numeric" placeholder="0000 0000 0000 0000"
                             value={cardNumber}
                             onChange={(e) => { setCardNumber(formatCardNumber(e.target.value)); setCardError(""); }}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium tracking-widest transition-colors"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-[#006AFF] outline-none text-base font-medium tracking-widest transition-colors"
                           />
                           <input type="text" inputMode="numeric" placeholder="ММ/ГГ"
                             value={cardExpiry}
                             onChange={(e) => { setCardExpiry(formatExpiry(e.target.value)); setCardError(""); }}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-black outline-none text-base font-medium transition-colors"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-[#006AFF] outline-none text-base font-medium transition-colors"
                           />
                           {cardError && <p className="text-xs text-red-500">{cardError}</p>}
                           <button onClick={handleAddCard}
-                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-black transition-all text-sm font-semibold text-gray-600 hover:text-black">
+                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#006AFF] transition-all text-sm font-semibold text-gray-600 hover:text-[#006AFF]">
                             <Plus size={14} />Сохранить карту
                           </button>
                         </div>
@@ -293,7 +293,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
 
                 <div className="px-6 pb-6">
                   <button onClick={handleSubmit} disabled={!isValid}
-                    className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base disabled:opacity-40 hover:bg-gray-800 transition-all active:scale-95">
+                    className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base disabled:opacity-40 hover:bg-[#004CB8] transition-all active:scale-95">
                     {numericAmount >= 100 ? `Запросить вывод ${formatPrice(numericAmount)}` : "Запросить вывод"}
                   </button>
                   <p className="text-xs text-gray-400 text-center mt-3">

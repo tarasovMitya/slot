@@ -98,7 +98,7 @@ export function AdminChatsPage() {
                 onClick={() => setFilter(f.key)}
                 className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                   filter === f.key
-                    ? "bg-gray-900 text-white"
+                    ? "bg-[#003B8F] text-white"
                     : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                 }`}
               >

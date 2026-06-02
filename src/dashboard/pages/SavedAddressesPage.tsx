@@ -23,7 +23,7 @@ export function SavedAddressesPage() {
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Мои адреса</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#006AFF] text-white text-sm font-semibold rounded-xl hover:bg-[#004CB8] transition-all"
         >
           <Plus size={15} />
           Добавить
@@ -71,7 +71,7 @@ export function SavedAddressesPage() {
                 <button
                   onClick={handleAdd}
                   disabled={!form.street}
-                  className="flex-1 py-3 rounded-xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all"
+                  className="flex-1 py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#004CB8] transition-all"
                 >
                   Сохранить
                 </button>

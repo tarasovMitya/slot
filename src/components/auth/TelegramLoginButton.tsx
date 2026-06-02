@@ -143,7 +143,7 @@ export function TelegramLoginButton({ onSuccess, linkMode }: Props) {
         <button
           onClick={handleSubmit}
           disabled={codeStr.length < 6}
-          className="w-full py-3 rounded-2xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all active:scale-95"
+          className="w-full py-3 rounded-2xl bg-[#006AFF] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#004CB8] transition-all active:scale-95"
         >
           {linkMode ? "Привязать" : "Войти"}
         </button>

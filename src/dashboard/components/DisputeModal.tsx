@@ -129,7 +129,7 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
                 </p>
                 <button
                   onClick={resetAndClose}
-                  className="mt-2 w-full py-3.5 rounded-2xl bg-gray-900 text-white text-sm font-semibold"
+                  className="mt-2 w-full py-3.5 rounded-2xl bg-[#003B8F] text-white text-sm font-semibold"
                 >
                   Закрыть
                 </button>
@@ -147,7 +147,7 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
                         <div
                           onClick={() => setReason(r)}
                           className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                            reason === r ? "border-black" : "border-gray-300"
+                            reason === r ? "border-[#006AFF]" : "border-gray-300"
                           }`}
                         >
                           {reason === r && <div className="w-2 h-2 rounded-full bg-black" />}
@@ -197,7 +197,7 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
                   <button
                     onClick={() => setAgreed(!agreed)}
                     className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      agreed ? "bg-black border-black" : "border-gray-300"
+                      agreed ? "bg-[#006AFF] border-[#006AFF]" : "border-gray-300"
                     }`}
                   >
                     {agreed && <Check size={11} className="text-white" strokeWidth={3} />}

@@ -37,7 +37,7 @@ export function Step3Experience() {
               onClick={() => setField("experience", value)}
               className={`flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 text-left transition-all ${
                 experience === value
-                  ? "border-black bg-black/[0.02]"
+                  ? "border-[#006AFF] bg-black/[0.02]"
                   : "border-gray-100 bg-white hover:border-gray-300"
               }`}
             >
@@ -49,7 +49,7 @@ export function Step3Experience() {
               </div>
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  experience === value ? "border-black" : "border-gray-300"
+                  experience === value ? "border-[#006AFF]" : "border-gray-300"
                 }`}
               >
                 {experience === value && (

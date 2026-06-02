@@ -16,7 +16,7 @@ export function AuthCallbackPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
-      <div className="w-10 h-10 rounded-full border-2 border-gray-200 border-t-black animate-spin" />
+      <div className="w-10 h-10 rounded-full border-2 border-gray-200 border-t-[#006AFF] animate-spin" />
       <p className="text-gray-400 text-sm">Входим в аккаунт...</p>
     </div>
   );

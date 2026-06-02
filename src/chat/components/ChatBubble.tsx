@@ -29,7 +29,7 @@ export function ChatBubble({ message, isOwn, senderLabel }: ChatBubbleProps) {
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
           isOwn
-            ? "bg-gray-900 text-white rounded-br-sm"
+            ? "bg-[#006AFF] text-white rounded-br-sm"
             : "bg-gray-100 text-gray-900 rounded-bl-sm"
         }`}
       >

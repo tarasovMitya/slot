@@ -90,7 +90,7 @@ export function AdditionalWorkModal({ isOpen, onClose, onSubmit }: AdditionalWor
                 </p>
                 <button
                   onClick={handleClose}
-                  className="mt-2 w-full py-3.5 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-all"
+                  className="mt-2 w-full py-3.5 rounded-2xl bg-[#003B8F] text-white text-sm font-semibold hover:bg-[#004CB8] transition-all"
                 >
                   Закрыть
                 </button>
@@ -182,7 +182,7 @@ export function AdditionalWorkModal({ isOpen, onClose, onSubmit }: AdditionalWor
                   <button
                     onClick={handleSubmit}
                     disabled={!canSubmit}
-                    className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-40"
+                    className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#006AFF] text-white text-sm font-semibold hover:bg-[#004CB8] transition-all active:scale-95 disabled:opacity-40"
                   >
                     <Check size={15} />
                     Отправить запрос

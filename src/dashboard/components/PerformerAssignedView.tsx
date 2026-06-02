@@ -99,7 +99,7 @@ export function PerformerAssignedView() {
           {performer.phone && (
             <a
               href={`tel:${performer.phone}`}
-              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-black text-white font-semibold text-sm hover:bg-gray-800 transition-all active:scale-95"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm hover:bg-[#004CB8] transition-all active:scale-95"
             >
               <Phone size={16} />
               Позвонить мастеру

@@ -30,8 +30,8 @@ export function NavigationButtons({
         disabled={nextDisabled}
         className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-2xl font-semibold text-sm transition-all active:scale-95 ${
           isLast
-            ? "bg-black text-white hover:bg-gray-800 disabled:opacity-40"
-            : "bg-black text-white hover:bg-gray-800 disabled:opacity-40"
+            ? "bg-[#006AFF] text-white hover:bg-[#004CB8] disabled:opacity-40"
+            : "bg-[#006AFF] text-white hover:bg-[#004CB8] disabled:opacity-40"
         }`}
       >
         {nextLabel ?? "Далее"}

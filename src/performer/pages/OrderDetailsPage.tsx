@@ -153,7 +153,7 @@ export function PerformerOrderDetailsPage() {
                 </button>
                 <a
                   href={`tel:${order.client.phone}`}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006AFF] text-white text-sm font-semibold hover:bg-[#004CB8] transition-all active:scale-95"
                 >
                   <Phone size={14} />
                   Позвонить
@@ -292,7 +292,7 @@ export function PerformerOrderDetailsPage() {
             <button
               onClick={handleStatusUpdate}
               disabled={isUpdating}
-              className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-60"
+              className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base hover:bg-[#004CB8] transition-all active:scale-95 disabled:opacity-60"
             >
               {isUpdating ? "Определяем геолокацию..." : nextAction.label}
             </button>
@@ -364,7 +364,7 @@ export function PerformerOrderDetailsPage() {
                 <button
                   onClick={handleConfirmGeo}
                   disabled={isUpdating}
-                  className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base disabled:opacity-60 transition-all active:scale-95"
+                  className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base disabled:opacity-60 transition-all active:scale-95"
                 >
                   {isUpdating ? "Определяем местоположение..." : "Разрешить геолокацию"}
                 </button>

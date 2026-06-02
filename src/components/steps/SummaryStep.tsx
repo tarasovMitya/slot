@@ -51,7 +51,7 @@ export function SummaryStep() {
 
       {/* Price card */}
       <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
-        <div className="rounded-2xl bg-black text-white p-6 text-center">
+        <div className="rounded-2xl bg-[#006AFF] text-white p-6 text-center">
           <p className="text-sm font-medium text-white/60 uppercase tracking-wider mb-2">Предварительная стоимость</p>
           <p className="text-5xl font-black tracking-tight">{formatPrice(breakdown.total)}</p>
           {breakdown.items.length > 1 && (
@@ -131,7 +131,7 @@ export function SummaryStep() {
       <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="flex flex-col gap-3">
         <button
           onClick={goNext}
-          className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base hover:bg-[#004CB8] transition-all active:scale-95 flex items-center justify-center gap-2"
         >
           Продолжить
           <ArrowRight size={18} />

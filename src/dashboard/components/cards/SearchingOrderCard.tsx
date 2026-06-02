@@ -88,7 +88,7 @@ export function SearchingOrderCard({ order, onCancel }: SearchingOrderCardProps)
                   isDone
                     ? "bg-black"
                     : isActive
-                    ? "border-2 border-black bg-white"
+                    ? "border-2 border-[#006AFF] bg-white"
                     : "border-2 border-gray-200 bg-white"
                 }`}
               >

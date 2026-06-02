@@ -78,7 +78,7 @@ export function MastersHubPage() {
         <div className="grid sm:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map((item) => (
             <div key={item.title} className="p-5 rounded-2xl border border-gray-100">
-              <div className="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center mb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#003B8F] text-white flex items-center justify-center mb-4">
                 {item.icon}
               </div>
               <p className="font-bold text-gray-900 mb-1">{item.title}</p>
@@ -102,7 +102,7 @@ export function MastersHubPage() {
               >
                 <span className="text-3xl leading-none">{SERVICE_ICONS[s.slug] ?? "🔩"}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 group-hover:text-black">
+                  <p className="font-bold text-gray-900 group-hover:text-[#006AFF]">
                     Работа {s.nameInstrumental}
                   </p>
                   <p className="text-sm text-gray-500 mt-0.5">

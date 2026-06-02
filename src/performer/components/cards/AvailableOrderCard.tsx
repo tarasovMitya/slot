@@ -93,7 +93,7 @@ export function AvailableOrderCard({ order, onAccept, onReject, isAccepting, isU
           <button
             onClick={onAccept}
             disabled={isAccepting}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold hover:bg-[#004CB8] transition-all active:scale-95 disabled:opacity-60"
           >
             {isAccepting ? (
               <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />

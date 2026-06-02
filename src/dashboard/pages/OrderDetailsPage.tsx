@@ -231,7 +231,7 @@ export function OrderDetailsPage() {
         {order.status === "pending_payment" && ENABLE_PAYMENTS && (
           <button
             onClick={() => { resumePayment(order.id); navigate("/dashboard"); }}
-            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-black text-white font-semibold hover:bg-gray-800 transition-all active:scale-95"
+            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#006AFF] text-white font-semibold hover:bg-[#004CB8] transition-all active:scale-95"
           >
             <CreditCard size={16} />
             Оплатить заказ
@@ -240,7 +240,7 @@ export function OrderDetailsPage() {
         {order.status === "completed" && (
           <Link
             to="/calculator"
-            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-black text-white font-semibold hover:bg-gray-800 transition-all"
+            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#006AFF] text-white font-semibold hover:bg-[#004CB8] transition-all"
           >
             <RotateCcw size={16} />
             Повторить заказ

@@ -105,7 +105,7 @@ export function ChatWindow({
         <button
           onClick={handleSend}
           disabled={!input.trim() || isSending}
-          className="w-10 h-10 rounded-2xl bg-gray-900 text-white flex items-center justify-center shrink-0 hover:bg-gray-700 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-2xl bg-[#003B8F] text-white flex items-center justify-center shrink-0 hover:bg-[#004CB8] transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isSending ? (
             <Loader2 size={16} className="animate-spin" />

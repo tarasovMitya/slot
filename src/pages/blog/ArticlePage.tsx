@@ -33,7 +33,7 @@ function renderBlock(block: SectionBlock, i: number) {
         <ol key={i} className="flex flex-col gap-2">
           {block.items.map((item, j) => (
             <li key={j} className="flex items-start gap-3 text-sm text-gray-700">
-              <span className="shrink-0 w-5 h-5 rounded-full bg-gray-900 text-white text-[10px] font-bold flex items-center justify-center mt-0.5">
+              <span className="shrink-0 w-5 h-5 rounded-full bg-[#003B8F] text-white text-[10px] font-bold flex items-center justify-center mt-0.5">
                 {j + 1}
               </span>
               {item}

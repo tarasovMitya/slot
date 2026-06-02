@@ -11,7 +11,7 @@ export function AddressCard({ address, onSetDefault, onDelete }: AddressCardProp
   return (
     <div
       className={`border-2 rounded-2xl p-5 transition-all ${
-        address.isDefault ? "border-black" : "border-gray-100"
+        address.isDefault ? "border-[#006AFF]" : "border-gray-100"
       }`}
     >
       <div className="flex items-start justify-between gap-3">

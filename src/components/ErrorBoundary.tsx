@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
             {stack && <p className="text-[10px] text-gray-400 mt-1 text-left break-all">{stack}</p>}
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-[#003B8F] text-white rounded-lg text-sm font-medium hover:bg-[#004CB8] transition-colors"
             >
               Обновить страницу
             </button>

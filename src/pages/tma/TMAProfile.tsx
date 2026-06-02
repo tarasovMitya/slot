@@ -27,7 +27,7 @@ export function TMAProfile({ user, onNavigate }: Props) {
             className="w-20 h-20 rounded-full object-cover mb-3"
           />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-gray-900 text-white flex items-center justify-center text-2xl font-black mb-3">
+          <div className="w-20 h-20 rounded-full bg-[#003B8F] text-white flex items-center justify-center text-2xl font-black mb-3">
             {initials}
           </div>
         )}

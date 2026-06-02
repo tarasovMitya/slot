@@ -264,7 +264,7 @@ export function SchedulePage() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              filter === f ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              filter === f ? "bg-[#003B8F] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
             }`}
           >
             {f === "all" ? "Все" : f === "active" ? "Активные" : "Завершённые"}

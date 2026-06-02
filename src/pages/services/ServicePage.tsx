@@ -225,7 +225,7 @@ export function ServicePage({ city }: ServicePageProps) {
           <div className="grid sm:grid-cols-3 gap-4">
             {HOW_IT_WORKS.map((step) => (
               <div key={step.step} className="p-5 rounded-2xl border border-gray-100">
-                <div className="w-8 h-8 rounded-xl bg-black text-white text-sm font-black flex items-center justify-center mb-4">
+                <div className="w-8 h-8 rounded-xl bg-[#006AFF] text-white text-sm font-black flex items-center justify-center mb-4">
                   {step.step}
                 </div>
                 <p className="font-bold text-gray-900 mb-1">{step.title}</p>

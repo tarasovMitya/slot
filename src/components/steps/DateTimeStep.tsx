@@ -63,7 +63,7 @@ export function DateTimeStep() {
               onClick={() => setDate(iso)}
               className={`shrink-0 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                 schedule.date === iso
-                  ? "border-black bg-black text-white"
+                  ? "border-[#006AFF] bg-[#006AFF] text-white"
                   : "border-gray-100 text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -84,7 +84,7 @@ export function DateTimeStep() {
               onClick={() => setTime(slot)}
               className={`py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                 schedule.time === slot
-                  ? "border-black bg-black text-white"
+                  ? "border-[#006AFF] bg-[#006AFF] text-white"
                   : "border-gray-100 text-gray-700 hover:border-gray-300"
               }`}
             >

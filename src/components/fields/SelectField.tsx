@@ -21,7 +21,7 @@ export function SelectField({ label, value, options, onChange }: SelectFieldProp
             onClick={() => onChange(option.value)}
             className={`w-full px-6 py-4 rounded-2xl border-2 text-left flex items-center justify-between transition-all ${
               value === option.value
-                ? "border-black bg-gray-50"
+                ? "border-[#006AFF] bg-gray-50"
                 : "border-gray-100 bg-white hover:border-gray-300"
             }`}
           >

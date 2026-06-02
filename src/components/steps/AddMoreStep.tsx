@@ -100,7 +100,7 @@ export function AddMoreStep() {
       <div className="flex flex-col gap-3">
         <button
           onClick={goNext}
-          className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-base hover:bg-[#004CB8] transition-all active:scale-95 flex items-center justify-center gap-2"
         >
           Продолжить оформление
           <ArrowRight size={16} />

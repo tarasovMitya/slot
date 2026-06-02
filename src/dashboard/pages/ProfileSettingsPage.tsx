@@ -154,7 +154,7 @@ export function ProfileSettingsPage() {
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#006AFF] transition-colors"
               >
                 <Pencil size={13} />
                 Редактировать
@@ -175,7 +175,7 @@ export function ProfileSettingsPage() {
             {isEditing ? (
               <input
                 {...register("name")}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-black transition-colors"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#006AFF] transition-colors"
               />
             ) : (
               <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
@@ -194,7 +194,7 @@ export function ProfileSettingsPage() {
                   onChange={handlePhoneChange}
                   placeholder="+7 (999) 999-99-99"
                   className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors ${
-                    phone && !isPhoneValid(phone) ? "border-red-300 focus:border-red-400" : "border-gray-200 focus:border-black"
+                    phone && !isPhoneValid(phone) ? "border-red-300 focus:border-red-400" : "border-gray-200 focus:border-[#006AFF]"
                   }`}
                 />
                 {phone && !isPhoneValid(phone) && (
@@ -219,7 +219,7 @@ export function ProfileSettingsPage() {
               <input
                 {...register("address")}
                 placeholder="Улица, дом, квартира"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-black transition-colors"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#006AFF] transition-colors"
               />
             ) : (
               <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
@@ -242,7 +242,7 @@ export function ProfileSettingsPage() {
           <button
             type="submit"
             disabled={saving || !isPhoneValid(phone)}
-            className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+            className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:bg-[#004CB8] active:scale-95 disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -357,7 +357,7 @@ function AddressesSection() {
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition-colors"
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#006AFF] transition-colors"
         >
           <Plus size={13} />
           Добавить
@@ -373,7 +373,7 @@ function AddressesSection() {
           <div key={a.id}>
             <div
               className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-                a.isDefault ? "border-black bg-gray-50" : "border-gray-100"
+                a.isDefault ? "border-[#006AFF] bg-gray-50" : "border-gray-100"
               }`}
             >
               <MapPin size={15} className="text-gray-400 shrink-0" />
@@ -465,7 +465,7 @@ function AddressesSection() {
               type="button"
               onClick={handleAdd}
               disabled={!form.street.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all"
+              className="flex-1 py-2.5 rounded-xl bg-[#006AFF] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#004CB8] transition-all"
             >
               Сохранить
             </button>
