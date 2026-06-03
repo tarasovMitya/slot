@@ -4,6 +4,7 @@ import { Calculator } from "./components/Calculator";
 import { LandingPage } from "./pages/LandingPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthPage } from "./pages/AuthPage";
+import { StaffAuthPage } from "./pages/StaffAuthPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { useAuthStore } from "./store/authStore";
 import { usePlatformSettingsStore } from "./store/platformSettingsStore";
@@ -141,6 +142,7 @@ function App() {
 
         {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/staff" element={<StaffAuthPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Customer dashboard — protected */}
