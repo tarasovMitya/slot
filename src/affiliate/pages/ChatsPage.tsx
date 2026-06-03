@@ -24,7 +24,7 @@ export function AffiliateChatsPage() {
 
   const { activeChat, messages, isLoading, isSending, openChatById, sendMessage } = useChatStore();
   const { user } = useAuthStore();
-  const { userId, performers, loadPerformers } = useAffiliateStore();
+  const { userId, loadPerformers } = useAffiliateStore();
 
   useEffect(() => {
     if (!userId) return;
@@ -54,6 +54,7 @@ export function AffiliateChatsPage() {
           type: c.type,
           orderId: c.order_id,
           performerId: c.performer_id,
+          clientId: null,
           createdAt: c.created_at,
           serviceName: c.orders?.service_name ?? null,
           orderStatus: c.orders?.status ?? null,

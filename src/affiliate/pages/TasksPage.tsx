@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Loader2, CheckCircle, Circle, AlertTriangle, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, CheckCircle, Circle, ArrowUp, ArrowDown } from "lucide-react";
 import { useAffiliateStore } from "../store/affiliateStore";
 import { PRIORITY_LABELS, PRIORITY_COLORS } from "../types";
 
