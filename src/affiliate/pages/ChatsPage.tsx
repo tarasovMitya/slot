@@ -7,6 +7,27 @@ import { useAffiliateStore } from "../store/affiliateStore";
 import { ChatWindow } from "../../chat/components/ChatWindow";
 import type { ChatWithMeta } from "../../chat/types";
 
+const STATUS_FILTERS = [
+  { key: "all",      label: "Все" },
+  { key: "active",   label: "Активные" },
+  { key: "dispute",  label: "Споры" },
+  { key: "done",     label: "Завершены" },
+] as const;
+
+type StatusFilter = (typeof STATUS_FILTERS)[number]["key"];
+
+const ACTIVE_STATUSES = new Set(["searching_performer", "performer_assigned", "in_progress", "waiting_client_confirmation"]);
+const DISPUTE_STATUSES = new Set(["dispute_opened"]);
+const DONE_STATUSES = new Set(["completed", "cancelled"]);
+
+function matchesFilter(status: string | null | undefined, filter: StatusFilter) {
+  if (filter === "all") return true;
+  if (filter === "active") return ACTIVE_STATUSES.has(status ?? "");
+  if (filter === "dispute") return DISPUTE_STATUSES.has(status ?? "");
+  if (filter === "done") return DONE_STATUSES.has(status ?? "");
+  return true;
+}
+
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -21,6 +42,7 @@ export function AffiliateChatsPage() {
   const [chats, setChats] = useState<ChatWithMeta[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const { activeChat, messages, isLoading, isSending, openChatById, sendMessage } = useChatStore();
   const { user } = useAuthStore();
@@ -66,12 +88,13 @@ export function AffiliateChatsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return chats;
-    return chats.filter((c) =>
-      (c.serviceName ?? "").toLowerCase().includes(q) ||
-      (c.orderStatus ?? "").toLowerCase().includes(q)
-    );
-  }, [chats, search]);
+    return chats.filter((c) => {
+      if (!matchesFilter(c.orderStatus, statusFilter)) return false;
+      if (!q) return true;
+      return (c.serviceName ?? "").toLowerCase().includes(q) ||
+             (c.orderStatus ?? "").toLowerCase().includes(q);
+    });
+  }, [chats, search, statusFilter]);
 
   return (
     <div className="flex h-full">
@@ -82,13 +105,14 @@ export function AffiliateChatsPage() {
             <h1 className="text-base font-bold text-white">Чаты</h1>
             <span className="text-xs text-[#6b7194]">{filtered.length} / {chats.length}</span>
           </div>
-          <div className="relative">
+          {/* Search */}
+          <div className="relative mb-2.5">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6b7194] pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск..."
+              placeholder="Поиск по названию..."
               className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg text-white placeholder:text-[#4a4f68] focus:outline-none focus:ring-1 focus:ring-[#006AFF]/40 transition-colors"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
             />
@@ -97,6 +121,20 @@ export function AffiliateChatsPage() {
                 <X size={12} />
               </button>
             )}
+          </div>
+          {/* Status filter tabs */}
+          <div className="flex gap-1 rounded-lg p-0.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={`flex-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
+                  statusFilter === f.key ? "bg-[#006AFF] text-white" : "text-[#6b7194] hover:text-[#c0c5e0]"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
 
