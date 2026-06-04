@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Loader2, ArrowUp, Minus, ArrowDown, X, CalendarDays, User, Search, Check, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Loader2, ArrowUp, Minus, ArrowDown, X, CalendarDays, User, Search, Check } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import {
   adminLoadAffiliateTasks,
@@ -10,7 +10,7 @@ import {
 } from "../../affiliate/lib/affiliateDb";
 import type { AffiliateTask, TaskCategory, TaskWorkflowStatus, ChecklistItem } from "../../affiliate/types";
 import {
-  PRIORITY_LABELS, PRIORITY_COLORS, CATEGORY_LABELS, CATEGORY_COLORS, WORKFLOW_LABELS,
+  PRIORITY_COLORS, CATEGORY_LABELS, CATEGORY_COLORS, WORKFLOW_LABELS,
 } from "../../affiliate/types";
 
 const PRIORITY_ICON: Record<string, React.ReactNode> = {
@@ -152,7 +152,6 @@ export function AdminAffiliateTasksPage() {
     setTasks((prev) => prev.map((t) => t.id === detailTask.id ? updatedTask : t));
   }
 
-  const cardBg = "background: rgba(15,17,32,0.85)";
   const border = "1px solid rgba(255,255,255,0.07)";
 
   return (
