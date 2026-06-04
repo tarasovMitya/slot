@@ -253,6 +253,28 @@ export async function adminDeleteAffiliateTask(taskId: string): Promise<void> {
   await supabase.from("affiliate_tasks").delete().eq("id", taskId);
 }
 
+export async function adminLoadAffiliateTasks(): Promise<
+  (AffiliateTask & { createdByEmail?: string })[]
+> {
+  const { data: tasks } = await supabase
+    .from("affiliate_tasks")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (!tasks) return [];
+
+  return tasks.map((r) => ({
+    id: r.id as string,
+    title: r.title as string,
+    description: (r.description as string) ?? "",
+    priority: ((r.priority as string) ?? "normal") as "low" | "normal" | "high",
+    target: (r.target as string) ?? "all",
+    dueDate: (r.due_date as string) ?? null,
+    createdAt: (r.created_at as string) ?? "",
+    completedAt: null,
+  }));
+}
+
 export async function adminLoadAffiliateManagers(): Promise<{ id: string; name: string; email: string }[]> {
   const { data } = await supabase
     .from("profiles")

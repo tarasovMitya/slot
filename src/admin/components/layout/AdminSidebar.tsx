@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ShoppingBag, Users, UserCircle, DollarSign,
   AlertTriangle, ShieldCheck, BarChart2, Settings, LogOut,
-  Activity, MessageSquare, Search,
+  Activity, MessageSquare, Search, ClipboardList,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { useAdminStore } from "../../store/adminStore";
@@ -19,6 +19,7 @@ const nav = [
   { to: "/admin/verification", label: "Верификация",  icon: ShieldCheck },
   { to: "/admin/chats",        label: "Чаты",         icon: MessageSquare },
   { to: "/admin/analytics",    label: "Аналитика",    icon: BarChart2 },
+  { to: "/admin/affiliate-tasks", label: "Задачи аффилейтов", icon: ClipboardList },
   { to: "/admin/settings",     label: "Настройки",    icon: Settings },
   { to: "/admin/events",       label: "Логи",         icon: Activity },
 ];

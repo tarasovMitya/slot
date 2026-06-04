@@ -46,6 +46,7 @@ import { AdminClientsPage } from "./admin/pages/ClientsPage";
 import { SecurityPage } from "./dashboard/pages/SecurityPage";
 import { ClientDisputesPage } from "./dashboard/pages/ClientDisputesPage";
 import { AdminEventLogsPage } from "./admin/pages/EventLogsPage";
+import { AdminAffiliateTasksPage } from "./admin/pages/AffiliateTasksPage";
 import { AdminChatsPage } from "./admin/pages/ChatsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { usePageTracking } from "./hooks/usePageTracking";
@@ -207,6 +208,7 @@ function App() {
             <Route path="settings" element={<AdminSettingsPage />} />
             <Route path="events" element={<AdminEventLogsPage />} />
             <Route path="financial-model" element={<FinancialModelPage />} />
+            <Route path="affiliate-tasks" element={<AdminAffiliateTasksPage />} />
           </Route>
         </Route>
 
