@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, ClipboardList, AlertTriangle,
-  MessageSquare, DollarSign, CheckSquare, Link2, LogOut, Search,
+  MessageSquare, DollarSign, CheckSquare, Link2, LogOut,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 
@@ -20,11 +19,6 @@ const nav = [
 export function AffiliateSidebar() {
   const { user, signOut } = useAuthStore();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-
-  const filtered = search.trim()
-    ? nav.filter((n) => n.label.toLowerCase().includes(search.toLowerCase()))
-    : nav;
 
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "AF";
 
@@ -33,8 +27,8 @@ export function AffiliateSidebar() {
       {/* Header */}
       <div className="px-4 py-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#006AFF] flex items-center justify-center shrink-0">
-            <img src="/logo-square.svg" alt="" className="w-4 h-4 brightness-0 invert" />
+          <div className="shrink-0">
+            <img src="/logo-square.svg" alt="SLOT" className="w-8 h-8" />
           </div>
           <div className="min-w-0">
             <p className="text-white text-sm font-semibold leading-tight truncate">SLOT</p>
@@ -43,23 +37,9 @@ export function AffiliateSidebar() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="px-3 py-2.5 border-b border-white/[0.04]">
-        <div className="relative">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5a5f7a] pointer-events-none" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Поиск..."
-            className="w-full pl-7 pr-3 py-1.5 text-xs rounded-md outline-none text-[#a0a5c0] placeholder:text-[#4a4f68] transition-colors"
-            style={{ background: "#171a28", border: "1px solid rgba(255,255,255,0.06)" }}
-          />
-        </div>
-      </div>
-
       {/* Nav */}
       <nav className="flex-1 px-2 py-2 flex flex-col gap-0.5 overflow-y-auto">
-        {filtered.map(({ to, label, icon: Icon, end }) => (
+        {nav.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
