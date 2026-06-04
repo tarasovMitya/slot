@@ -179,7 +179,7 @@ export function AdminAffiliateTasksPage() {
                   <option value="all">Все менеджеры</option>
                   {managers.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name || m.email}
+                      {m.name || m.email || m.id.slice(0, 8) + "…"}
                     </option>
                   ))}
                 </select>
