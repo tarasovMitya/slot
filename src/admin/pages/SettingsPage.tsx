@@ -51,7 +51,7 @@ export function AdminSettingsPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 md:p-6 max-w-2xl w-full">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white">Настройки</h1>
         <p className="text-sm text-[#6b7194] mt-0.5">Конфигурация платформы</p>
@@ -132,15 +132,16 @@ function Field({ label, value, onChange, type, min, max }: {
   max?: number;
 }) {
   return (
-    <div className="flex items-center gap-4">
-      <label className="text-sm text-[#8b90a8] w-52 shrink-0">{label}</label>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+      <label className="text-sm text-[#8b90a8] sm:w-52 sm:shrink-0">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         min={min}
         max={max}
-        className="flex-1 border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+        className="flex-1 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#006AFF]/40"
+        style={{ background: "#171a28", border: "1px solid rgba(255,255,255,0.08)" }}
       />
     </div>
   );

@@ -122,7 +122,7 @@ export function AdminVerificationPage() {
   }
 
   return (
-    <div className="p-6 text-gray-100">
+    <div className="p-4 md:p-6 text-gray-100">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white">Верификация</h1>
         <p className="text-sm text-[#6b7194] mt-0.5">Проверка и одобрение исполнителей</p>
@@ -142,7 +142,7 @@ export function AdminVerificationPage() {
           <p className="text-2xl font-bold text-red-700">{rejected.length}</p>
           <p className="text-xs font-semibold text-red-600 mt-0.5">Отклонено</p>
         </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
+        <div className="bg-gray-50 border border-white/[0.08] rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-[#8b90a8]">{notStarted.length}</p>
           <p className="text-xs font-semibold text-[#6b7194] mt-0.5">Не заполнено</p>
         </div>
@@ -152,7 +152,7 @@ export function AdminVerificationPage() {
         {/* Queue */}
         <div className="flex-1 min-w-0">
           {isLoadingPerformers ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
+            <div className="bg-white rounded-xl border border-white/[0.08] p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
             <>
               {queue.length > 0 && (
@@ -173,7 +173,7 @@ export function AdminVerificationPage() {
               )}
 
               {approved.length > 0 && (
-                <Section title="Одобренные" icon={<ShieldCheck size={14} className="text-green-600" />} border="border-gray-200">
+                <Section title="Одобренные" icon={<ShieldCheck size={14} className="text-green-600" />} border="border-white/[0.08]">
                   {approved.map((p) => (
                     <PerformerRow key={p.id} performer={p} selected={selected?.id === p.id} onClick={() => selectPerformer(p)}
                       actions={
@@ -186,7 +186,7 @@ export function AdminVerificationPage() {
               )}
 
               {rejected.length > 0 && (
-                <Section title="Отклонённые" icon={<ShieldCheck size={14} className="text-red-500" />} border="border-gray-200">
+                <Section title="Отклонённые" icon={<ShieldCheck size={14} className="text-red-500" />} border="border-white/[0.08]">
                   {rejected.map((p) => (
                     <PerformerRow key={p.id} performer={p} selected={selected?.id === p.id} onClick={() => selectPerformer(p)}
                       actions={
@@ -199,7 +199,7 @@ export function AdminVerificationPage() {
               )}
 
               {performers.length === 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-[#6b7194]">Нет исполнителей</div>
+                <div className="bg-white rounded-xl border border-white/[0.08] p-8 text-center text-sm text-[#6b7194]">Нет исполнителей</div>
               )}
             </>
           )}
@@ -207,8 +207,8 @@ export function AdminVerificationPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-80 shrink-0 bg-white rounded-xl border border-gray-200 self-start space-y-0 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="w-80 shrink-0 bg-white rounded-xl border border-white/[0.08] self-start space-y-0 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
               <p className="text-sm font-semibold text-white">Анкета исполнителя</p>
               <button onClick={() => { setSelected(null); setVerRequest(null); }} className="text-[#6b7194] hover:text-[#8b90a8]">
                 <X size={16} />
@@ -250,13 +250,13 @@ export function AdminVerificationPage() {
                       <div className="grid grid-cols-2 gap-2">
                         {verRequest.passport_url && (
                           <a href={verRequest.passport_url} target="_blank" rel="noopener noreferrer">
-                            <img src={verRequest.passport_url} alt="Паспорт" className="w-full aspect-video object-cover rounded-lg border border-gray-200 hover:opacity-90" />
+                            <img src={verRequest.passport_url} alt="Паспорт" className="w-full aspect-video object-cover rounded-lg border border-white/[0.08] hover:opacity-90" />
                             <p className="text-xs text-[#6b7194] mt-1 text-center">Паспорт</p>
                           </a>
                         )}
                         {verRequest.selfie_url && (
                           <a href={verRequest.selfie_url} target="_blank" rel="noopener noreferrer">
-                            <img src={verRequest.selfie_url} alt="Селфи" className="w-full aspect-video object-cover rounded-lg border border-gray-200 hover:opacity-90" />
+                            <img src={verRequest.selfie_url} alt="Селфи" className="w-full aspect-video object-cover rounded-lg border border-white/[0.08] hover:opacity-90" />
                             <p className="text-xs text-[#6b7194] mt-1 text-center">Селфи</p>
                           </a>
                         )}
@@ -290,7 +290,7 @@ export function AdminVerificationPage() {
                       <div className="grid grid-cols-3 gap-1.5">
                         {verRequest.work_photo_urls!.map((url, i) => (
                           <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                            <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-gray-100 hover:opacity-90" />
+                            <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-white/[0.06] hover:opacity-90" />
                           </a>
                         ))}
                       </div>
@@ -318,7 +318,7 @@ export function AdminVerificationPage() {
               )}
 
               {/* Actions */}
-              <div className="space-y-2 pt-2 border-t border-gray-100">
+              <div className="space-y-2 pt-2 border-t border-white/[0.06]">
                 {selected.verificationStatus !== "approved" && (
                   <button disabled={!!actionLoading} onClick={() => approve(selected.id)}
                     className="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50">
@@ -351,7 +351,7 @@ export function AdminVerificationPage() {
             <div className="flex flex-wrap gap-2 mb-3">
               {["Нечитаемый документ", "Плохое качество фото", "Данные не совпадают", "Неполная анкета", "Недостаточно фото работ"].map(r => (
                 <button key={r} onClick={() => setRejectReason(r)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${rejectReason === r ? "bg-red-600 text-white border-red-600" : "border-gray-200 text-[#8b90a8] hover:border-red-300"}`}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${rejectReason === r ? "bg-red-600 text-white border-red-600" : "border-white/[0.08] text-[#8b90a8] hover:border-red-300"}`}
                 >
                   {r}
                 </button>
@@ -362,11 +362,11 @@ export function AdminVerificationPage() {
               onChange={e => setRejectReason(e.target.value)}
               rows={3}
               placeholder="Или введите произвольную причину..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-200 mb-4"
+              className="w-full border border-white/[0.08] rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-200 mb-4"
             />
             <div className="flex gap-2">
               <button onClick={() => { setRejectModal(false); setRejectReason(""); }}
-                className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-[#8b90a8] hover:bg-gray-50">
+                className="flex-1 py-2 border border-white/[0.08] rounded-lg text-sm font-medium text-[#8b90a8] hover:bg-gray-50">
                 Отмена
               </button>
               <button onClick={() => reject(selected.id)} disabled={!rejectReason.trim() || !!actionLoading}
@@ -384,7 +384,7 @@ export function AdminVerificationPage() {
 function Section({ title, icon, border, children }: { title: string; icon: React.ReactNode; border: string; children: React.ReactNode }) {
   return (
     <div className={`bg-white rounded-xl border ${border} mb-4 overflow-hidden`}>
-      <div className={`px-5 py-3 border-b border-gray-100 flex items-center gap-2`}>
+      <div className={`px-5 py-3 border-b border-white/[0.06] flex items-center gap-2`}>
         {icon}
         <p className="text-sm font-semibold text-white">{title}</p>
       </div>

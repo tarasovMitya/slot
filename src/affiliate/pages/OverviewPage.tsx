@@ -26,14 +26,14 @@ export function AffiliateOverviewPage() {
 
   if (isLoadingStats) {
     return (
-      <div className="p-6 flex justify-center pt-20">
+      <div className="p-4 md:p-6 flex justify-center pt-20">
         <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-[#006AFF] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl">
+    <div className="p-4 md:p-6 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white">Обзор</h1>
         <p className="text-sm text-[#6b7194] mt-0.5">Статистика по вашим исполнителям</p>

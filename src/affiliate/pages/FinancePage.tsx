@@ -35,7 +35,7 @@ export function AffiliateFinancePage() {
     .reduce((s, e) => s + e.affiliateFee, 0);
 
   return (
-    <div className="p-6 max-w-5xl">
+    <div className="p-4 md:p-6 max-w-5xl">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white">Финансы</h1>
         <p className="text-sm text-[#6b7194] mt-0.5">Ваш заработок с исполнителей</p>

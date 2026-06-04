@@ -66,7 +66,7 @@ export function AdminFinancePage() {
   }
 
   return (
-    <div className="p-6 text-gray-100">
+    <div className="p-4 md:p-6 text-gray-100">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white">Финансы</h1>
         <p className="text-sm text-[#6b7194] mt-0.5">Управление выплатами и балансами</p>
@@ -105,8 +105,8 @@ export function AdminFinancePage() {
       </div>
 
       {/* Pending payout requests */}
-      <div className="bg-white rounded-xl border border-gray-200 mb-4">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-white/[0.08] mb-4">
+        <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
           <p className="text-sm font-semibold text-white">Заявки на вывод</p>
           {pending.length > 0 && (
             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
@@ -143,7 +143,7 @@ export function AdminFinancePage() {
                       value={rejectNote}
                       onChange={(e) => setRejectNote(e.target.value)}
                       placeholder="Причина отказа (необязательно)"
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400"
+                      className="w-full px-3 py-2 text-sm border border-white/[0.08] rounded-lg focus:outline-none focus:border-gray-400"
                     />
                     <div className="flex gap-2">
                       <button
@@ -189,7 +189,7 @@ export function AdminFinancePage() {
 
       {/* History (collapsible) */}
       {history.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 mb-4">
+        <div className="bg-white rounded-xl border border-white/[0.08] mb-4">
           <button
             onClick={() => setShowHistory((v) => !v)}
             className="w-full px-5 py-4 flex items-center justify-between text-sm font-semibold text-white hover:bg-white/[0.03] transition-colors rounded-xl"
@@ -198,10 +198,10 @@ export function AdminFinancePage() {
             {showHistory ? <ChevronUp size={16} className="text-[#6b7194]" /> : <ChevronDown size={16} className="text-[#6b7194]" />}
           </button>
           {showHistory && (
-            <div className="border-t border-gray-100 overflow-x-auto">
+            <div className="border-t border-white/[0.06] overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100">
+                  <tr className="border-b border-white/[0.06]">
                     <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Карта</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Сумма</th>
@@ -213,7 +213,7 @@ export function AdminFinancePage() {
                   {history.map((req) => {
                     const s = statusLabel(req.status);
                     return (
-                      <tr key={req.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={req.id} className="border-b border-white/[0.04] hover:bg-gray-50">
                         <td className="px-5 py-3 font-medium text-white">{req.performerName ?? "—"}</td>
                         <td className="px-5 py-3 text-[#8b90a8]">•••• {req.cardLast4}</td>
                         <td className="px-5 py-3 font-semibold text-white">{formatPrice(req.amount)}</td>
@@ -233,8 +233,8 @@ export function AdminFinancePage() {
       )}
 
       {/* All performers balances */}
-      <div className="bg-white rounded-xl border border-gray-200 mt-4">
-        <div className="px-5 py-4 border-b border-gray-100">
+      <div className="bg-white rounded-xl border border-white/[0.08] mt-4">
+        <div className="px-5 py-4 border-b border-white/[0.06]">
           <p className="text-sm font-semibold text-white">Балансы всех исполнителей</p>
         </div>
         {isLoadingPerformers ? (
@@ -243,7 +243,7 @@ export function AdminFinancePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
+                <tr className="border-b border-white/[0.06]">
                   <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Рейтинг</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Заказов</th>
@@ -253,7 +253,7 @@ export function AdminFinancePage() {
               </thead>
               <tbody>
                 {performers.map((p) => (
-                  <tr key={p.id} className="border-b border-gray-50 hover:bg-white/[0.03] transition-colors">
+                  <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors">
                     <td className="px-5 py-3 font-medium text-white">{p.name}</td>
                     <td className="px-5 py-3 text-amber-500 font-semibold">{p.rating.toFixed(1)}</td>
                     <td className="px-5 py-3 text-[#a0a5c0]">{p.completedOrders}</td>
@@ -282,9 +282,9 @@ export function AdminFinancePage() {
 }
 
 function KpiCard({ label, value, icon, color, loading }: { label: string; value: string | number; icon: React.ReactNode; color: string; loading?: boolean }) {
-  if (loading) return <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse h-24" />;
+  if (loading) return <div className="bg-white rounded-xl border border-white/[0.08] p-5 animate-pulse h-24" />;
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-white rounded-xl border border-white/[0.08] p-5">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-[#6b7194] uppercase tracking-wider">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>{icon}</div>

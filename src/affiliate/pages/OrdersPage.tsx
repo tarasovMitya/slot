@@ -33,7 +33,7 @@ export function AffiliateOrdersPage() {
   }, [statusFilter]);
 
   return (
-    <div className="p-6 text-gray-100">
+    <div className="p-4 md:p-6 text-gray-100">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white">Заказы</h1>
         <p className="text-sm text-[#6b7194] mt-0.5">Заказы ваших исполнителей</p>
@@ -64,7 +64,8 @@ export function AffiliateOrdersPage() {
         </div>
       ) : (
         <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[500px]">
             <thead className="bg-[#0c0e1a] border-b border-white/[0.05]">
               <tr>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Исполнитель</th>
@@ -96,6 +97,7 @@ export function AffiliateOrdersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

@@ -62,9 +62,9 @@ export function AdminChatsPage() {
   return (
     <div className="flex h-full">
       {/* Left panel */}
-      <div className="w-72 shrink-0 border-r border-gray-100 flex flex-col">
+      <div className="w-72 shrink-0 border-r border-white/[0.06] flex flex-col">
         {/* Header */}
-        <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+        <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-base font-bold text-white">Чаты</h1>
             <span className="text-xs text-[#6b7194]">{filtered.length} / {chats.length}</span>
@@ -78,7 +78,7 @@ export function AdminChatsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск по названию..."
-              className="w-full pl-7 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
+              className="w-full pl-7 pr-7 py-1.5 text-xs border border-white/[0.08] rounded-lg bg-white/[0.06] focus:outline-none focus:border-[#006AFF]/40 focus:bg-white/[0.08] transition-colors"
             />
             {search && (
               <button
@@ -99,7 +99,7 @@ export function AdminChatsPage() {
                 className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                   filter === f.key
                     ? "bg-[#003B8F] text-white"
-                    : "bg-gray-100 text-[#6b7194] hover:bg-gray-200"
+                    : "bg-white/[0.06] text-[#6b7194] hover:bg-white/[0.08]"
                 }`}
               >
                 {f.label}
@@ -128,8 +128,8 @@ export function AdminChatsPage() {
                 <button
                   key={chat.id}
                   onClick={() => openChatById(chat.id, chat)}
-                  className={`w-full text-left px-4 py-3.5 border-b border-gray-50 transition-colors ${
-                    isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                  className={`w-full text-left px-4 py-3.5 border-b border-white/[0.04] transition-colors ${
+                    isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -142,7 +142,7 @@ export function AdminChatsPage() {
                   </div>
                   <p className="text-xs text-[#6b7194]">{TYPE_LABELS[chat.type] ?? chat.type}</p>
                   {chat.orderStatus && (
-                    <span className="inline-block mt-1.5 text-xs bg-gray-100 text-[#6b7194] rounded-full px-2 py-0.5">
+                    <span className="inline-block mt-1.5 text-xs bg-white/[0.06] text-[#6b7194] rounded-full px-2 py-0.5">
                       {chat.orderStatus}
                     </span>
                   )}
@@ -157,7 +157,7 @@ export function AdminChatsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {activeChat && user ? (
           <>
-            <div className="px-5 py-3.5 border-b border-gray-100 shrink-0">
+            <div className="px-5 py-3.5 border-b border-white/[0.06] shrink-0">
               <p className="text-sm font-semibold text-white">
                 {(activeChat as ChatWithMeta).serviceName ?? "Чат"}
               </p>

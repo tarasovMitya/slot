@@ -36,7 +36,7 @@ export function AdminAnalyticsPage() {
   useEffect(() => { loadAll(); }, []);
 
   return (
-    <div className="p-6 text-gray-100">
+    <div className="p-4 md:p-6 text-gray-100">
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>

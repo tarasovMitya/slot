@@ -43,7 +43,7 @@ export function AdminDisputesPage() {
   }
 
   return (
-    <div className="p-6 text-gray-100">
+    <div className="p-4 md:p-6 text-gray-100">
       <div className="mb-6 flex items-center gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Споры</h1>
@@ -59,14 +59,14 @@ export function AdminDisputesPage() {
 
       <div className="flex gap-4">
         {/* Table */}
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="flex-1 bg-white rounded-xl border border-white/[0.08] overflow-hidden">
           {isLoadingDisputes ? (
             <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100">
+                  <tr className="border-b border-white/[0.06]">
                     <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">ID заказа</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Клиент</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
@@ -81,7 +81,7 @@ export function AdminDisputesPage() {
                     <tr
                       key={d.id}
                       onClick={() => setSelected(d.id === selected ? null : d.id)}
-                      className={`border-b border-gray-50 hover:bg-orange-50/50 transition-colors cursor-pointer ${selected === d.id ? "bg-orange-50" : ""}`}
+                      className={`border-b border-white/[0.04] hover:bg-orange-50/50 transition-colors cursor-pointer ${selected === d.id ? "bg-orange-50" : ""}`}
                     >
                       <td className="px-5 py-3 font-mono text-xs text-[#6b7194]">{d.orderId.slice(0, 8)}…</td>
                       <td className="px-5 py-3 font-medium text-white">{d.clientName}</td>
