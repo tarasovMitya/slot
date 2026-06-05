@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { MessageSquare, Loader2, Search, X } from "lucide-react";
+import { MessageSquare, Loader2, Search, X, ArrowLeft } from "lucide-react";
 import { dbLoadAllChats } from "../../lib/chatDb";
 import { useChatStore } from "../../store/chatStore";
 import { useAuthStore } from "../../store/authStore";
@@ -36,6 +36,7 @@ export function AdminChatsPage() {
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
   const { activeChat, messages, isLoading, isSending, openChatById, sendMessage } = useChatStore();
   const { user } = useAuthStore();
@@ -59,10 +60,15 @@ export function AdminChatsPage() {
     });
   }, [chats, search, filter]);
 
+  function handleOpenChat(chatId: string, chat: ChatWithMeta) {
+    openChatById(chatId, chat);
+    setMobileView("chat");
+  }
+
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-hidden">
       {/* Left panel */}
-      <div className="w-72 shrink-0 border-r border-white/[0.06] flex flex-col">
+      <div className={`flex-col border-r border-white/[0.06] w-full md:w-72 md:shrink-0 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
         {/* Header */}
         <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-3">
@@ -127,7 +133,7 @@ export function AdminChatsPage() {
               return (
                 <button
                   key={chat.id}
-                  onClick={() => openChatById(chat.id, chat)}
+                  onClick={() => handleOpenChat(chat.id, chat)}
                   className={`w-full text-left px-4 py-3.5 border-b border-white/[0.04] transition-colors ${
                     isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"
                   }`}
@@ -154,16 +160,25 @@ export function AdminChatsPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-col min-w-0 w-full md:flex-1 ${mobileView === "list" ? "hidden md:flex" : "flex"}`}>
         {activeChat && user ? (
           <>
-            <div className="px-5 py-3.5 border-b border-white/[0.06] shrink-0">
-              <p className="text-sm font-semibold text-white">
-                {(activeChat as ChatWithMeta).serviceName ?? "Чат"}
-              </p>
-              <p className="text-xs text-[#6b7194]">
-                {TYPE_LABELS[activeChat.type] ?? activeChat.type}
-              </p>
+            <div className="px-4 py-3.5 border-b border-white/[0.06] shrink-0 flex items-center gap-3">
+              <button
+                onClick={() => setMobileView("list")}
+                className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg text-[#6b7194] hover:text-white hover:bg-white/[0.06] transition-colors shrink-0"
+                aria-label="Назад"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  {(activeChat as ChatWithMeta).serviceName ?? "Чат"}
+                </p>
+                <p className="text-xs text-[#6b7194]">
+                  {TYPE_LABELS[activeChat.type] ?? activeChat.type}
+                </p>
+              </div>
             </div>
             <div className="flex-1 min-h-0">
               <ChatWindow

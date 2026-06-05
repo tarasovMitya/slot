@@ -67,8 +67,9 @@ export function AffiliateTasksPage() {
       </div>
 
       {/* Tabs + Search */}
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <div className="flex gap-1 rounded-lg p-1" style={{ background: "rgba(255,255,255,0.04)", border }}>
+      <div className="flex flex-col gap-2 mb-5 sm:flex-row sm:items-center sm:gap-3">
+        <div className="overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
+          <div className="flex gap-1 rounded-lg p-1 w-max sm:w-auto" style={{ background: "rgba(255,255,255,0.04)", border }}>
           {TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
@@ -77,7 +78,7 @@ export function AffiliateTasksPage() {
               {t.label}
             </button>
           ))}
-        </div>
+        </div></div>
         <div className="relative flex-1 min-w-[180px]">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a4f68]" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}

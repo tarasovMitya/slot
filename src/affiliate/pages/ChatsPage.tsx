@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { MessageSquare, Loader2, Search, X } from "lucide-react";
+import { MessageSquare, Loader2, Search, X, ArrowLeft } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useChatStore } from "../../store/chatStore";
 import { useAuthStore } from "../../store/authStore";
@@ -43,6 +43,7 @@ export function AffiliateChatsPage() {
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
   const { activeChat, messages, isLoading, isSending, openChatById, sendMessage } = useChatStore();
   const { user } = useAuthStore();
@@ -55,7 +56,6 @@ export function AffiliateChatsPage() {
 
   useEffect(() => {
     if (!userId) return;
-    // Load performer_admin chats filtered to own performers
     supabase
       .from("performer_profiles")
       .select("user_id")
@@ -96,15 +96,35 @@ export function AffiliateChatsPage() {
     });
   }, [chats, search, statusFilter]);
 
+  function handleOpenChat(chatId: string, chat: ChatWithMeta) {
+    openChatById(chatId, chat);
+    setMobileView("chat");
+  }
+
+  function handleBack() {
+    setMobileView("list");
+  }
+
+  const chatTitle = (activeChat as ChatWithMeta)?.serviceName ?? "Чат";
+
   return (
-    <div className="flex h-full">
-      {/* Left panel */}
-      <div className="w-72 shrink-0 border-r border-white/[0.06] flex flex-col">
+    <div className="flex h-full overflow-hidden">
+
+      {/* ── LEFT PANEL: chat list ── */}
+      <div
+        className={`
+          flex-col border-r border-white/[0.06]
+          w-full md:w-72 md:shrink-0
+          ${mobileView === "chat" ? "hidden md:flex" : "flex"}
+        `}
+      >
+        {/* Header */}
         <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-base font-bold text-white">Чаты</h1>
             <span className="text-xs text-[#6b7194]">{filtered.length} / {chats.length}</span>
           </div>
+
           {/* Search */}
           <div className="relative mb-2.5">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6b7194] pointer-events-none" />
@@ -122,6 +142,7 @@ export function AffiliateChatsPage() {
               </button>
             )}
           </div>
+
           {/* Status filter tabs */}
           <div className="flex gap-1 rounded-lg p-0.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
             {STATUS_FILTERS.map((f) => (
@@ -138,6 +159,7 @@ export function AffiliateChatsPage() {
           </div>
         </div>
 
+        {/* Chat list */}
         <div className="flex-1 overflow-y-auto">
           {isLoadingList ? (
             <div className="flex items-center justify-center py-12">
@@ -146,7 +168,9 @@ export function AffiliateChatsPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center px-4">
               <MessageSquare size={28} className="text-gray-200" />
-              <p className="text-sm text-[#6b7194]">{chats.length === 0 ? "Чатов пока нет" : "Ничего не найдено"}</p>
+              <p className="text-sm text-[#6b7194]">
+                {chats.length === 0 ? "Чатов пока нет" : "Ничего не найдено"}
+              </p>
             </div>
           ) : (
             filtered.map((chat) => {
@@ -154,8 +178,10 @@ export function AffiliateChatsPage() {
               return (
                 <button
                   key={chat.id}
-                  onClick={() => openChatById(chat.id, chat)}
-                  className={`w-full text-left px-4 py-3.5 border-b transition-colors ${isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"}`}
+                  onClick={() => handleOpenChat(chat.id, chat)}
+                  className={`w-full text-left px-4 py-3.5 border-b transition-colors ${
+                    isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03] active:bg-white/[0.06]"
+                  }`}
                   style={{ borderColor: "rgba(255,255,255,0.04)" }}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -170,14 +196,32 @@ export function AffiliateChatsPage() {
         </div>
       </div>
 
-      {/* Right panel */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* ── RIGHT PANEL: active chat ── */}
+      <div
+        className={`
+          flex-col min-w-0
+          w-full md:flex-1
+          ${mobileView === "list" ? "hidden md:flex" : "flex"}
+        `}
+      >
         {activeChat && user ? (
           <>
-            <div className="px-5 py-3.5 border-b border-white/[0.06] shrink-0">
-              <p className="text-sm font-semibold text-white">{(activeChat as ChatWithMeta).serviceName ?? "Чат"}</p>
-              <p className="text-xs text-[#6b7194]">Исполнитель ↔ Поддержка</p>
+            {/* Chat header with back button on mobile */}
+            <div className="px-4 py-3.5 border-b border-white/[0.06] shrink-0 flex items-center gap-3">
+              <button
+                onClick={handleBack}
+                className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg text-[#6b7194] hover:text-white hover:bg-white/[0.06] transition-colors shrink-0"
+                aria-label="Назад"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{chatTitle}</p>
+                <p className="text-xs text-[#6b7194]">Исполнитель ↔ Поддержка</p>
+              </div>
             </div>
+
+            {/* Chat messages + input */}
             <div className="flex-1 min-h-0">
               <ChatWindow
                 chat={activeChat}
@@ -192,12 +236,14 @@ export function AffiliateChatsPage() {
             </div>
           </>
         ) : (
+          /* Empty state — desktop only (mobile never shows this panel without a chat) */
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
             <MessageSquare size={36} className="text-gray-200" />
             <p className="text-sm text-[#6b7194]">Выберите чат слева</p>
           </div>
         )}
       </div>
+
     </div>
   );
 }
