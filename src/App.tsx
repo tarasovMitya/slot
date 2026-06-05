@@ -77,6 +77,7 @@ import { AffiliateChatsPage } from "./affiliate/pages/ChatsPage";
 import { AffiliateFinancePage } from "./affiliate/pages/FinancePage";
 import { AffiliateTasksPage } from "./affiliate/pages/TasksPage";
 import { AffiliateReferralPage } from "./affiliate/pages/ReferralPage";
+import { AffiliateSettingsPage } from "./affiliate/pages/SettingsPage";
 import { TMAApp } from "./pages/tma/TMAApp";
 import { PricePage } from "./pages/price/PricePage";
 
@@ -223,6 +224,7 @@ function App() {
             <Route path="finance" element={<AffiliateFinancePage />} />
             <Route path="tasks" element={<AffiliateTasksPage />} />
             <Route path="referral" element={<AffiliateReferralPage />} />
+            <Route path="settings" element={<AffiliateSettingsPage />} />
           </Route>
         </Route>
 

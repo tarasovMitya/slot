@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, ClipboardList, AlertTriangle,
-  MessageSquare, DollarSign, CheckSquare, Link2, LogOut, Menu, X,
+  MessageSquare, DollarSign, CheckSquare, Link2, LogOut, Menu, X, Settings,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 
@@ -15,6 +15,7 @@ const nav = [
   { to: "/affiliate/finance",    label: "Финансы",      icon: DollarSign },
   { to: "/affiliate/tasks",      label: "Задачник",     icon: CheckSquare },
   { to: "/affiliate/referral",   label: "Реф. ссылка", icon: Link2 },
+  { to: "/affiliate/settings",   label: "Настройки",   icon: Settings },
 ];
 
 // Key items shown in bottom tab bar on mobile
