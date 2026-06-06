@@ -32,6 +32,19 @@ let _locationWatchId: number | null = null;
 let _locationLastSent = 0;
 let _verStatusUnsub: (() => void) | null = null;
 
+export type DaySchedule = { active: boolean; start: string; end: string };
+export type WorkSchedule = Record<string, DaySchedule>;
+
+export const DEFAULT_WORK_SCHEDULE: WorkSchedule = {
+  "0": { active: true,  start: "09:00", end: "18:00" },
+  "1": { active: true,  start: "09:00", end: "18:00" },
+  "2": { active: true,  start: "09:00", end: "18:00" },
+  "3": { active: true,  start: "09:00", end: "18:00" },
+  "4": { active: true,  start: "09:00", end: "18:00" },
+  "5": { active: false, start: "09:00", end: "14:00" },
+  "6": { active: false, start: "09:00", end: "14:00" },
+};
+
 interface PerformerState {
   profile: PerformerProfile;
   verificationStatus: string;
@@ -46,9 +59,11 @@ interface PerformerState {
   notifications: PerformerNotification[];
   bankCards: BankCard[];
   isHydrated: boolean;
+  workSchedule: WorkSchedule;
 
   // Actions
   hydratePerformer: (userId: string) => Promise<void>;
+  saveWorkSchedule: (schedule: WorkSchedule) => Promise<void>;
   toggleOnline: () => void;
   acceptOrder: (orderId: string) => Promise<AcceptResult>;
   rejectOrder: (orderId: string) => void;
@@ -114,6 +129,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   notifications: [],
   bankCards: [],
   isHydrated: false,
+  workSchedule: DEFAULT_WORK_SCHEDULE,
 
   setVerificationStatus: (status, reason = null) =>
     set({ verificationStatus: status, rejectionReason: reason ?? null }),
@@ -125,7 +141,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       dbLoadPerformerBalance(userId),
       dbLoadPerformerActiveOrders(userId),
       dbLoadPerformerCompletedOrders(userId),
-      supabase.from("performer_profiles").select("verification_status, rejection_reason").eq("user_id", userId).single(),
+      supabase.from("performer_profiles").select("verification_status, rejection_reason, work_schedule").eq("user_id", userId).single(),
     ]);
 
     const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => {
@@ -209,6 +225,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         isHydrated: true,
         verificationStatus: (verData.data?.verification_status as string) ?? "not_started",
         rejectionReason: (verData.data?.rejection_reason as string) ?? null,
+        workSchedule: (verData.data?.work_schedule as WorkSchedule) ?? DEFAULT_WORK_SCHEDULE,
       }));
     } else {
       set({ activeOrders: restoredActiveOrders, completedOrders: restoredCompletedOrders, earnings: restoredEarnings, isHydrated: true });
@@ -498,6 +515,17 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     set((s) => ({
       bankCards: s.bankCards.map((c) => ({ ...c, isDefault: c.id === id })),
     })),
+
+  saveWorkSchedule: async (schedule) => {
+    set({ workSchedule: schedule });
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      await supabase
+        .from("performer_profiles")
+        .update({ work_schedule: schedule })
+        .eq("user_id", userId);
+    }
+  },
 
   startLocationTracking: (orderId) => {
     if (!navigator.geolocation) return Promise.resolve(false);

@@ -92,7 +92,7 @@ function FileDropZone({ label, file, onChange, accept = "image/*" }: {
   );
 }
 
-export function VerificationForm() {
+export function VerificationForm({ inline = false }: { inline?: boolean }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
@@ -211,12 +211,14 @@ export function VerificationForm() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Анкета отправлена!</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Ваши документы переданы на проверку администратору.<br />
+            Ваши документы переданы на проверку.<br />
             Среднее время проверки — 24 часа.
           </p>
-          <button onClick={() => navigate("/performer")} className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
-            Вернуться в дашборд
-          </button>
+          {!inline && (
+            <button onClick={() => navigate("/performer")} className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
+              Вернуться в дашборд
+            </button>
+          )}
         </div>
       </div>
     );
@@ -224,9 +226,11 @@ export function VerificationForm() {
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6 pb-16">
-      <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate(-1)} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 mb-6">
-        <ChevronLeft size={16} /> Назад
-      </button>
+      {(!inline || step > 0) && (
+        <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate(-1)} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 mb-6">
+          <ChevronLeft size={16} /> Назад
+        </button>
+      )}
 
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">

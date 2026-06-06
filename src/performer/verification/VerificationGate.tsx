@@ -4,6 +4,7 @@ import { ShieldCheck, Clock, XCircle, Loader2 } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useAuthStore } from "../../store/authStore";
 import { supabase } from "../../lib/supabase";
+import { VerificationForm } from "./VerificationForm";
 
 interface VerificationGateProps {
   children: React.ReactNode;
@@ -64,28 +65,7 @@ export function VerificationGate({ children }: VerificationGateProps) {
   }
 
   if (status === "not_started") {
-    return (
-      <div className="max-w-lg mx-auto px-4 pt-16 pb-10">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-5">
-            <ShieldCheck size={28} className="text-blue-600" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Чтобы начать принимать заказы, необходимо пройти проверку профиля
-          </h2>
-          <p className="text-sm text-gray-500 mb-7">
-            Верификация помогает повысить доверие клиентов и безопасность платформы.
-            Проверка занимает в среднем 24 часа.
-          </p>
-          <button
-            onClick={() => navigate("/performer/verification")}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors"
-          >
-            Пройти верификацию
-          </button>
-        </div>
-      </div>
-    );
+    return <VerificationForm inline />;
   }
 
   if (status === "pending") {

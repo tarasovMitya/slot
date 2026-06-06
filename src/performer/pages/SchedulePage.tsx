@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, CalendarDays, Clock, Zap } from "lucide-react";
-import { usePerformerStore } from "../store/performerStore";
+import { ChevronLeft, ChevronRight, CalendarDays, Clock, Zap, Settings2, Check } from "lucide-react";
+import { usePerformerStore, DEFAULT_WORK_SCHEDULE, type WorkSchedule } from "../store/performerStore";
 import { AvailabilityToggle } from "../components/ui/AvailabilityToggle";
 import { trackEvent } from "../../lib/analytics";
 import type { PerformerOrder } from "../types";
@@ -118,6 +118,96 @@ function OrderBlock({ order, top, height, onClick }: OrderBlockProps) {
   );
 }
 
+// ─── Work Schedule Settings ───────────────────────────────────────────────────
+
+const DAY_NAMES = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+
+function WorkSchedulePanel() {
+  const { workSchedule, saveWorkSchedule } = usePerformerStore();
+  const [local, setLocal] = useState<WorkSchedule>(() => ({ ...DEFAULT_WORK_SCHEDULE, ...workSchedule }));
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setLocal({ ...DEFAULT_WORK_SCHEDULE, ...workSchedule });
+  }, [workSchedule]);
+
+  function setDay(idx: string, patch: Partial<typeof local[string]>) {
+    setLocal((s) => ({ ...s, [idx]: { ...s[idx], ...patch } }));
+    setSaved(false);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    await saveWorkSchedule(local);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  return (
+    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white">
+      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+        <p className="text-sm font-semibold text-gray-700">Рабочие часы</p>
+        <p className="text-xs text-gray-400 mt-0.5">Укажите, в какие дни и часы вы принимаете заказы</p>
+      </div>
+      <div className="divide-y divide-gray-50">
+        {DAY_NAMES.map((name, i) => {
+          const key = String(i);
+          const day = local[key] ?? DEFAULT_WORK_SCHEDULE[key];
+          return (
+            <div key={key} className={`flex items-center gap-3 px-4 py-3 transition-colors ${!day.active ? "opacity-50" : ""}`}>
+              {/* Toggle */}
+              <button
+                onClick={() => setDay(key, { active: !day.active })}
+                className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${day.active ? "bg-blue-600" : "bg-gray-200"}`}
+              >
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${day.active ? "translate-x-4" : "translate-x-0.5"}`} />
+              </button>
+
+              {/* Day name */}
+              <span className="text-sm font-medium text-gray-800 w-28 shrink-0">{name}</span>
+
+              {/* Time pickers */}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <input
+                  type="time"
+                  value={day.start}
+                  disabled={!day.active}
+                  onChange={(e) => setDay(key, { start: e.target.value })}
+                  className="px-2 py-1 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-400 w-24"
+                />
+                <span className="text-xs text-gray-400">—</span>
+                <input
+                  type="time"
+                  value={day.end}
+                  disabled={!day.active}
+                  onChange={(e) => setDay(key, { end: e.target.value })}
+                  className="px-2 py-1 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50 disabled:text-gray-400 w-24"
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+        <p className="text-xs text-gray-400">
+          {Object.values(local).filter((d) => d.active).length} раб. {Object.values(local).filter((d) => d.active).length === 1 ? "день" : "дн."} в неделю
+        </p>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-all ${
+            saved ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"
+          } disabled:opacity-60`}
+        >
+          {saved ? <><Check size={14} /> Сохранено</> : saving ? "Сохраняем..." : "Сохранить"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 type Filter = "all" | "active" | "completed";
@@ -129,6 +219,7 @@ export function SchedulePage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
   const [tick, setTick] = useState(() => new Date());
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -277,6 +368,22 @@ export function SchedulePage() {
         <SummaryCard icon={<CalendarDays size={12} />} label="Заказов" value={String(stats.count)} />
         <SummaryCard icon={<Clock size={12} />} label="Часов" value={stats.hours} />
         <SummaryCard icon={<Zap size={12} />} label="Ближайший" value={stats.nextTime} />
+      </motion.div>
+
+      {/* Schedule settings toggle */}
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} className="mb-4">
+        <button
+          onClick={() => setScheduleOpen((o) => !o)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
+        >
+          <Settings2 size={15} />
+          {scheduleOpen ? "Скрыть рабочие часы" : "Настроить рабочие часы"}
+        </button>
+        {scheduleOpen && (
+          <div className="mt-3">
+            <WorkSchedulePanel />
+          </div>
+        )}
       </motion.div>
 
       {/* ── Timeline grid ── */}

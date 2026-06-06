@@ -309,6 +309,68 @@ export async function adminLoadAffiliateTasks(): Promise<AffiliateTask[]> {
   }));
 }
 
+// ─── Verification queue ───────────────────────────────────────────────────────
+
+export interface AffiliateVerificationItem {
+  performerId: string;
+  name: string;
+  phone: string;
+  city: string;
+  specializations: string[];
+  submittedAt: string;
+  passportUrl: string | null;
+  selfieUrl: string | null;
+  experienceYears: number | null;
+  experienceDescription: string | null;
+}
+
+export async function affiliateLoadVerificationQueue(userId: string): Promise<AffiliateVerificationItem[]> {
+  const { data: performers } = await supabase
+    .from("performer_profiles")
+    .select("user_id, name, phone")
+    .eq("affiliate_manager_id", userId)
+    .eq("verification_status", "pending");
+
+  if (!performers || performers.length === 0) return [];
+
+  const ids = performers.map((p) => p.user_id as string);
+
+  const { data: requests } = await supabase
+    .from("verification_requests")
+    .select("*")
+    .in("performer_id", ids)
+    .order("submitted_at", { ascending: false });
+
+  const perfMap = Object.fromEntries(performers.map((p) => [p.user_id, p]));
+
+  return (requests ?? []).map((r) => ({
+    performerId: r.performer_id as string,
+    name: (perfMap[r.performer_id as string]?.name as string) ?? "—",
+    phone: (perfMap[r.performer_id as string]?.phone as string) ?? "—",
+    city: (r.city as string) ?? "—",
+    specializations: (r.specializations as string[]) ?? [],
+    submittedAt: (r.submitted_at as string) ?? "",
+    passportUrl: (r.passport_url as string) ?? null,
+    selfieUrl: (r.selfie_url as string) ?? null,
+    experienceYears: (r.experience_years as number) ?? null,
+    experienceDescription: (r.experience_description as string) ?? null,
+  }));
+}
+
+export async function affiliateApprovePerformer(performerId: string): Promise<void> {
+  await supabase
+    .from("performer_profiles")
+    .update({ verification_status: "approved", rejection_reason: null })
+    .eq("user_id", performerId);
+}
+
+export async function affiliateRejectPerformer(performerId: string, reason: string): Promise<void> {
+  await supabase
+    .from("performer_profiles")
+    .update({ verification_status: "rejected", rejection_reason: reason })
+    .eq("user_id", performerId);
+}
+
 export async function adminLoadAffiliateManagers(): Promise<{ id: string; name: string; email: string }[]> {
   const { data } = await supabase
     .from("profiles")
