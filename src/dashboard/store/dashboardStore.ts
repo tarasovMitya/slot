@@ -305,17 +305,26 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         read: false,
         orderId: r.orderId,
       };
-      set((s) => ({ notifications: [n, ...s.notifications] }));
+      set((s) => {
+        // Deduplicate: skip if notification with this DB UUID is already in store
+        if (s.notifications.some((x) => x.id === n.id)) return s;
+        return { notifications: [n, ...s.notifications] };
+      });
     });
   },
 
   addNotification: (n, persist) => {
-    const id = `notif-${Date.now()}-${Math.random()}`;
+    const tempId = `notif-${Date.now()}-${Math.random()}`;
     const time = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-    const notification = { ...n, id, time, read: false } satisfies import("../types").Notification;
+    const notification = { ...n, id: tempId, time, read: false } satisfies import("../types").Notification;
     set((s) => ({ notifications: [notification, ...s.notifications] }));
     if (persist?.userId) {
-      dbCreateNotification(persist.userId, n.type, n.title, n.body, persist.orderId);
+      dbCreateNotification(persist.userId, n.type, n.title, n.body, persist.orderId).then((dbId) => {
+        if (dbId) {
+          // Replace temp ID with DB UUID so subscription dedup and future hydration work correctly
+          set((s) => ({ notifications: s.notifications.map((x) => x.id === tempId ? { ...x, id: dbId } : x) }));
+        }
+      });
     }
   },
 

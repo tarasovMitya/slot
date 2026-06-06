@@ -3,6 +3,7 @@ import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { formatPrice, pluralService } from "../../utils/priceCalculator";
 import { AddressSuggest } from "../ui/AddressSuggest";
+import { TestModeBanner } from "../ui/TestModeBanner";
 
 function applyPhoneMask(value: string): string {
   const raw = value.replace(/\D/g, "");
@@ -180,9 +181,7 @@ export function CheckoutStep() {
         </div>
 
         {/* TEST MODE notice */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          <span className="font-semibold">Тестовый режим.</span> Оплата производится напрямую исполнителю после выполнения работ.
-        </div>
+        <TestModeBanner />
       </div>
     </div>
   );

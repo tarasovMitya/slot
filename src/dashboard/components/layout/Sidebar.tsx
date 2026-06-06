@@ -17,7 +17,7 @@ import { useAuthStore } from "../../../store/authStore";
 
 const navItems = [
   { to: "/dashboard", label: "Главная", icon: LayoutDashboard, end: true },
-  { to: "/dashboard/orders", label: "Активные заказы", icon: ClipboardList },
+  { to: "/dashboard/orders", label: "Заказы", icon: ClipboardList },
   { to: "/dashboard/history", label: "История", icon: Clock },
   { to: "/dashboard/addresses", label: "Адреса", icon: MapPin },
   { to: "/dashboard/payments", label: "Оплата", icon: CreditCard },

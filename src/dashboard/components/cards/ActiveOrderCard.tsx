@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Clock, MapPin, ChevronRight, X } from "lucide-react";
-import { motion } from "framer-motion";
+import { Clock, MapPin, ChevronRight, X, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { StatusBadge } from "../ui/StatusBadge";
 import { PerformerCard } from "../ui/PerformerCard";
 import { formatPrice } from "../../../utils/priceCalculator";
@@ -16,6 +17,15 @@ const statusProgress: Record<string, number> = {
   completed: 100,
 };
 
+const statusLabel: Record<string, string> = {
+  searching: "Ищем исполнителя",
+  assigned: "Исполнитель назначен",
+  on_the_way: "Исполнитель в пути",
+  in_progress: "Работа в процессе",
+  waiting_client_confirmation: "Ожидает подтверждения",
+  dispute_opened: "Рассматривается спор",
+};
+
 const CANCELLABLE = new Set(["searching", "assigned", "on_the_way", "in_progress", "waiting_client_confirmation"]);
 
 interface ActiveOrderCardProps {
@@ -24,7 +34,9 @@ interface ActiveOrderCardProps {
 }
 
 export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
+  const [showConfirm, setShowConfirm] = useState(false);
   const progress = statusProgress[order.status] ?? 0;
+  const label = statusLabel[order.status] ?? "";
   const dateObj = order.scheduledDate ? new Date(order.scheduledDate) : null;
   const date = dateObj && !isNaN(dateObj.getTime())
     ? dateObj.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })
@@ -59,9 +71,9 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
             <ChevronRight size={16} className="text-gray-300 shrink-0" />
           </div>
 
-          {/* Progress bar */}
-          <div className="mt-4 mb-1">
-            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+          {/* Progress bar + label */}
+          <div className="mt-4">
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden mb-1.5">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -69,6 +81,9 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
                 className="h-full bg-black rounded-full"
               />
             </div>
+            {label && (
+              <p className="text-[11px] text-gray-400">{label}</p>
+            )}
           </div>
         </div>
       </Link>
@@ -105,9 +120,9 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
       <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400">Стоимость</span>
         <div className="flex items-center gap-3 ml-auto">
-          {canCancel && onCancel && (
+          {canCancel && onCancel && !showConfirm && (
             <button
-              onClick={(e) => { e.preventDefault(); onCancel(); }}
+              onClick={(e) => { e.preventDefault(); setShowConfirm(true); }}
               className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
             >
               <X size={13} />
@@ -117,6 +132,40 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
           <span className="text-sm font-semibold text-gray-900">{formatPrice(order.priceTotal)}</span>
         </div>
       </div>
+
+      {/* Inline cancel confirmation */}
+      <AnimatePresence>
+        {showConfirm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 py-4 border-t border-red-100 bg-red-50 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={14} className="text-red-500 shrink-0" />
+                <p className="text-sm font-semibold text-red-800">Отменить заказ?</p>
+              </div>
+              <p className="text-xs text-red-600">Это действие нельзя отменить</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => { e.preventDefault(); setShowConfirm(false); }}
+                  className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-400 bg-white transition-all"
+                >
+                  Нет
+                </button>
+                <button
+                  onClick={(e) => { e.preventDefault(); onCancel?.(); }}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all active:scale-95"
+                >
+                  Да, отменить
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

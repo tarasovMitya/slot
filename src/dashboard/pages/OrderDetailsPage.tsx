@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle, ShieldAlert, Wrench } from "lucide-react";
+import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle, ShieldAlert } from "lucide-react";
+import { TestModeBanner } from "../../components/ui/TestModeBanner";
 import { WarningCard } from "../../components/ui/WarningCard";
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
 import { motion, AnimatePresence } from "framer-motion";
@@ -171,9 +172,13 @@ export function OrderDetailsPage() {
           </Section>
         )}
 
-        {/* Timeline */}
+        {/* Timeline — hide future pending steps; only show completed + active */}
         <Section title="История заказа">
-          <Timeline events={order.timeline} />
+          <Timeline events={order.timeline.filter((e, i, arr) => {
+            if (e.completed) return true;
+            // Show only the first uncompleted event (active / next step)
+            return i === arr.findIndex((x) => !x.completed);
+          })} />
         </Section>
 
         {/* Payment info */}
@@ -186,15 +191,7 @@ export function OrderDetailsPage() {
               </span>
             </WarningCard>
           ) : (
-            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <Wrench size={15} className="text-amber-500 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-amber-800">Тестовый режим</p>
-                <p className="text-xs text-amber-700 mt-0.5">
-                  Оплата производится напрямую исполнителю после выполнения работ.
-                </p>
-              </div>
-            </div>
+            <TestModeBanner />
           )
         )}
 
@@ -250,7 +247,33 @@ export function OrderDetailsPage() {
           </Link>
         )}
 
-        {/* Cancel order */}
+        {/* Chat with performer */}
+        {CHAT_VISIBLE_STATUSES.has(order.status) && order.performer && (
+          <button
+            onClick={() =>
+              openChatForOrder(
+                order.id,
+                "client_performer",
+                user?.id ?? null,
+                order.performer!.id
+              )
+            }
+            className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+          >
+            <MessageCircle size={16} />
+            Чат с исполнителем
+          </button>
+        )}
+
+        <button
+          onClick={() => openChatForOrder(order.id, "client_admin", user?.id ?? null, null)}
+          className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+        >
+          <MessageCircle size={16} />
+          Чат с поддержкой
+        </button>
+
+        {/* Cancel order — intentionally last to reduce accidental taps */}
         {CANCELLABLE_STATUSES.has(order.status) && (
           <AnimatePresence mode="wait">
             {showCancelConfirm ? (
@@ -292,32 +315,6 @@ export function OrderDetailsPage() {
             )}
           </AnimatePresence>
         )}
-
-        {/* Chat with performer */}
-        {CHAT_VISIBLE_STATUSES.has(order.status) && order.performer && (
-          <button
-            onClick={() =>
-              openChatForOrder(
-                order.id,
-                "client_performer",
-                user?.id ?? null,
-                order.performer!.id
-              )
-            }
-            className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
-          >
-            <MessageCircle size={16} />
-            Чат с исполнителем
-          </button>
-        )}
-
-        <button
-          onClick={() => openChatForOrder(order.id, "client_admin", user?.id ?? null, null)}
-          className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
-        >
-          <MessageCircle size={16} />
-          Чат с поддержкой
-        </button>
       </div>
 
       <ChatDrawer

@@ -47,14 +47,16 @@ export function NotificationToast() {
   const clientNotifs = useDashboardStore((s) => s.notifications);
   const performerNotifs = usePerformerStore((s) => s.notifications);
 
-  // Seed seenIds on first load so old notifications don't pop up
+  // Seed seenIds when notifications first arrive (after hydration) so DB-loaded
+  // notifications don't pop up as toasts. Runs on each change until seeded once.
   const seeded = useRef(false);
   useEffect(() => {
     if (seeded.current) return;
     seeded.current = true;
     clientNotifs.forEach((n) => seenIds.current.add(n.id));
     performerNotifs.forEach((n) => seenIds.current.add(n.id));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientNotifs, performerNotifs]);
 
   // Watch for new client notifications
   useEffect(() => {

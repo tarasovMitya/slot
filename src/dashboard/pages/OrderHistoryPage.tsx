@@ -68,8 +68,12 @@ export function OrderHistoryPage() {
         {filtered.length === 0 ? (
           <EmptyState
             icon={<Clock size={28} />}
-            title="Заказов нет"
-            description="Попробуйте изменить фильтр или поисковый запрос"
+            title={historical.length === 0 ? "История пуста" : "Заказов не найдено"}
+            description={
+              historical.length === 0
+                ? "Здесь появятся завершённые и отменённые заказы"
+                : "Попробуйте изменить фильтр или поисковый запрос"
+            }
           />
         ) : (
           <motion.div
