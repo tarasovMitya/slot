@@ -170,8 +170,17 @@ export function PerformerOrderDetailsPage() {
             </div>
           )}
 
-          {/* Фото ДО — показываем пока заказ активен */}
-          {(order.status === "accepted" || order.status === "on_the_way" || order.status === "in_progress") && (
+          {/* Фото ДО — заблокировано до выезда */}
+          {order.status === "accepted" && (
+            <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50">
+              <div className="flex items-center gap-2 mb-2">
+                <Camera size={14} className="text-gray-300" />
+                <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Фото ДО начала работ</p>
+              </div>
+              <p className="text-xs text-gray-400">Будет доступно после нажатия «Еду к клиенту» — сфотографируйте помещение по прибытии</p>
+            </div>
+          )}
+          {(order.status === "on_the_way" || order.status === "in_progress") && (
             <div className="border border-gray-100 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Camera size={14} className="text-gray-500" />
@@ -235,18 +244,18 @@ export function PerformerOrderDetailsPage() {
             </div>
           </div>
 
-          {/* Timeline */}
-          {order.timeline.length > 0 && (
+          {/* Timeline — только завершённые шаги, чтобы не дублировать кнопку следующего действия */}
+          {order.timeline.filter((t) => t.completed).length > 0 && (
             <div className="border border-gray-100 rounded-2xl p-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Статус</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">История статусов</p>
               <div className="flex flex-col gap-2.5">
-                {order.timeline.map((t) => (
+                {order.timeline.filter((t) => t.completed).map((t) => (
                   <div key={t.id} className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${t.completed ? "bg-black" : "border-2 border-gray-200"}`}>
-                      {t.completed && <Check size={10} className="text-white" strokeWidth={3} />}
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-black">
+                      <Check size={10} className="text-white" strokeWidth={3} />
                     </div>
-                    <span className={`text-sm font-medium ${t.completed ? "text-gray-900" : "text-gray-400"}`}>{t.label}</span>
-                    {t.time && t.completed && (
+                    <span className="text-sm font-medium text-gray-900">{t.label}</span>
+                    {t.time && (
                       <span className="ml-auto text-xs text-gray-400">{t.time}</span>
                     )}
                   </div>

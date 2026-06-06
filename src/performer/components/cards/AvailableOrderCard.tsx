@@ -42,6 +42,9 @@ export function AvailableOrderCard({ order, onAccept, onReject, isAccepting, isU
           </div>
           <div className="text-right shrink-0">
             <p className="text-xl font-bold text-gray-900">{formatPrice(order.priceTotal)}</p>
+            <p className="text-xs text-green-600 font-medium mt-0.5">
+              вы получите {formatPrice(Math.round(order.priceTotal * 0.85))}
+            </p>
             <p className="text-xs text-gray-400 mt-0.5">{order.duration}</p>
           </div>
         </div>

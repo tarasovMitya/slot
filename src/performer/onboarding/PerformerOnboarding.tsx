@@ -24,12 +24,31 @@ const slide = {
   exit: { x: -30, opacity: 0 },
 };
 
+function availabilityToWorkSchedule(slots: string[]) {
+  const hasMorning = slots.includes("Утро");
+  const hasDay = slots.includes("День");
+  const hasEvening = slots.includes("Вечер");
+  const hasWeekend = slots.includes("Выходные");
+  const hasWeekday = hasMorning || hasDay || hasEvening;
+
+  const start = hasMorning ? "06:00" : hasDay ? "09:00" : hasEvening ? "18:00" : "09:00";
+  const end = hasEvening ? "22:00" : hasDay ? "18:00" : hasMorning ? "12:00" : "18:00";
+
+  const weekday = { active: hasWeekday || slots.length === 0, start, end };
+  const weekend = { active: hasWeekend, start, end };
+
+  return {
+    "0": weekday, "1": weekday, "2": weekday, "3": weekday, "4": weekday,
+    "5": weekend,  "6": weekend,
+  };
+}
+
 export function PerformerOnboarding() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
-  const { step, name, phone, avatarUrl, skills, city, address, lat, lng, radius, complete, reset, goToStep } =
+  const { step, name, phone, avatarUrl, skills, city, address, lat, lng, radius, availability, complete, reset, goToStep } =
     useOnboardingStore();
-  const { updateProfile } = usePerformerStore();
+  const { updateProfile, saveWorkSchedule } = usePerformerStore();
 
   const [showAuth, setShowAuth] = useState(false);
   const [authStep, setAuthStep] = useState<"email" | "otp">("email");
@@ -79,6 +98,7 @@ export function PerformerOnboarding() {
           specializations: skills,
         };
         updateProfile(profileData);
+        await saveWorkSchedule(availabilityToWorkSchedule(availability));
         await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
         const refCode = localStorage.getItem("affiliate_ref_code");
         if (refCode) {
@@ -153,6 +173,11 @@ export function PerformerOnboarding() {
       // Save to DB directly using fresh userId (bypasses auth store race condition)
       if (freshUser?.id) {
         await dbSavePerformerProfile(freshUser.id, profileData).catch(() => {});
+        // Save work schedule derived from onboarding availability selection
+        await supabase
+          .from("performer_profiles")
+          .upsert({ user_id: freshUser.id, work_schedule: availabilityToWorkSchedule(availability), updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+          .then(() => {}, () => {});
       }
       await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
       // Link to affiliate manager if registered via referral link
