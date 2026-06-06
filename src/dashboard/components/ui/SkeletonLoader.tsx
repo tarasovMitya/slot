@@ -29,7 +29,11 @@ export function OrderCardSkeleton() {
 export function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-6 p-6">
-      <Skeleton className="h-8 w-48" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-8 w-48" />
+      </div>
+      <p className="text-sm text-gray-400 -mt-3">Загружаем ваши заказы...</p>
       <div className="flex flex-col gap-3">
         <Skeleton className="h-40 w-full rounded-2xl" />
         <Skeleton className="h-32 w-full rounded-2xl" />

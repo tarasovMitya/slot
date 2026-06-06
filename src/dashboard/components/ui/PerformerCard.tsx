@@ -35,8 +35,12 @@ export function PerformerCard({ performer, showPhone = false, onChat }: Performe
         <p className="text-sm font-semibold text-gray-900">{displayName}</p>
         <div className="flex items-center gap-1 mt-0.5">
           <Star size={12} className="text-amber-400 fill-amber-400" />
-          <span className="text-xs font-medium text-gray-700">{performer.rating}</span>
-          <span className="text-xs text-gray-400">· {performer.reviewCount} отзывов</span>
+          <span className="text-xs font-medium text-gray-700">
+            {performer.rating > 0 ? performer.rating.toFixed(1) : "—"}
+          </span>
+          {performer.reviewCount > 0 && (
+            <span className="text-xs text-gray-400">· {performer.reviewCount} отзывов</span>
+          )}
         </div>
         <p className="text-xs text-gray-400 mt-0.5">{performer.jobsCompleted} выполненных заказов</p>
       </div>

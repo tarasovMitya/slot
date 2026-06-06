@@ -217,7 +217,7 @@ export function ProfileSettingsPage() {
             )}
           </Field>
 
-          <Field label="Email">
+          <Field label="Эл. почта">
             <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
               {email || <span className="text-gray-400">Не указано</span>}
             </p>

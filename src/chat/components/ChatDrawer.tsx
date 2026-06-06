@@ -25,6 +25,11 @@ export function ChatDrawer({
     : activeChat?.type === "performer_admin" ? "Чат с поддержкой"
     : title;
 
+  const chatSubtitle =
+    activeChat?.type === "client_performer" && performerName && performerName !== "Исполнитель"
+      ? performerName
+      : "Онлайн-чат";
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -54,7 +59,7 @@ export function ChatDrawer({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">{chatTitle}</p>
-                <p className="text-xs text-gray-400">Онлайн-чат</p>
+                <p className="text-xs text-gray-400">{chatSubtitle}</p>
               </div>
               <button
                 onClick={closeChat}

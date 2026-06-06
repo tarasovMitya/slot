@@ -117,20 +117,19 @@ export function ActiveOrderCard({ order, onCancel }: ActiveOrderCardProps) {
       )}
 
       {/* Footer */}
-      <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between gap-3">
-        <span className="text-xs text-gray-400">Стоимость</span>
-        <div className="flex items-center gap-3 ml-auto">
-          {canCancel && onCancel && !showConfirm && (
-            <button
-              onClick={(e) => { e.preventDefault(); setShowConfirm(true); }}
-              className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
-            >
-              <X size={13} />
-              Отменить
-            </button>
-          )}
-          <span className="text-sm font-semibold text-gray-900">{formatPrice(order.priceTotal)}</span>
-        </div>
+      <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between">
+        {canCancel && onCancel && !showConfirm ? (
+          <button
+            onClick={(e) => { e.preventDefault(); setShowConfirm(true); }}
+            className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
+          >
+            <X size={13} />
+            Отменить
+          </button>
+        ) : (
+          <span className="text-xs text-gray-400">Стоимость</span>
+        )}
+        <span className="text-sm font-semibold text-gray-900">{formatPrice(order.priceTotal)}</span>
       </div>
 
       {/* Inline cancel confirmation */}
