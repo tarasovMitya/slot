@@ -12,17 +12,17 @@ import { TelegramLoginButton } from "../auth/TelegramLoginButton";
 type SubStep = "email" | "otp" | "profile";
 
 function applyPhoneMask(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  const local =
-    digits.startsWith("7") || digits.startsWith("8")
-      ? digits.slice(1)
-      : digits;
+  const raw = value.replace(/\D/g, "");
+  // Strip leading 7/8 country code prefix(es) until ≤10 digits remain
+  let local = raw;
+  while (local.length > 10 && (local.startsWith("7") || local.startsWith("8"))) {
+    local = local.slice(1);
+  }
   const d = local.slice(0, 10);
   if (d.length === 0) return "+7";
   if (d.length <= 3) return `+7 (${d}`;
   if (d.length <= 6) return `+7 (${d.slice(0, 3)}) ${d.slice(3)}`;
-  if (d.length <= 8)
-    return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  if (d.length <= 8) return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8, 10)}`;
 }
 
@@ -54,7 +54,7 @@ export function AuthStep() {
 
   const { setContacts, goNext } = useCalculatorStore();
   const { user, isAuthenticated } = useAuthStore();
-  const { updateProfile, addresses, addAddress } = useDashboardStore();
+  const { updateProfile, addresses, addAddress, profile: dashProfile } = useDashboardStore();
 
   // Address selection: saved address id | "new" | null
   const defaultAddr = addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;
@@ -99,25 +99,28 @@ export function AuthStep() {
     if (isAuthenticated && user?.email) {
       setEmail(user.email);
       const meta = user.user_metadata as Record<string, string> | undefined;
-      if (meta?.phone) setPhone(meta.phone);
+      const rawPhone = meta?.phone || dashProfile?.phone || "";
+      if (rawPhone) setPhone(applyPhoneMask(rawPhone));
       setSubStep("profile");
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, dashProfile?.phone]);
 
   const emailForm = useForm<{ email: string }>();
   const profileForm = useForm<{ name: string; comment?: string }>();
 
   useEffect(() => {
-    if (subStep === "profile" && user?.user_metadata) {
-      const meta = user.user_metadata as Record<string, string>;
+    if (subStep === "profile") {
+      const meta = (user?.user_metadata ?? {}) as Record<string, string>;
       profileForm.reset({
-        name: meta.full_name ?? meta.name ?? "",
+        name: meta.full_name ?? meta.name ?? dashProfile?.name ?? "",
         comment: "",
       });
-      if (meta.phone) setPhone(meta.phone);
-      if (meta.address) setNewAddressValue(meta.address);
+      const rawPhone = meta.phone || dashProfile?.phone || "";
+      if (rawPhone) setPhone(applyPhoneMask(rawPhone));
+      const rawAddress = meta.address || dashProfile?.address || "";
+      if (rawAddress) setNewAddressValue(rawAddress);
     }
-  }, [subStep, user, profileForm]);
+  }, [subStep, user, dashProfile?.phone, dashProfile?.name, dashProfile?.address, profileForm]);
 
   const sendOtp = async (e: string) => {
     setLoading(true);

@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { useCalculatorStore } from "../../store/calculatorStore";
+import { useAuthStore } from "../../store/authStore";
 import { formatPrice, pluralService } from "../../utils/priceCalculator";
 import { AddressSuggest } from "../ui/AddressSuggest";
 
 function applyPhoneMask(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  const local = digits.startsWith("7") || digits.startsWith("8") ? digits.slice(1) : digits;
+  const raw = value.replace(/\D/g, "");
+  let local = raw;
+  while (local.length > 10 && (local.startsWith("7") || local.startsWith("8"))) {
+    local = local.slice(1);
+  }
   const d = local.slice(0, 10);
   if (d.length === 0) return "+7";
   if (d.length <= 3) return `+7 (${d}`;
@@ -15,23 +19,21 @@ function applyPhoneMask(value: string): string {
 }
 
 function isAutoName(name: string) { return !name || name.startsWith("tg_"); }
-function isAutoEmail(email: string) { return !email || email.endsWith("@slot-home.ru"); }
 
 export function CheckoutStep() {
   const { cart, schedule, contacts, setContacts } = useCalculatorStore();
+  const { isAuthenticated } = useAuthStore();
 
   const grandTotal = cart.reduce((sum, item) => sum + item.priceTotal, 0);
 
-  // Determine which fields need to be filled by the user
-  const needsName    = isAutoName(contacts.name);
-  const needsEmail   = isAutoEmail(contacts.email);
+  // Only ask for missing fields — authenticated users handled name/phone in AuthStep
+  const needsName    = !isAuthenticated && isAutoName(contacts.name);
   const needsAddress = !contacts.address;
-  const showForm     = needsName || needsEmail || needsAddress;
+  const showForm     = needsName || needsAddress;
 
   // Local form state — initialized once from contacts
   const [name,    setName]    = useState(() => isAutoName(contacts.name)   ? "" : contacts.name);
   const [phone,   setPhone]   = useState(() => contacts.phone || "+7");
-  const [email,   setEmail]   = useState(() => isAutoEmail(contacts.email) ? "" : contacts.email);
   const [address, setAddress] = useState(() => contacts.address || "");
 
   // Push form values into the store on every change
@@ -40,12 +42,12 @@ export function CheckoutStep() {
     setContacts({
       name:    name    || contacts.name,
       phone,
-      email:   email   || contacts.email,
+      email:   contacts.email,
       address,
       comment: contacts.comment,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, phone, email, address]);
+  }, [name, phone, address]);
 
   const formatDate = (iso: string) => {
     if (!iso) return "—";
@@ -108,13 +110,12 @@ export function CheckoutStep() {
         {showForm ? (
           <div className="rounded-2xl border-2 border-blue-100 bg-blue-50/40 p-5">
             <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
-              Заполните данные
+              Уточните данные
             </p>
             <p className="text-xs text-blue-500 mb-4">
-              Нужны для назначения исполнителя и связи с вами
+              Необходимо для назначения исполнителя
             </p>
             <div className="flex flex-col gap-3">
-
               {needsName && (
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Имя</label>
@@ -128,30 +129,17 @@ export function CheckoutStep() {
                   />
                 </div>
               )}
-
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Телефон</label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(applyPhoneMask(e.target.value))}
-                  className={inputCls(phone.length < 5)}
-                />
-              </div>
-
-              {needsEmail && (
+              {needsName && (
                 <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Email</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Телефон</label>
                   <input
-                    type="email"
-                    placeholder="для уведомлений о заказе"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={inputCls(!email)}
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(applyPhoneMask(e.target.value))}
+                    className={inputCls(phone.length < 5)}
                   />
                 </div>
               )}
-
               {needsAddress && (
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Адрес</label>
@@ -168,7 +156,6 @@ export function CheckoutStep() {
         ) : (
           <Section title="Контакты">
             <Row label="Имя" value={contacts.name} />
-            <Row label="Email" value={contacts.email} warn={!contacts.email} />
             <Row label="Адрес" value={contacts.address} warn={!contacts.address} />
             {contacts.phone && <Row label="Телефон" value={contacts.phone} />}
             {contacts.comment && <Row label="Комментарий" value={contacts.comment} />}
@@ -176,9 +163,9 @@ export function CheckoutStep() {
         )}
 
         {/* Validation warning */}
-        {(!contacts.email || !contacts.address) && !showForm && (
+        {!contacts.address && !showForm && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            Заполните email и адрес — без них нельзя назначить исполнителя
+            Укажите адрес — без него нельзя назначить исполнителя
           </div>
         )}
 

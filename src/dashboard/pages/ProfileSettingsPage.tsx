@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { AnimatePresence, motion } from "framer-motion";
 import { Check, LogOut, Pencil, X, MapPin, Plus, Trash2, Star, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
@@ -14,17 +15,16 @@ import type { UserProfile } from "../types";
 type ProfileFormData = Pick<UserProfile, "name" | "phone" | "email" | "address">;
 
 function applyPhoneMask(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  const local =
-    digits.startsWith("7") || digits.startsWith("8")
-      ? digits.slice(1)
-      : digits;
+  const raw = value.replace(/\D/g, "");
+  let local = raw;
+  while (local.length > 10 && (local.startsWith("7") || local.startsWith("8"))) {
+    local = local.slice(1);
+  }
   const d = local.slice(0, 10);
   if (d.length === 0) return "+7";
   if (d.length <= 3) return `+7 (${d}`;
   if (d.length <= 6) return `+7 (${d.slice(0, 3)}) ${d.slice(3)}`;
-  if (d.length <= 8)
-    return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  if (d.length <= 8) return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8, 10)}`;
 }
 
@@ -69,7 +69,7 @@ export function ProfileSettingsPage() {
         address: m?.address ?? profile.address ?? "",
       };
       reset(synced);
-      setPhone(synced.phone);
+      setPhone(synced.phone ? applyPhoneMask(synced.phone) : "");
       updateProfile(synced);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,13 +117,22 @@ export function ProfileSettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Профиль</h1>
-        {saved && (
-          <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-            <Check size={15} />
-            Сохранено
-          </span>
-        )}
       </div>
+
+      {/* Save toast */}
+      <AnimatePresence>
+        {saved && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
+          >
+            <Check size={15} className="text-green-400" />
+            Данные сохранены
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-8">
@@ -143,7 +152,7 @@ export function ProfileSettingsPage() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* Personal data */}
         <div className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -238,23 +247,43 @@ export function ProfileSettingsPage() {
         {/* Notifications */}
         <NotificationSettings userId={user?.id ?? null} />
 
-        {isEditing && (
-          <button
-            type="submit"
-            disabled={saving || !isPhoneValid(phone)}
-            className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:bg-[#004CB8] active:scale-95 disabled:opacity-50"
-          >
-            {saving ? (
-              <>
-                <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Сохраняем...
-              </>
-            ) : (
-              "Сохранить изменения"
-            )}
-          </button>
-        )}
       </form>
+
+      {/* Sticky save bar */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3 flex gap-2"
+          >
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-400 transition-all"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              form="profile-form"
+              disabled={saving || !isPhoneValid(phone)}
+              className="flex-1 py-3 rounded-xl bg-[#006AFF] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#004CB8] active:scale-95 disabled:opacity-50 transition-all"
+            >
+              {saving ? (
+                <>
+                  <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Сохраняем...
+                </>
+              ) : (
+                "Сохранить"
+              )}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

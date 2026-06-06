@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, Clock, MapPin, X } from "lucide-react";
+import { Check, Clock, MapPin, X, ChevronRight } from "lucide-react";
 import type { Order } from "../../types";
 
 const progressSteps = [
@@ -26,9 +27,9 @@ export function SearchingOrderCard({ order, onCancel }: SearchingOrderCardProps)
       animate={{ opacity: 1, y: 0 }}
       className="border border-gray-100 rounded-2xl overflow-hidden"
     >
-      {/* Header */}
-      <div className="p-5 pb-4">
-        <div className="flex items-center gap-2 mb-3">
+      {/* Header — clickable */}
+      <Link to={`/dashboard/orders/${order.id}`} className="block p-5 pb-4">
+        <div className="flex items-start justify-between gap-2 mb-3">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
             <motion.span
               animate={{ opacity: [1, 0.3, 1] }}
@@ -37,6 +38,7 @@ export function SearchingOrderCard({ order, onCancel }: SearchingOrderCardProps)
             />
             Ищем исполнителя
           </span>
+          <ChevronRight size={16} className="text-gray-300 shrink-0 mt-0.5" />
         </div>
 
         <p className="text-base font-semibold text-gray-900 line-clamp-1">{order.serviceName}</p>
@@ -53,11 +55,11 @@ export function SearchingOrderCard({ order, onCancel }: SearchingOrderCardProps)
             </span>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Cancel button */}
       {onCancel && (
-        <div className="px-5 pb-0">
+        <div className="px-5 pb-0 border-t border-gray-50 pt-3">
           <button
             onClick={onCancel}
             className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
