@@ -155,7 +155,7 @@ export function ServicePage({ city }: ServicePageProps) {
             <Link
               to="/calculator"
               onClick={() => trackEvent("cta_clicked", { source: "service_hero" })}
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-white text-gray-900 font-bold rounded-2xl hover:bg-gray-100 transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#006AFF] text-white font-bold rounded-2xl hover:bg-[#004CB8] transition-all active:scale-95"
             >
               Рассчитать стоимость
               <ArrowRight size={16} />
@@ -173,8 +173,8 @@ export function ServicePage({ city }: ServicePageProps) {
               <p className="text-sm text-gray-400">средняя оценка мастеров</p>
             </div>
             <div>
-              <p className="text-2xl font-black">30 мин</p>
-              <p className="text-sm text-gray-400">время принятия заказа</p>
+              <p className="text-2xl font-black">12 мин</p>
+              <p className="text-sm text-gray-400">среднее время поиска</p>
             </div>
           </div>
         </div>

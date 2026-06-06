@@ -277,14 +277,6 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         <header className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <span className="text-xl font-bold text-gray-900 tracking-tight">SLOT</span>
-            {canGoBack && (
-              <button
-                onClick={handleBack}
-                className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors"
-              >
-                ← Назад
-              </button>
-            )}
           </div>
           <ProgressBar />
         </header>
@@ -319,13 +311,13 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
                 {submitError && (
                   <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-2.5">{submitError}</p>
                 )}
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   {canGoBack && (
                     <button
                       onClick={handleBack}
-                      className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+                      className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors"
                     >
-                      Назад
+                      ← Назад
                     </button>
                   )}
                   <button
@@ -343,12 +335,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           {/* Sidebar */}
-          <PriceSummary
-            variant="sidebar"
-            onSubmit={showNavigation ? handleNext : undefined}
-            submitLabel={submitLabel}
-            isSubmitting={isSubmitting}
-          />
+          <PriceSummary variant="sidebar" />
         </div>
       </div>
 

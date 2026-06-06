@@ -770,6 +770,126 @@ export const categories: Category[] = [
     ],
   },
   {
+    id: "cleaning",
+    name: "Уборка",
+    icon: "✨",
+    services: [
+      {
+        id: "general-cleaning",
+        name: "Генеральная уборка",
+        description: "Полная уборка квартиры с мытьём всех поверхностей",
+        basePrice: 3000,
+        fields: [
+          {
+            id: "rooms",
+            type: "stepper",
+            label: "Количество комнат",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+          {
+            id: "bathroom",
+            type: "toggle",
+            label: "Ванная и санузел (+700 ₽)",
+            price: 700,
+          },
+          {
+            id: "windows",
+            type: "toggle",
+            label: "Мытьё окон (+1 000 ₽)",
+            price: 1000,
+          },
+        ],
+      },
+      {
+        id: "regular-cleaning",
+        name: "Поддерживающая уборка",
+        description: "Уборка для чистоты и порядка",
+        basePrice: 1800,
+        fields: [
+          {
+            id: "rooms",
+            type: "stepper",
+            label: "Количество комнат",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+          {
+            id: "frequency",
+            type: "select",
+            label: "Периодичность",
+            defaultValue: "once",
+            options: [
+              { label: "Разовая", value: "once", price: 0 },
+              { label: "Еженедельная (-200 ₽ скидка)", value: "weekly", price: -200 },
+              { label: "Ежемесячная (-100 ₽ скидка)", value: "monthly", price: -100 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "after-renovation",
+        name: "Уборка после ремонта",
+        description: "Удаление строительной пыли, мусора и разводов",
+        basePrice: 4000,
+        fields: [
+          {
+            id: "area",
+            type: "select",
+            label: "Площадь квартиры",
+            defaultValue: "small",
+            options: [
+              { label: "До 40 м²", value: "small", price: 0 },
+              { label: "40–80 м²", value: "medium", price: 2000 },
+              { label: "80+ м²", value: "large", price: 5000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "sofa-cleaning",
+        name: "Химчистка дивана / кресла",
+        description: "Глубокая чистка мягкой мебели",
+        basePrice: 2000,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип мебели",
+            defaultValue: "sofa",
+            options: [
+              { label: "Диван двухместный", value: "sofa", price: 0 },
+              { label: "Диван угловой", value: "corner-sofa", price: 1500 },
+              { label: "Кресло", value: "armchair", price: -800 },
+              { label: "Кровать (матрас)", value: "mattress", price: 500 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "window-cleaning",
+        name: "Мытьё окон",
+        description: "Чистота снаружи и внутри",
+        basePrice: 800,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество окон",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 20,
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "additional",
     name: "Другое",
     icon: "🛠️",

@@ -230,7 +230,7 @@ function HeroSection() {
             </button>
             <button
               onClick={() => navigate("/performer/onboarding")}
-              className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl hover:border-gray-400 hover:text-gray-900 transition-all text-base"
+              className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-2xl hover:border-gray-500 hover:text-gray-900 transition-all text-base"
             >
               Стать исполнителем
             </button>
@@ -328,22 +328,23 @@ function CategoriesSection() {
             <p className="text-gray-500 mt-3">Рассчитайте стоимость за пару кликов</p>
           </motion.div>
 
-          <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {CATEGORIES.map((cat) => (
               <motion.div
                 key={cat.title}
                 variants={fadeUp}
+                className="flex"
                 whileHover={{ y: -4, transition: { duration: 0.18 } }}
               >
                 <Link
                   to={`/moscow/${cat.slug}`}
-                  className="block bg-white rounded-2xl p-5 text-left border border-gray-100 hover:border-gray-200 hover:shadow-md transition-shadow"
+                  className="flex flex-col h-full bg-white rounded-2xl p-4 sm:p-5 text-left border border-gray-100 hover:border-gray-200 hover:shadow-md transition-shadow"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${cat.accent}`}>
-                    <cat.icon size={20} />
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-3 shrink-0 ${cat.accent}`}>
+                    <cat.icon size={18} />
                   </div>
-                  <p className="font-bold text-gray-900 text-sm">{cat.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{cat.price}</p>
+                  <p className="font-bold text-gray-900 text-sm leading-snug">{cat.title}</p>
+                  <p className="text-xs text-gray-400 mt-1">{cat.price}</p>
                 </Link>
               </motion.div>
             ))}
