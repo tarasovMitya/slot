@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Calculator } from "./components/Calculator";
 import { LandingPage } from "./pages/LandingPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -171,6 +171,9 @@ function App() {
 
         {/* Performer auth */}
         <Route path="/performer/auth" element={<PerformerAuthPage />} />
+
+        {/* Redirect legacy /performer/dashboard → /performer */}
+        <Route path="/performer/dashboard" element={<Navigate to="/performer" replace />} />
 
         {/* Performer verification — requires auth + performer role but NOT verified */}
         <Route element={<PerformerGuard />}>

@@ -48,7 +48,7 @@ export function Step7Availability() {
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
               </div>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${active ? "border-[#006AFF] bg-black" : "border-gray-300"}`}>
+              <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center shrink-0 transition-colors ${active ? "border-[#006AFF] bg-black" : "border-gray-300"}`}>
                 {active && <Check size={12} className="text-white" strokeWidth={3} />}
               </div>
             </motion.button>

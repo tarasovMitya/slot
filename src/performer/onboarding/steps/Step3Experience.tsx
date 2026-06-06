@@ -3,11 +3,11 @@ import { useOnboardingStore } from "../store/onboardingStore";
 import { NavigationButtons } from "../components/NavigationButtons";
 import type { ExperienceLevel } from "../types";
 
-const LEVELS: { value: ExperienceLevel; label: string; sub: string }[] = [
-  { value: "0–1", label: "Меньше года", sub: "Только начинаю" },
-  { value: "1–3", label: "1–3 года", sub: "Небольшой опыт" },
-  { value: "3–5", label: "3–5 лет", sub: "Уверенный специалист" },
-  { value: "5+", label: "5+ лет", sub: "Профессионал" },
+const LEVELS: { value: ExperienceLevel; label: string }[] = [
+  { value: "0–1", label: "Меньше года" },
+  { value: "1–3", label: "1–3 года" },
+  { value: "3–5", label: "3–5 лет" },
+  { value: "5+", label: "5+ лет" },
 ];
 
 export function Step3Experience() {
@@ -31,7 +31,7 @@ export function Step3Experience() {
           Сколько лет опыта?
         </p>
         <div className="flex flex-col gap-2">
-          {LEVELS.map(({ value, label, sub }) => (
+          {LEVELS.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => setField("experience", value)}
@@ -45,7 +45,6 @@ export function Step3Experience() {
                 <p className={`text-sm font-semibold ${experience === value ? "text-gray-900" : "text-gray-700"}`}>
                   {label}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
               </div>
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${

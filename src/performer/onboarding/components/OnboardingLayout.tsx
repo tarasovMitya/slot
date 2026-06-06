@@ -4,9 +4,10 @@ import { Stepper } from "./Stepper";
 interface OnboardingLayoutProps {
   step: number;
   children: React.ReactNode;
+  onStepClick?: (step: number) => void;
 }
 
-export function OnboardingLayout({ step, children }: OnboardingLayoutProps) {
+export function OnboardingLayout({ step, children, onStepClick }: OnboardingLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top bar */}
@@ -21,7 +22,7 @@ export function OnboardingLayout({ step, children }: OnboardingLayoutProps) {
       {/* Content */}
       <main className="flex-1 flex items-start justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          <Stepper current={step} />
+          <Stepper current={step} onStepClick={onStepClick} />
           {children}
         </div>
       </main>

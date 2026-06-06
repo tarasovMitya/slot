@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { OnboardingState, OnboardingData, OnboardingSkill, AvailabilitySlot } from "../types";
 
 const INITIAL: OnboardingData = {
@@ -29,39 +30,65 @@ interface OnboardingStore extends OnboardingState {
   reset: () => void;
 }
 
-export const useOnboardingStore = create<OnboardingStore>((set) => ({
-  ...INITIAL,
-  step: 1,
-  direction: 1,
-  completed: false,
+export const useOnboardingStore = create<OnboardingStore>()(
+  persist(
+    (set) => ({
+      ...INITIAL,
+      step: 1,
+      direction: 1 as const,
+      completed: false,
 
-  goNext: () =>
-    set((s) => ({ step: Math.min(s.step + 1, 8), direction: 1 })),
+      goNext: () =>
+        set((s) => ({ step: Math.min(s.step + 1, 8), direction: 1 as const })),
 
-  goBack: () =>
-    set((s) => ({ step: Math.max(s.step - 1, 1), direction: -1 })),
+      goBack: () =>
+        set((s) => ({ step: Math.max(s.step - 1, 1), direction: -1 as const })),
 
-  goToStep: (step) =>
-    set((s) => ({ step, direction: step > s.step ? 1 : -1 })),
+      goToStep: (step) =>
+        set((s) => ({ step, direction: (step > s.step ? 1 : -1) as 1 | -1 })),
 
-  setField: (key, value) =>
-    set({ [key]: value } as Partial<OnboardingState>),
+      setField: (key, value) =>
+        set({ [key]: value } as Partial<OnboardingState>),
 
-  toggleSkill: (skill) =>
-    set((s) => ({
-      skills: s.skills.includes(skill)
-        ? s.skills.filter((sk) => sk !== skill)
-        : [...s.skills, skill],
-    })),
+      toggleSkill: (skill) =>
+        set((s) => ({
+          skills: s.skills.includes(skill)
+            ? s.skills.filter((sk) => sk !== skill)
+            : [...s.skills, skill],
+        })),
 
-  toggleAvailability: (slot) =>
-    set((s) => ({
-      availability: s.availability.includes(slot)
-        ? s.availability.filter((a) => a !== slot)
-        : [...s.availability, slot],
-    })),
+      toggleAvailability: (slot) =>
+        set((s) => ({
+          availability: s.availability.includes(slot)
+            ? s.availability.filter((a) => a !== slot)
+            : [...s.availability, slot],
+        })),
 
-  complete: () => set({ completed: true }),
+      complete: () => set({ completed: true }),
 
-  reset: () => set({ ...INITIAL, step: 1, direction: 1, completed: false }),
-}));
+      reset: () => set({ ...INITIAL, step: 1, direction: 1 as const, completed: false }),
+    }),
+    {
+      name: "performer-onboarding",
+      partialize: (state) => ({
+        name: state.name,
+        phone: state.phone,
+        avatarUrl: state.avatarUrl,
+        skills: state.skills,
+        experience: state.experience,
+        hasCertification: state.hasCertification,
+        city: state.city,
+        district: state.district,
+        address: state.address,
+        lat: state.lat,
+        lng: state.lng,
+        radius: state.radius,
+        inn: state.inn,
+        availability: state.availability,
+        step: state.step,
+        direction: state.direction,
+        completed: state.completed,
+      }),
+    }
+  )
+);

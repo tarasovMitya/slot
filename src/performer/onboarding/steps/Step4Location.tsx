@@ -101,7 +101,7 @@ export function Step4Location() {
         />
         <div>
           <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
-            Домашний адрес
+            Адрес базирования
           </label>
           <AddressSuggest
             value={addressValue}

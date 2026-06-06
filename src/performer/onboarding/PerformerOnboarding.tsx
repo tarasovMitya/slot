@@ -26,7 +26,7 @@ const slide = {
 export function PerformerOnboarding() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
-  const { step, name, phone, avatarUrl, skills, city, address, lat, lng, radius, complete, reset } =
+  const { step, name, phone, avatarUrl, skills, city, address, lat, lng, radius, complete, reset, goToStep } =
     useOnboardingStore();
   const { updateProfile } = usePerformerStore();
 
@@ -62,8 +62,47 @@ export function PerformerOnboarding() {
     }, 1000);
   };
 
-  const handleComplete = () => {
-    setShowAuth(true);
+  const handleComplete = async () => {
+    if (isAuthenticated) {
+      setLoading(true);
+      try {
+        const profileData = {
+          name: name || "Новый исполнитель",
+          phone,
+          avatar: avatarUrl,
+          address,
+          city,
+          lat,
+          lng,
+          workRadius: radius,
+          specializations: skills,
+        };
+        updateProfile(profileData);
+        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+        const refCode = localStorage.getItem("affiliate_ref_code");
+        if (refCode) {
+          const { data: { user: freshUser } } = await supabase.auth.getUser();
+          if (freshUser) {
+            await affiliateLinkPerformerByCode(freshUser.id, refCode).catch(() => {});
+            localStorage.removeItem("affiliate_ref_code");
+          }
+        }
+        trackEvent("performer_registration_completed");
+        complete();
+        reset();
+        navigate("/performer", { replace: true });
+      } catch {
+        setError("Не удалось сохранить профиль. Попробуйте снова.");
+        setLoading(false);
+      }
+    } else {
+      setShowAuth(true);
+    }
+  };
+
+  const handleStepClick = (n: number) => {
+    if (showAuth) setShowAuth(false);
+    goToStep(n);
   };
 
   const sendOtp = async (e: string) => {
@@ -159,7 +198,7 @@ export function PerformerOnboarding() {
 
   if (showAuth) {
     return (
-      <OnboardingLayout step={8}>
+      <OnboardingLayout step={8} onStepClick={handleStepClick}>
         <AnimatePresence mode="wait">
           {authStep === "email" && (
             <motion.div
@@ -300,7 +339,7 @@ export function PerformerOnboarding() {
   }[step];
 
   return (
-    <OnboardingLayout step={step}>
+    <OnboardingLayout step={step} onStepClick={handleStepClick}>
       <AnimatePresence mode="wait">
         <div key={step}>
           {stepContent}

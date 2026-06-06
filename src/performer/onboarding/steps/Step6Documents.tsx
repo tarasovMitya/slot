@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
 import { useOnboardingStore } from "../store/onboardingStore";
 import { NavigationButtons } from "../components/NavigationButtons";
 
@@ -52,9 +53,14 @@ export function Step6Documents() {
           {errors.inn && <p className="text-xs text-red-500 mt-1.5">{errors.inn.message}</p>}
         </div>
 
-        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3">
+        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3.5 flex items-start gap-3">
+          <Lock size={14} className="text-gray-400 mt-0.5 shrink-0" />
           <p className="text-xs text-gray-500 leading-relaxed">
-            Верификация личности будет доступна через Госуслуги. ИНН используется только для оформления выплат.
+            ИНН хранится в зашифрованном виде и передаётся только в платёжную систему для оформления выплат.
+            Доступ к данным имеет только служба выплат.{" "}
+            <a href="/privacy" target="_blank" rel="noreferrer" className="font-medium text-gray-800 underline">
+              Политика конфиденциальности
+            </a>
           </p>
         </div>
 

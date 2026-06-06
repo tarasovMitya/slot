@@ -13,6 +13,7 @@ interface FormData {
 export function Step1Basic() {
   const { name, phone, avatarUrl, setField, goNext } = useOnboardingStore();
   const [preview, setPreview] = useState(avatarUrl);
+  const [consented, setConsented] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
@@ -100,7 +101,30 @@ export function Step1Basic() {
           })}
         />
 
-        <NavigationButtons onNext={handleSubmit(onSubmit)} />
+        {/* PD consent */}
+        <label className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-100 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={consented}
+            onChange={(e) => setConsented(e.target.checked)}
+            className="mt-0.5 accent-black shrink-0"
+          />
+          <span className="text-xs text-gray-500 leading-relaxed">
+            Я согласен(а) на обработку персональных данных в соответствии с{" "}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-gray-800 underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              политикой конфиденциальности
+            </a>{" "}
+            (152-ФЗ)
+          </span>
+        </label>
+
+        <NavigationButtons onNext={handleSubmit(onSubmit)} nextDisabled={!consented} />
       </form>
     </motion.div>
   );

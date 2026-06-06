@@ -32,7 +32,7 @@ export function Step5Radius() {
 
       {city && (
         <p className="text-xs text-gray-400 text-center mt-2">
-          Вы будете получать заказы в радиусе {radius} км от {city}
+          Зона покрытия: {radius} км · {city}
         </p>
       )}
 
