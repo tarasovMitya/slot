@@ -71,7 +71,7 @@ export function BalanceCard({
       <button
         onClick={onWithdraw}
         disabled={balance === 0}
-        className="w-full py-3.5 rounded-2xl bg-white text-gray-900 font-semibold text-sm hover:bg-gray-100 transition-all active:scale-95 disabled:opacity-40"
+        className="w-full py-3.5 rounded-2xl bg-white text-gray-900 font-semibold text-sm hover:bg-gray-100 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
       >
         Вывести средства
       </button>

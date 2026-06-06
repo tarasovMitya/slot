@@ -1,14 +1,13 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard, CheckCircle2, LogOut } from "lucide-react";
+import { Phone, Edit3, Check, Plus, Camera, CreditCard, CheckCircle2, LogOut, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useAuthStore } from "../../store/authStore";
 import { supabase } from "../../lib/supabase";
 import { pluralRu } from "../../utils/priceCalculator";
 import { AddressSection } from "../components/ui/AddressSection";
 import { BankCardItem } from "../components/ui/BankCardItem";
-import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 
 function ProfileSkeleton() {
   return (
@@ -25,7 +24,6 @@ function ProfileSkeleton() {
         <div className="mt-5 flex gap-2">
           <div className="h-6 w-20 bg-gray-100 rounded-full" />
           <div className="h-6 w-24 bg-gray-100 rounded-full" />
-          <div className="h-6 w-16 bg-gray-100 rounded-full" />
         </div>
       </div>
       <div className="border border-gray-100 rounded-2xl p-5 mb-4 flex flex-col gap-5">
@@ -57,7 +55,7 @@ function ProfileSkeleton() {
 
 export function PerformerProfilePage() {
   const { profile, isHydrated, updateProfile, bankCards, removeBankCard, setDefaultCard } = usePerformerStore();
-  const { signOut } = useAuthStore();
+  const { signOut, user } = useAuthStore();
   const navigate = useNavigate();
   const [timedOut, setTimedOut] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -68,6 +66,19 @@ export function PerformerProfilePage() {
     telegram: profile.telegram,
   });
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Email editing
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  // Password
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStatus, setPasswordStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     if (isHydrated) return;
@@ -98,6 +109,38 @@ export function PerformerProfilePage() {
     reader.readAsDataURL(file);
   };
 
+  const handleEmailChange = async () => {
+    if (!newEmail || newEmail === user?.email) { setEditingEmail(false); return; }
+    setEmailStatus("sending");
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if (error) {
+      setEmailStatus("error");
+    } else {
+      setEmailStatus("sent");
+      setTimeout(() => { setEmailStatus("idle"); setEditingEmail(false); setNewEmail(""); }, 4000);
+    }
+  };
+
+  const handlePasswordSave = async () => {
+    setPasswordError("");
+    if (newPassword.length < 8) { setPasswordError("Минимум 8 символов"); return; }
+    if (newPassword !== confirmPassword) { setPasswordError("Пароли не совпадают"); return; }
+    setPasswordStatus("saving");
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      setPasswordStatus("error");
+      setPasswordError("Не удалось сохранить пароль");
+    } else {
+      setPasswordStatus("saved");
+      setTimeout(() => {
+        setPasswordStatus("idle");
+        setShowPasswordForm(false);
+        setNewPassword("");
+        setConfirmPassword("");
+      }, 2000);
+    }
+  };
+
   const isImage = profile.avatar.startsWith("data:") || profile.avatar.startsWith("http");
 
   return (
@@ -114,7 +157,6 @@ export function PerformerProfilePage() {
         className="border border-gray-100 rounded-2xl p-6 mb-4"
       >
         <div className="flex items-center gap-5">
-          {/* Avatar */}
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -129,6 +171,9 @@ export function PerformerProfilePage() {
             )}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Camera size={18} className="text-white" />
+            </div>
+            <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm">
+              <Camera size={10} className="text-gray-600" />
             </div>
           </button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
@@ -150,10 +195,7 @@ export function PerformerProfilePage() {
         {profile.specializations.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
             {profile.specializations.map((s) => (
-              <span
-                key={s}
-                className="px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700"
-              >
+              <span key={s} className="px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700">
                 {s}
               </span>
             ))}
@@ -194,31 +236,141 @@ export function PerformerProfilePage() {
             editing={editing}
             onChange={(v) => setForm((p) => ({ ...p, phone: v }))}
           />
-          <Field
-            icon={<MessageCircle size={14} className="text-gray-400" />}
-            label="Telegram"
-            value={form.telegram}
-            editing={editing}
-            onChange={(v) => setForm((p) => ({ ...p, telegram: v }))}
-          />
         </div>
       </motion.div>
 
-      {/* Telegram link */}
+      {/* Account: email + password */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mb-4"
+        className="border border-gray-100 rounded-2xl p-5 mb-4"
       >
-        <PerformerTelegramSection />
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Аккаунт</p>
+        <div className="flex flex-col gap-5">
+
+          {/* Email */}
+          <div className="flex items-start gap-3">
+            <Mail size={14} className="text-gray-400 mt-1 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-400">Email</p>
+              {editingEmail ? (
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder={user?.email || ""}
+                  className="w-full text-sm font-medium text-gray-900 bg-gray-50 rounded-lg px-2 py-1 mt-0.5 outline-none border border-gray-200 focus:border-gray-400 transition-colors"
+                />
+              ) : (
+                <p className="text-sm font-medium text-gray-900 mt-0.5 truncate">{user?.email || "—"}</p>
+              )}
+              {emailStatus === "sent" && (
+                <p className="text-xs text-green-600 mt-1">Подтвердите смену на {newEmail}</p>
+              )}
+              {emailStatus === "error" && (
+                <p className="text-xs text-red-500 mt-1">Не удалось изменить email</p>
+              )}
+            </div>
+            {!editingEmail ? (
+              <button
+                onClick={() => { setEditingEmail(true); setNewEmail(user?.email || ""); setEmailStatus("idle"); }}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors mt-0.5 shrink-0"
+              >
+                Изменить
+              </button>
+            ) : (
+              <div className="flex gap-2 mt-0.5 shrink-0">
+                <button
+                  onClick={() => { setEditingEmail(false); setEmailStatus("idle"); }}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleEmailChange}
+                  disabled={emailStatus === "sending"}
+                  className="text-xs font-semibold text-[#006AFF] disabled:opacity-50"
+                >
+                  {emailStatus === "sending" ? "..." : "Сохранить"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="flex items-start gap-3">
+            <Lock size={14} className="text-gray-400 mt-1 shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">Пароль</p>
+              {!showPasswordForm ? (
+                <button
+                  onClick={() => setShowPasswordForm(true)}
+                  className="text-sm font-medium text-[#006AFF] mt-0.5 hover:text-[#004CB8] transition-colors"
+                >
+                  Установить пароль
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2 mt-1.5">
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Новый пароль"
+                      className="w-full text-sm font-medium text-gray-900 bg-gray-50 rounded-lg px-2 py-1.5 outline-none border border-gray-200 focus:border-gray-400 transition-colors pr-8"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+                    >
+                      {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                    </button>
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Повторить пароль"
+                    className="w-full text-sm font-medium text-gray-900 bg-gray-50 rounded-lg px-2 py-1.5 outline-none border border-gray-200 focus:border-gray-400 transition-colors"
+                  />
+                  {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
+                  {passwordStatus === "saved" && <p className="text-xs text-green-600">Пароль сохранён</p>}
+                  <div className="flex gap-3 mt-0.5">
+                    <button
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        setNewPassword("");
+                        setConfirmPassword("");
+                        setPasswordError("");
+                        setPasswordStatus("idle");
+                      }}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      onClick={handlePasswordSave}
+                      disabled={passwordStatus === "saving"}
+                      className="text-xs font-semibold text-[#006AFF] disabled:opacity-50"
+                    >
+                      {passwordStatus === "saving" ? "Сохраняем..." : "Сохранить"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
       </motion.div>
 
       {/* Address + work radius */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.11 }}
+        transition={{ delay: 0.12 }}
         className="mb-4"
       >
         <AddressSection />
@@ -228,22 +380,20 @@ export function PerformerProfilePage() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.14 }}
+        transition={{ delay: 0.15 }}
         className="mb-4"
       >
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Карты для выплат</p>
-          {bankCards.length > 0 && (
-            <button className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors">
-              <Plus size={13} />
-              Добавить
-            </button>
-          )}
+          <button className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors">
+            <Plus size={13} />
+            Добавить
+          </button>
         </div>
         {bankCards.length === 0 ? (
           <div className="flex items-center gap-3 px-4 py-4 rounded-2xl border border-gray-100 bg-gray-50">
             <CreditCard size={18} className="text-gray-300 shrink-0" />
-            <p className="text-sm text-gray-400">Карты появятся после выполнения первого заказа</p>
+            <p className="text-sm text-gray-400">Добавьте карту для получения выплат</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -263,7 +413,7 @@ export function PerformerProfilePage() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.17 }}
+        transition={{ delay: 0.18 }}
         className="grid grid-cols-3 gap-3"
       >
         <StatCard label="Рейтинг" value={profile.completedOrders > 0 ? String(profile.rating) : "—"} />
@@ -271,11 +421,10 @@ export function PerformerProfilePage() {
         <StatCard label="Специализаций" value={String(profile.specializations.length)} />
       </motion.div>
 
-      {/* Logout — mobile only (sidebar has it on desktop) */}
       <motion.button
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.21 }}
         onClick={async () => { await signOut(); navigate("/performer/auth", { replace: true }); }}
         className="lg:hidden mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-500 hover:border-red-200 hover:text-red-500 transition-all"
       >
@@ -286,71 +435,6 @@ export function PerformerProfilePage() {
   );
 }
 
-function PerformerTelegramSection() {
-  const { user } = useAuthStore();
-  const meta = user?.user_metadata as Record<string, unknown> | undefined;
-  const linkedId = meta?.telegram_id as number | undefined;
-  const linkedName = (meta?.telegram_name as string) ?? (meta?.first_name as string) ?? null;
-  const linkedUsername = meta?.telegram_username as string | undefined;
-
-  const [success, setSuccess] = useState(false);
-
-  const handleLink = useCallback(async () => {
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
-  }, []);
-
-  const handleUnlink = async () => {
-    await supabase.auth.updateUser({
-      data: { telegram_id: null, telegram_username: null, telegram_name: null },
-    });
-    await supabase.auth.refreshSession();
-  };
-
-  return (
-    <div className="border border-gray-100 rounded-2xl p-5 flex flex-col gap-4">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Telegram-аккаунт</p>
-
-      {linkedId ? (
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#229ED9]/10 flex items-center justify-center shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                {linkedName ?? `ID ${linkedId}`}
-              </p>
-              {linkedUsername && <p className="text-xs text-gray-400">@{linkedUsername}</p>}
-            </div>
-          </div>
-          {success ? (
-            <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-              <Check size={13} /> Сохранено
-            </span>
-          ) : (
-            <button
-              onClick={handleUnlink}
-              className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
-            >
-              Отвязать
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-gray-500">
-            Привяжите Telegram для входа в кабинет без email.
-          </p>
-          <TelegramLoginButton onSuccess={handleLink} linkMode />
-          {success && <p className="text-xs text-green-600 text-center font-medium">Telegram привязан!</p>}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function Field({
   icon,

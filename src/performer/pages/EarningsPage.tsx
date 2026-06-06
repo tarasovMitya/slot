@@ -35,7 +35,7 @@ export function EarningsPage() {
   const weekTotal = earnings.filter((e) => e.date >= weekAgo).reduce((s, e) => s + e.amount, 0);
   const monthTotal = earnings.filter((e) => e.date >= monthAgo).reduce((s, e) => s + e.amount, 0);
   const completedCount = earnings.length;
-  const avgCheck = completedCount > 0 ? Math.round(monthTotal / completedCount) : 0;
+  const avgCheck = completedCount > 0 ? Math.round(monthTotal / completedCount) : null;
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
@@ -87,7 +87,7 @@ export function EarningsPage() {
           className="grid grid-cols-2 gap-3 mb-6"
         >
           <Card icon={<TrendingUp size={14} className="text-gray-400" />} label="Месяц" value={formatPrice(monthTotal)} />
-          <Card icon={<CheckCircle size={14} className="text-gray-400" />} label="Средний чек" value={formatPrice(avgCheck)} sub={`${completedCount} заказов`} />
+          <Card icon={<CheckCircle size={14} className="text-gray-400" />} label="Средний чек" value={avgCheck !== null ? formatPrice(avgCheck) : "—"} sub={`${completedCount} заказов`} />
         </motion.div>
 
         {/* Bar chart */}
@@ -101,7 +101,7 @@ export function EarningsPage() {
             <BarChart3 size={15} className="text-gray-400" />
             <p className="text-sm font-semibold text-gray-700">Заработок за 7 дней</p>
           </div>
-          <div className="flex items-end gap-2 h-24">
+          <div className="flex items-end gap-2 h-24 relative">
             {days.map((d) => (
               <div key={d.dateStr} className="flex-1 flex flex-col items-center gap-1">
                 <motion.div
@@ -113,6 +113,11 @@ export function EarningsPage() {
                 <span className="text-[10px] text-gray-400">{d.label}</span>
               </div>
             ))}
+            {days.every((d) => d.amount === 0) && (
+              <div className="absolute inset-0 flex items-center justify-center pb-5">
+                <p className="text-[11px] text-gray-300">Данные появятся после первого заказа</p>
+              </div>
+            )}
           </div>
         </motion.div>
 

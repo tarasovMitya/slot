@@ -7,6 +7,7 @@ import { useOnboardingStore } from "./store/onboardingStore";
 import { usePerformerStore } from "../store/performerStore";
 import { useAuthStore } from "../../store/authStore";
 import { supabase } from "../../lib/supabase";
+import { dbSavePerformerProfile } from "../../lib/db";
 import { OnboardingLayout } from "./components/OnboardingLayout";
 import { Step1Basic } from "./steps/Step1Basic";
 import { Step2Skills } from "./steps/Step2Skills";
@@ -135,6 +136,8 @@ export function PerformerOnboarding() {
     try {
       const { error: err } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
       if (err) { setError("Неверный код. Попробуй ещё раз"); return; }
+      // Get fresh user immediately — auth store may not be updated yet after verifyOtp
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
       const profileData = {
         name: name || "Новый исполнитель",
         phone,
@@ -147,15 +150,16 @@ export function PerformerOnboarding() {
         specializations: skills,
       };
       updateProfile(profileData);
+      // Save to DB directly using fresh userId (bypasses auth store race condition)
+      if (freshUser?.id) {
+        await dbSavePerformerProfile(freshUser.id, profileData).catch(() => {});
+      }
       await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
       // Link to affiliate manager if registered via referral link
       const refCode = localStorage.getItem("affiliate_ref_code");
-      if (refCode) {
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        if (freshUser) {
-          await affiliateLinkPerformerByCode(freshUser.id, refCode).catch(() => {});
-          localStorage.removeItem("affiliate_ref_code");
-        }
+      if (refCode && freshUser) {
+        await affiliateLinkPerformerByCode(freshUser.id, refCode).catch(() => {});
+        localStorage.removeItem("affiliate_ref_code");
       }
       trackEvent("performer_registration_completed");
       complete();

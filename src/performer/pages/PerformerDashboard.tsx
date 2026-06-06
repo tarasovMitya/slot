@@ -57,7 +57,7 @@ export function PerformerDashboard() {
         <div className="bg-gray-50 rounded-2xl p-4">
           <div className="flex items-center gap-1.5 mb-2">
             <TrendingUp size={13} className="text-gray-400" />
-            <span className="text-xs text-gray-400 font-medium">Сегодня</span>
+            <span className="text-xs text-gray-400 font-medium">Доход сегодня</span>
           </div>
           <p className="text-lg font-bold text-gray-900">{formatPrice(todayEarnings)}</p>
         </div>
@@ -71,10 +71,10 @@ export function PerformerDashboard() {
         <div className="bg-gray-50 rounded-2xl p-4">
           <div className="flex items-center gap-1.5 mb-2">
             <CheckCircle size={13} className="text-gray-400" />
-            <span className="text-xs text-gray-400 font-medium">Сегодня</span>
+            <span className="text-xs text-gray-400 font-medium">Выполнено</span>
           </div>
           <p className="text-lg font-bold text-gray-900">{todayCompleted}</p>
-          <p className="text-xs text-gray-400 mt-0.5">выполнено</p>
+          <p className="text-xs text-gray-400 mt-0.5">за сегодня</p>
         </div>
       </motion.div>
 
@@ -119,7 +119,9 @@ export function PerformerDashboard() {
             <div className="py-10 flex flex-col items-center gap-2 text-center">
               <CheckCircle size={28} className="text-gray-200" />
               <p className="text-sm font-medium text-gray-400">Нет активных заказов</p>
-              <p className="text-xs text-gray-300">Примите новый заказ из списка</p>
+              <Link to="/performer/available" className="text-xs text-[#006AFF] font-medium hover:underline">
+                Перейти к новым заказам →
+              </Link>
             </div>
           ) : (
             <div className="flex flex-col gap-3">

@@ -83,7 +83,6 @@ export function AvailableOrdersPage() {
   };
 
   return (
-    <VerificationGate>
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Новые заказы</h1>
@@ -96,81 +95,82 @@ export function AvailableOrdersPage() {
         </p>
       </motion.div>
 
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
+      <VerificationGate>
+        {/* Toast */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-600"
+            >
+              {toast}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Sort tabs */}
+        {allOrders.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.05 }}
+            className="flex gap-2 mb-5 sticky top-0 z-10 bg-white py-2 -mx-4 px-4"
           >
-            {toast}
+            {SORT_OPTIONS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setSortBy(key)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  sortBy === key
+                    ? "bg-[#006AFF] text-white"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </motion.div>
         )}
-      </AnimatePresence>
 
-      {/* Sort tabs */}
-      {allOrders.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.05 }}
-          className="flex gap-2 mb-5 sticky top-0 z-10 bg-white py-2 -mx-4 px-4"
-        >
-          {SORT_OPTIONS.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setSortBy(key)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                sortBy === key
-                  ? "bg-[#006AFF] text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </motion.div>
-      )}
-
-      {sorted.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="py-16 flex flex-col items-center gap-3 text-center"
-        >
-          <ClipboardList size={36} className="text-gray-200" />
-          <p className="text-base font-medium text-gray-400">
-            {isOnline ? "Новых заказов пока нет" : "Включите онлайн, чтобы получать заказы"}
-          </p>
-          <p className="text-sm text-gray-300">Мы уведомим вас, когда появится заказ рядом</p>
-        </motion.div>
-      ) : (
-        <AnimatePresence mode="popLayout">
-          <div className="flex flex-col gap-4">
-            {sorted.map((order) => (
-              <AvailableOrderCard
-                key={order.id}
-                order={order}
-                onAccept={() => setPendingOrder(order)}
-                onReject={() => rejectOrder(order.id)}
-                isAccepting={acceptingId === order.id}
-                isUnavailable={unavailableIds.has(order.id)}
-              />
-            ))}
-          </div>
-        </AnimatePresence>
-      )}
-      <AcceptOrderModal
-        order={pendingOrder}
-        onConfirm={async () => {
-          if (pendingOrder) await handleAccept(pendingOrder.id);
-          setPendingOrder(null);
-        }}
-        onCancel={() => setPendingOrder(null)}
-      />
+        {sorted.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-16 flex flex-col items-center gap-3 text-center"
+          >
+            <ClipboardList size={36} className="text-gray-200" />
+            <p className="text-base font-medium text-gray-400">
+              {isOnline ? "Новых заказов пока нет" : "Включите онлайн, чтобы получать заказы"}
+            </p>
+            <p className="text-sm text-gray-300">Мы уведомим вас, когда появится заказ рядом</p>
+          </motion.div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            <div className="flex flex-col gap-4">
+              {sorted.map((order) => (
+                <AvailableOrderCard
+                  key={order.id}
+                  order={order}
+                  onAccept={() => setPendingOrder(order)}
+                  onReject={() => rejectOrder(order.id)}
+                  isAccepting={acceptingId === order.id}
+                  isUnavailable={unavailableIds.has(order.id)}
+                />
+              ))}
+            </div>
+          </AnimatePresence>
+        )}
+        <AcceptOrderModal
+          order={pendingOrder}
+          onConfirm={async () => {
+            if (pendingOrder) await handleAccept(pendingOrder.id);
+            setPendingOrder(null);
+          }}
+          onCancel={() => setPendingOrder(null)}
+        />
+      </VerificationGate>
     </div>
-    </VerificationGate>
   );
 }

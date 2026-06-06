@@ -40,7 +40,7 @@ export function Stepper({ current, onStepClick }: StepperProps) {
         />
       </div>
 
-      {/* Dots */}
+      {/* Dots — each wrapped in a 20×20 button for reliable touch target */}
       <div className="flex justify-between mt-3">
         {LABELS.map((_, i) => {
           const n = i + 1;
@@ -49,19 +49,23 @@ export function Stepper({ current, onStepClick }: StepperProps) {
           const clickable = done && !!onStepClick;
 
           return (
-            <motion.button
+            <button
               key={n}
               type="button"
-              onClick={() => clickable && onStepClick(n)}
-              animate={{
-                scale: active ? 1.2 : 1,
-                backgroundColor: done ? "#000" : active ? "#000" : "#e5e7eb",
-              }}
-              transition={{ duration: 0.2 }}
-              className={`w-1.5 h-1.5 rounded-full ${clickable ? "cursor-pointer" : "cursor-default"}`}
-              style={{ border: "none", padding: 0 }}
+              onClick={() => clickable && onStepClick!(n)}
+              disabled={!clickable}
               title={clickable ? `Вернуться: ${LABELS[i]}` : undefined}
-            />
+              className={`w-5 h-5 flex items-center justify-center bg-transparent border-none p-0 ${clickable ? "cursor-pointer" : "cursor-default"}`}
+            >
+              <motion.div
+                animate={{
+                  scale: active ? 1.2 : 1,
+                  backgroundColor: done ? "#000" : active ? "#000" : "#e5e7eb",
+                }}
+                transition={{ duration: 0.2 }}
+                className="w-1.5 h-1.5 rounded-full"
+              />
+            </button>
           );
         })}
       </div>

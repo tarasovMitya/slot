@@ -60,13 +60,25 @@ export function AcceptOrderModal({ order, onConfirm, onCancel }: AcceptOrderModa
             {/* Order summary */}
             <div className="bg-gray-50 rounded-2xl p-4 mb-4 flex flex-col gap-2">
               <p className="text-sm font-semibold text-gray-900">{order.serviceName}</p>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">
-                  {new Date(order.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} · {order.scheduledTime}
-                </span>
-                <span className="font-bold text-gray-900">{formatPrice(Math.round(order.priceTotal * 0.85))}</span>
-              </div>
               <p className="text-xs text-gray-400 truncate">{order.address}</p>
+              <p className="text-xs text-gray-400">
+                {new Date(order.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} · {order.scheduledTime}
+              </p>
+              {/* Price breakdown */}
+              <div className="mt-1 border-t border-gray-200 pt-2 flex flex-col gap-1">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>Стоимость для клиента</span>
+                  <span>{formatPrice(order.priceTotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span>Комиссия платформы (15%)</span>
+                  <span>−{formatPrice(Math.round(order.priceTotal * 0.15))}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm font-bold text-gray-900 pt-1 border-t border-gray-200 mt-0.5">
+                  <span>Вы получаете</span>
+                  <span className="text-green-600">{formatPrice(Math.round(order.priceTotal * 0.85))}</span>
+                </div>
+              </div>
             </div>
 
             {/* Warning */}
@@ -100,7 +112,7 @@ export function AcceptOrderModal({ order, onConfirm, onCancel }: AcceptOrderModa
                 onClick={handleClose}
                 className="flex-1 py-3.5 rounded-2xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-400 transition-all"
               >
-                Отмена
+                Закрыть
               </button>
               <button
                 onClick={handleConfirm}
