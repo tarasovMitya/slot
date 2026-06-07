@@ -23,7 +23,8 @@ export function PerformerGuard({ requireOnboarded = true }: PerformerGuardProps)
     setResolving(true);
     dbLoadPerformerProfile(user!.id)
       .then((profile) => {
-        const has = Boolean(profile?.name);
+        // Row exists = performer went through registration (name may be null for authenticated path)
+        const has = profile !== null;
         if (has) {
           supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } }).catch(() => {});
         }

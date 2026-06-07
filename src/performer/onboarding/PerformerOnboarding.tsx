@@ -98,15 +98,17 @@ export function PerformerOnboarding() {
           specializations: skills,
         };
         updateProfile(profileData);
+        // Save to DB so PerformerGuard can find the profile on next session
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser?.id) {
+          await dbSavePerformerProfile(freshUser.id, profileData).catch(() => {});
+        }
         await saveWorkSchedule(availabilityToWorkSchedule(availability));
         await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
         const refCode = localStorage.getItem("affiliate_ref_code");
-        if (refCode) {
-          const { data: { user: freshUser } } = await supabase.auth.getUser();
-          if (freshUser) {
-            await affiliateLinkPerformerByCode(freshUser.id, refCode).catch(() => {});
-            localStorage.removeItem("affiliate_ref_code");
-          }
+        if (refCode && freshUser) {
+          await affiliateLinkPerformerByCode(freshUser.id, refCode).catch(() => {});
+          localStorage.removeItem("affiliate_ref_code");
         }
         trackEvent("performer_registration_completed");
         complete();
