@@ -94,11 +94,6 @@ export function AddressSection() {
           </div>
         </div>
 
-        {/* Coordinates (readonly) */}
-        <div className="flex items-center gap-4 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
-          <span>lat {profile.lat.toFixed(4)}</span>
-          <span>lng {profile.lng.toFixed(4)}</span>
-        </div>
       </div>
     </div>
   );

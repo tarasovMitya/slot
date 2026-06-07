@@ -58,6 +58,7 @@ interface PerformerState {
   earnings: EarningsRecord[];
   notifications: PerformerNotification[];
   bankCards: BankCard[];
+  portfolioPhotos: string[];
   isHydrated: boolean;
   workSchedule: WorkSchedule;
 
@@ -81,6 +82,8 @@ interface PerformerState {
   addBankCard: (card: Omit<BankCard, "id">) => string;
   removeBankCard: (id: string) => void;
   setDefaultCard: (id: string) => void;
+  addPortfolioPhoto: (dataUrl: string) => void;
+  removePortfolioPhoto: (index: number) => void;
 }
 
 /** Enrich available orders with calculated distance from performer */
@@ -108,6 +111,7 @@ const emptyProfile: PerformerProfile = {
   phone: "",
   telegram: "",
   specializations: [],
+  about: "",
   address: "",
   city: "",
   lat: 0,
@@ -128,6 +132,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   earnings: [],
   notifications: [],
   bankCards: [],
+  portfolioPhotos: [],
   isHydrated: false,
   workSchedule: DEFAULT_WORK_SCHEDULE,
 
@@ -515,6 +520,12 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     set((s) => ({
       bankCards: s.bankCards.map((c) => ({ ...c, isDefault: c.id === id })),
     })),
+
+  addPortfolioPhoto: (dataUrl) =>
+    set((s) => ({ portfolioPhotos: [...s.portfolioPhotos, dataUrl].slice(0, 12) })),
+
+  removePortfolioPhoto: (index) =>
+    set((s) => ({ portfolioPhotos: s.portfolioPhotos.filter((_, i) => i !== index) })),
 
   saveWorkSchedule: async (schedule) => {
     set({ workSchedule: schedule });

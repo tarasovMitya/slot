@@ -57,6 +57,7 @@ export interface PerformerProfile {
   phone: string;
   telegram: string;
   specializations: string[];
+  about: string;
   address: string;
   city: string;
   lat: number;

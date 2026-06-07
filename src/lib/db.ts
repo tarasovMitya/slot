@@ -194,6 +194,7 @@ export async function dbLoadPerformerProfile(userId: string): Promise<PerformerP
     phone: data.phone,
     telegram: data.telegram,
     specializations: data.specializations ?? [],
+    about: data.about ?? "",
     address: data.address,
     city: data.city,
     lat: data.lat,
@@ -211,6 +212,7 @@ export async function dbSavePerformerProfile(userId: string, profile: Partial<Pe
   if (profile.rating !== undefined) row.rating = profile.rating;
   if (profile.completedOrders !== undefined) row.completed_orders = profile.completedOrders;
   if (profile.specializations !== undefined) row.specializations = profile.specializations;
+  if (profile.about !== undefined) row.about = profile.about;
   if (profile.address !== undefined) row.address = profile.address;
   if (profile.city !== undefined) row.city = profile.city;
   if (profile.lat !== undefined) row.lat = profile.lat;
