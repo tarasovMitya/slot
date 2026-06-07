@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { dbLoadPerformerProfile } from "../../lib/db";
-import { TelegramLoginButton } from "../../components/auth/TelegramLoginButton";
 
 type SubStep = "email" | "otp";
+type Method = "otp" | "password";
 
 const slide = {
   enter: { x: 30, opacity: 0 },
@@ -20,15 +21,17 @@ export function PerformerAuthPage() {
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuthStore();
 
-  // Save referral code from ?ref= query param to localStorage
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) localStorage.setItem("affiliate_ref_code", ref);
   }, []);
 
+  const [method, setMethod] = useState<Method>("otp");
   const [subStep, setSubStep] = useState<SubStep>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cooldown, setCooldown] = useState(0);
@@ -39,30 +42,14 @@ export function PerformerAuthPage() {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
 
-  const handleTelegramSuccess = async () => {
-    await supabase.auth.updateUser({ data: { performer_role: true } });
-    const { data: { user: freshUser } } = await supabase.auth.getUser();
-    if (freshUser?.user_metadata?.performer_onboarded) {
-      navigate("/performer", { replace: true }); return;
-    }
-    const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
-    if (existingProfile?.name) {
-      await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
-      navigate("/performer", { replace: true }); return;
-    }
-    navigate("/performer/onboarding", { replace: true });
-  };
-
-  // If already authenticated as performer, redirect
   useEffect(() => {
     if (isLoading) return;
     if (isAuthenticated && user?.user_metadata?.performer_role === true) {
       if (user.user_metadata.performer_onboarded) {
         navigate("/performer", { replace: true });
       } else {
-        // Fallback: check DB profile
         dbLoadPerformerProfile(user.id).then((profile) => {
-          if (profile?.name) {
+          if (profile !== null) {
             supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
             navigate("/performer", { replace: true });
           } else {
@@ -93,18 +80,12 @@ export function PerformerAuthPage() {
       options: { shouldCreateUser: true },
     });
     if (err) {
-      const isRateLimit =
-        err.message.toLowerCase().includes("rate limit") ||
+      const isRateLimit = err.message.toLowerCase().includes("rate limit") ||
         err.message.toLowerCase().includes("security purposes") ||
         err.status === 429;
-      const isEmailError = err.message.toLowerCase().includes("sending confirmation") ||
-        err.message.toLowerCase().includes("sending email") ||
-        err.message.toLowerCase().includes("email");
       setError(isRateLimit
         ? "Слишком много попыток. Подождите минуту и попробуйте снова."
-        : isEmailError
-          ? "Не удалось отправить письмо. Проверьте адрес или попробуйте позже."
-          : err.message);
+        : "Не удалось отправить письмо. Проверьте адрес или попробуйте позже.");
     } else {
       setEmail(e);
       setSubStep("otp");
@@ -115,36 +96,52 @@ export function PerformerAuthPage() {
 
   const handleSendOtp = emailForm.handleSubmit(({ email: e }) => sendOtp(e));
 
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
-    if (code.length < 6) { setError("Введите 6-значный код"); return; }
-    setLoading(true);
-    setError("");
-    const { error: err } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: "email",
-    });
-    if (err) {
-      setError("Неверный код. Попробуй ещё раз");
-      setLoading(false);
-      return;
-    }
-    // Mark as performer and check onboarding status
+  const afterLogin = async () => {
     await supabase.auth.updateUser({ data: { performer_role: true } });
     const { data: { user: freshUser } } = await supabase.auth.getUser();
     if (freshUser?.user_metadata?.performer_onboarded) {
       navigate("/performer", { replace: true });
     } else {
-      // Fallback: check if profile exists in DB (user may have onboarded before the flag was introduced)
       const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
-      if (existingProfile?.name) {
-        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+      if (existingProfile !== null) {
+        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } }).catch(() => {});
         navigate("/performer", { replace: true });
       } else {
         navigate("/performer/onboarding", { replace: true });
       }
     }
+  };
+
+  const handleVerifyOtp = async () => {
+    const code = otp.join("");
+    if (code.length < 6) { setError("Введите 6-значный код"); return; }
+    setLoading(true);
+    setError("");
+    const { error: err } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+    if (err) {
+      setError("Неверный код. Попробуй ещё раз");
+      setLoading(false);
+      return;
+    }
+    await afterLogin();
+  };
+
+  const handlePasswordLogin = async () => {
+    if (!password) { setError("Введите пароль"); return; }
+    setLoading(true);
+    setError("");
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: emailForm.getValues("email"),
+      password,
+    });
+    if (err) {
+      setError(err.message.toLowerCase().includes("invalid login credentials")
+        ? "Неверный email или пароль"
+        : "Ошибка входа. Попробуйте снова.");
+      setLoading(false);
+      return;
+    }
+    await afterLogin();
   };
 
   const handleOtpChange = (i: number, val: string) => {
@@ -153,12 +150,13 @@ export function PerformerAuthPage() {
     next[i] = digit;
     setOtp(next);
     if (digit && i < 5) otpRefs.current[i + 1]?.focus();
+    else if (digit && i === 5 && next.every((d) => d !== "")) {
+      handleVerifyOtp();
+    }
   };
 
   const handleOtpKeyDown = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0) {
-      otpRefs.current[i - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
   };
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
@@ -167,6 +165,12 @@ export function PerformerAuthPage() {
       setOtp([...digits, ...Array(6 - digits.length).fill("")]);
       otpRefs.current[Math.min(digits.length, 5)]?.focus();
     }
+  };
+
+  const switchMethod = (m: Method) => {
+    setMethod(m);
+    setError("");
+    setPassword("");
   };
 
   if (isLoading) {
@@ -180,7 +184,6 @@ export function PerformerAuthPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4">
             <img src="/logo-full.svg" alt="SLOT" className="h-10 w-auto" />
@@ -204,18 +207,34 @@ export function PerformerAuthPage() {
                 <p className="text-gray-500 mt-2">Выберите способ входа</p>
               </div>
 
-              {/* Telegram widget */}
-              <div className="flex flex-col items-center gap-2">
-                <TelegramLoginButton onSuccess={handleTelegramSuccess} />
+              {/* Method tabs */}
+              <div className="flex bg-gray-100 rounded-2xl p-1">
+                <button
+                  onClick={() => switchMethod("otp")}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    method === "otp"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Код на почту
+                </button>
+                <button
+                  onClick={() => switchMethod("password")}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    method === "password"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Пароль
+                </button>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-100" />
-                <span className="text-xs text-gray-400 uppercase tracking-wider">или email</span>
-                <div className="flex-1 h-px bg-gray-100" />
-              </div>
-
-              <form onSubmit={handleSendOtp} className="flex flex-col gap-3">
+              <form
+                onSubmit={method === "otp" ? handleSendOtp : (e) => { e.preventDefault(); handlePasswordLogin(); }}
+                className="flex flex-col gap-3"
+              >
                 <input
                   {...emailForm.register("email", {
                     required: "Введите email",
@@ -233,13 +252,39 @@ export function PerformerAuthPage() {
                 {emailForm.formState.errors.email && (
                   <p className="text-red-500 text-sm ml-1">{emailForm.formState.errors.email.message}</p>
                 )}
+
+                {method === "password" && (
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Пароль"
+                      autoComplete="current-password"
+                      className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#006AFF] text-lg outline-none transition-colors pr-14"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                )}
+
                 {error && <p className="text-red-500 text-sm ml-1">{error}</p>}
+
                 <button
                   type="submit"
-                  disabled={loading || cooldown > 0}
+                  disabled={loading || (method === "otp" && cooldown > 0)}
                   className="w-full py-4 rounded-2xl bg-[#006AFF] text-white font-semibold text-lg disabled:opacity-50 transition-all hover:bg-[#004CB8] active:scale-95"
                 >
-                  {loading ? "Отправляем..." : cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"}
+                  {loading
+                    ? "Входим..."
+                    : method === "otp"
+                      ? cooldown > 0 ? `Повторить через ${cooldown} с` : "Получить код"
+                      : "Войти"}
                 </button>
               </form>
 
