@@ -78,8 +78,9 @@ export function VerificationGate({ children }: VerificationGateProps) {
       return (
         <div className="max-w-lg mx-auto px-4 pt-16 pb-10">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm"
           >
             <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-5">

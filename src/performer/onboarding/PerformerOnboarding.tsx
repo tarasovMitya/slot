@@ -169,16 +169,16 @@ export function PerformerOnboarding() {
         workRadius: radius,
         specializations: skills,
       };
-      updateProfile(profileData);
-      // Save to DB directly using fresh userId (bypasses auth store race condition)
+      // Save to DB FIRST — prevents hydratePerformer (triggered by auth state change) reading stale data
       if (freshUser?.id) {
         await dbSavePerformerProfile(freshUser.id, profileData).catch(() => {});
-        // Save work schedule derived from onboarding availability selection
         await supabase
           .from("performer_profiles")
           .upsert({ user_id: freshUser.id, work_schedule: availabilityToWorkSchedule(availability), updated_at: new Date().toISOString() }, { onConflict: "user_id" })
           .then(() => {}, () => {});
       }
+      // Update local store AFTER DB write so it survives any concurrent hydratePerformer
+      updateProfile(profileData);
       await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
       // Link to affiliate manager if registered via referral link
       const refCode = localStorage.getItem("affiliate_ref_code");
@@ -370,9 +370,16 @@ export function PerformerOnboarding() {
   return (
     <OnboardingLayout step={step} onStepClick={handleStepClick}>
       <AnimatePresence mode="wait">
-        <div key={step}>
+        <motion.div
+          key={step}
+          variants={slide}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
           {stepContent}
-        </div>
+        </motion.div>
       </AnimatePresence>
     </OnboardingLayout>
   );

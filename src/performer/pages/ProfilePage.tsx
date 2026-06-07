@@ -157,25 +157,28 @@ export function PerformerProfilePage() {
         className="border border-gray-100 rounded-2xl p-6 mb-4"
       >
         <div className="flex items-center gap-5">
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="relative w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden group shrink-0 cursor-pointer"
-          >
-            {isImage ? (
-              <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-3xl font-bold text-gray-600">
-                {profile.avatar || profile.name.split(" ").map((w) => w[0]).slice(0, 2).join("") || "?"}
-              </span>
-            )}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera size={18} className="text-white" />
-            </div>
-            <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm">
+          {/* Wrapper outside overflow-hidden so camera badge isn't clipped */}
+          <div className="relative w-20 h-20 shrink-0">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden group cursor-pointer"
+            >
+              {isImage ? (
+                <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-bold text-gray-600">
+                  {profile.avatar || profile.name.split(" ").map((w) => w[0]).slice(0, 2).join("") || "?"}
+                </span>
+              )}
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={18} className="text-white" />
+              </div>
+            </button>
+            <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm pointer-events-none">
               <Camera size={10} className="text-gray-600" />
             </div>
-          </button>
+          </div>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
 
           <div>
