@@ -328,17 +328,16 @@ function CategoriesSection() {
             <p className="text-gray-500 mt-3">Рассчитайте стоимость за пару кликов</p>
           </motion.div>
 
-          <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 items-start">
             {CATEGORIES.map((cat) => (
               <motion.div
                 key={cat.title}
                 variants={fadeUp}
-                className="flex"
                 whileHover={{ y: -4, transition: { duration: 0.18 } }}
               >
                 <Link
                   to={`/moscow/${cat.slug}`}
-                  className="flex flex-col h-full bg-white rounded-2xl p-4 sm:p-5 text-left border border-gray-100 hover:border-gray-200 hover:shadow-md transition-shadow"
+                  className="flex flex-col bg-white rounded-2xl p-4 sm:p-5 text-left border border-gray-100 hover:border-gray-200 hover:shadow-md transition-shadow"
                 >
                   <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-3 shrink-0 ${cat.accent}`}>
                     <cat.icon size={18} />
