@@ -21,6 +21,7 @@ export const mockPerformerProfile: PerformerProfile = {
   lat: 55.7558,
   lng: 37.6176,
   workRadius: 15,
+  about: "",
 };
 
 export const mockBankCards: BankCard[] = [
